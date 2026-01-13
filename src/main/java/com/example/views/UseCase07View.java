@@ -2,19 +2,22 @@ package com.example.views;
 
 import com.example.MissingAPI;
 
-
-// Note: This code uses the proposed Signal API and will not compile yet
-
+import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.checkbox.Checkbox;
-import com.vaadin.signals.Signal;
-import com.vaadin.signals.WritableSignal;
-import com.vaadin.signals.ValueSignal;
 import com.vaadin.flow.component.combobox.ComboBox;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.H3;
+import com.vaadin.flow.component.html.Pre;
+import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.data.binder.Binder;
 import com.vaadin.flow.router.Menu;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
+import com.vaadin.signals.Signal;
+import com.vaadin.signals.ValueSignal;
+import com.vaadin.signals.WritableSignal;
 
 import java.util.List;
 
@@ -25,33 +28,153 @@ public class UseCase07View extends VerticalLayout {
 
     enum VisaType { H1B, L1, O1, OTHER }
 
+    // Bean to hold all form data
+    public static class VisaApplicationData {
+        private Boolean needsVisa = false;
+        private String currentVisaStatus = "";
+        private VisaType visaType = VisaType.H1B;
+
+        // H1B fields
+        private Boolean hasH1BPreviously = false;
+        private String h1bSpecialtyOccupation = "";
+        private String previousEmployer = "";
+        private String previousPetitionNumber = "";
+        private String previousH1BStartDate = "";
+
+        // L1 fields
+        private String parentCompanyName = "";
+        private String yearsWithParentCompany = "";
+        private String l1Category = "";
+
+        // O1 fields
+        private String fieldOfExtraordinaryAbility = "";
+        private String majorAwards = "";
+        private String publications = "";
+
+        // Getters and setters
+        public Boolean getNeedsVisa() { return needsVisa; }
+        public void setNeedsVisa(Boolean needsVisa) { this.needsVisa = needsVisa; }
+
+        public String getCurrentVisaStatus() { return currentVisaStatus; }
+        public void setCurrentVisaStatus(String currentVisaStatus) { this.currentVisaStatus = currentVisaStatus; }
+
+        public VisaType getVisaType() { return visaType; }
+        public void setVisaType(VisaType visaType) { this.visaType = visaType; }
+
+        public Boolean getHasH1BPreviously() { return hasH1BPreviously; }
+        public void setHasH1BPreviously(Boolean hasH1BPreviously) { this.hasH1BPreviously = hasH1BPreviously; }
+
+        public String getH1bSpecialtyOccupation() { return h1bSpecialtyOccupation; }
+        public void setH1bSpecialtyOccupation(String h1bSpecialtyOccupation) { this.h1bSpecialtyOccupation = h1bSpecialtyOccupation; }
+
+        public String getPreviousEmployer() { return previousEmployer; }
+        public void setPreviousEmployer(String previousEmployer) { this.previousEmployer = previousEmployer; }
+
+        public String getPreviousPetitionNumber() { return previousPetitionNumber; }
+        public void setPreviousPetitionNumber(String previousPetitionNumber) { this.previousPetitionNumber = previousPetitionNumber; }
+
+        public String getPreviousH1BStartDate() { return previousH1BStartDate; }
+        public void setPreviousH1BStartDate(String previousH1BStartDate) { this.previousH1BStartDate = previousH1BStartDate; }
+
+        public String getParentCompanyName() { return parentCompanyName; }
+        public void setParentCompanyName(String parentCompanyName) { this.parentCompanyName = parentCompanyName; }
+
+        public String getYearsWithParentCompany() { return yearsWithParentCompany; }
+        public void setYearsWithParentCompany(String yearsWithParentCompany) { this.yearsWithParentCompany = yearsWithParentCompany; }
+
+        public String getL1Category() { return l1Category; }
+        public void setL1Category(String l1Category) { this.l1Category = l1Category; }
+
+        public String getFieldOfExtraordinaryAbility() { return fieldOfExtraordinaryAbility; }
+        public void setFieldOfExtraordinaryAbility(String fieldOfExtraordinaryAbility) { this.fieldOfExtraordinaryAbility = fieldOfExtraordinaryAbility; }
+
+        public String getMajorAwards() { return majorAwards; }
+        public void setMajorAwards(String majorAwards) { this.majorAwards = majorAwards; }
+
+        public String getPublications() { return publications; }
+        public void setPublications(String publications) { this.publications = publications; }
+
+        @Override
+        public String toString() {
+            StringBuilder sb = new StringBuilder();
+            sb.append("Visa Application Data:\n");
+            sb.append("--------------------\n");
+            sb.append("Needs Visa: ").append(needsVisa).append("\n");
+
+            if (needsVisa) {
+                sb.append("Current Visa Status: ").append(currentVisaStatus).append("\n");
+                sb.append("Visa Type: ").append(visaType).append("\n\n");
+
+                if (visaType == VisaType.H1B) {
+                    sb.append("H1-B Details:\n");
+                    sb.append("  Specialty Occupation: ").append(h1bSpecialtyOccupation).append("\n");
+                    sb.append("  Had H1-B Previously: ").append(hasH1BPreviously).append("\n");
+                    if (hasH1BPreviously) {
+                        sb.append("  Previous Employer: ").append(previousEmployer).append("\n");
+                        sb.append("  Previous Petition #: ").append(previousPetitionNumber).append("\n");
+                        sb.append("  Previous Start Date: ").append(previousH1BStartDate).append("\n");
+                    }
+                } else if (visaType == VisaType.L1) {
+                    sb.append("L1 Details:\n");
+                    sb.append("  Parent Company: ").append(parentCompanyName).append("\n");
+                    sb.append("  Years with Company: ").append(yearsWithParentCompany).append("\n");
+                    sb.append("  L1 Category: ").append(l1Category).append("\n");
+                } else if (visaType == VisaType.O1) {
+                    sb.append("O1 Details:\n");
+                    sb.append("  Field of Extraordinary Ability: ").append(fieldOfExtraordinaryAbility).append("\n");
+                    sb.append("  Major Awards: ").append(majorAwards).append("\n");
+                    sb.append("  Publications: ").append(publications).append("\n");
+                }
+            }
+
+            return sb.toString();
+        }
+    }
+
     public UseCase07View() {
-        // Base question: needs visa sponsorship
+        // Create binder and bean
+        Binder<VisaApplicationData> binder = new Binder<>(VisaApplicationData.class);
+        VisaApplicationData data = new VisaApplicationData();
+        binder.setBean(data);
+
+        // Signals for conditional visibility
         WritableSignal<Boolean> needsVisaSignal = new ValueSignal<>(false);
+        WritableSignal<VisaType> visaTypeSignal = new ValueSignal<>(VisaType.H1B);
+        WritableSignal<Boolean> hasH1BPreviouslySignal = new ValueSignal<>(false);
+
+        // Base question: needs visa sponsorship
         Checkbox needsVisaCheckbox = new Checkbox("Do you require visa sponsorship?");
+        binder.forField(needsVisaCheckbox)
+            .bind(VisaApplicationData::getNeedsVisa, VisaApplicationData::setNeedsVisa);
         MissingAPI.bindValue(needsVisaCheckbox, needsVisaSignal);
 
         // Level 1: Visa-related fields (shown when needsVisa is true)
         VerticalLayout visaSection = new VerticalLayout();
-        WritableSignal<VisaType> visaTypeSignal = new ValueSignal<>(VisaType.H1B);
 
         ComboBox<VisaType> visaTypeSelect = new ComboBox<>("Visa Type", VisaType.values());
         visaTypeSelect.setValue(VisaType.H1B);
+        binder.forField(visaTypeSelect)
+            .bind(VisaApplicationData::getVisaType, VisaApplicationData::setVisaType);
         MissingAPI.bindValue(visaTypeSelect, visaTypeSignal);
 
         TextField currentVisaStatus = new TextField("Current Visa Status");
+        binder.forField(currentVisaStatus)
+            .bind(VisaApplicationData::getCurrentVisaStatus, VisaApplicationData::setCurrentVisaStatus);
 
         visaSection.add(visaTypeSelect, currentVisaStatus);
         visaSection.bindVisible(needsVisaSignal);
 
         // Level 2: H1-B specific fields (shown when visa type is H1B)
         VerticalLayout h1bSection = new VerticalLayout();
-        WritableSignal<Boolean> hasH1BPreviouslySignal = new ValueSignal<>(false);
 
         Checkbox hasH1BPreviouslyCheckbox = new Checkbox("Have you held an H1-B visa before?");
+        binder.forField(hasH1BPreviouslyCheckbox)
+            .bind(VisaApplicationData::getHasH1BPreviously, VisaApplicationData::setHasH1BPreviously);
         MissingAPI.bindValue(hasH1BPreviouslyCheckbox, hasH1BPreviouslySignal);
 
         TextField h1bSpecialtyOccupation = new TextField("Specialty Occupation");
+        binder.forField(h1bSpecialtyOccupation)
+            .bind(VisaApplicationData::getH1bSpecialtyOccupation, VisaApplicationData::setH1bSpecialtyOccupation);
 
         h1bSection.add(hasH1BPreviouslyCheckbox, h1bSpecialtyOccupation);
         h1bSection.bindVisible(Signal.computed(() ->
@@ -60,11 +183,20 @@ public class UseCase07View extends VerticalLayout {
 
         // Level 3: Previous H1-B details (shown when has H1-B previously)
         VerticalLayout previousH1BSection = new VerticalLayout();
-        previousH1BSection.add(
-            new TextField("Previous Employer"),
-            new TextField("Previous Petition Number"),
-            new TextField("Previous H1-B Start Date")
-        );
+
+        TextField previousEmployer = new TextField("Previous Employer");
+        binder.forField(previousEmployer)
+            .bind(VisaApplicationData::getPreviousEmployer, VisaApplicationData::setPreviousEmployer);
+
+        TextField previousPetitionNumber = new TextField("Previous Petition Number");
+        binder.forField(previousPetitionNumber)
+            .bind(VisaApplicationData::getPreviousPetitionNumber, VisaApplicationData::setPreviousPetitionNumber);
+
+        TextField previousH1BStartDate = new TextField("Previous H1-B Start Date");
+        binder.forField(previousH1BStartDate)
+            .bind(VisaApplicationData::getPreviousH1BStartDate, VisaApplicationData::setPreviousH1BStartDate);
+
+        previousH1BSection.add(previousEmployer, previousPetitionNumber, previousH1BStartDate);
         previousH1BSection.bindVisible(Signal.computed(() ->
             needsVisaSignal.value() &&
             visaTypeSignal.value() == VisaType.H1B &&
@@ -73,26 +205,76 @@ public class UseCase07View extends VerticalLayout {
 
         // Level 2: L1 specific fields (shown when visa type is L1)
         VerticalLayout l1Section = new VerticalLayout();
-        l1Section.add(
-            new TextField("Parent Company Name"),
-            new TextField("Years with Parent Company"),
-            new ComboBox<>("L1 Category", List.of("L1-A (Manager)", "L1-B (Specialized Knowledge)"))
-        );
+
+        TextField parentCompanyName = new TextField("Parent Company Name");
+        binder.forField(parentCompanyName)
+            .bind(VisaApplicationData::getParentCompanyName, VisaApplicationData::setParentCompanyName);
+
+        TextField yearsWithParentCompany = new TextField("Years with Parent Company");
+        binder.forField(yearsWithParentCompany)
+            .bind(VisaApplicationData::getYearsWithParentCompany, VisaApplicationData::setYearsWithParentCompany);
+
+        ComboBox<String> l1Category = new ComboBox<>("L1 Category",
+            List.of("L1-A (Manager)", "L1-B (Specialized Knowledge)"));
+        binder.forField(l1Category)
+            .bind(VisaApplicationData::getL1Category, VisaApplicationData::setL1Category);
+
+        l1Section.add(parentCompanyName, yearsWithParentCompany, l1Category);
         l1Section.bindVisible(Signal.computed(() ->
             needsVisaSignal.value() && visaTypeSignal.value() == VisaType.L1
         ));
 
         // Level 2: O1 specific fields (shown when visa type is O1)
         VerticalLayout o1Section = new VerticalLayout();
-        o1Section.add(
-            new TextField("Field of Extraordinary Ability"),
-            new TextField("Major Awards/Recognition"),
-            new TextField("Publications or Media Coverage")
-        );
+
+        TextField fieldOfExtraordinaryAbility = new TextField("Field of Extraordinary Ability");
+        binder.forField(fieldOfExtraordinaryAbility)
+            .bind(VisaApplicationData::getFieldOfExtraordinaryAbility, VisaApplicationData::setFieldOfExtraordinaryAbility);
+
+        TextField majorAwards = new TextField("Major Awards/Recognition");
+        binder.forField(majorAwards)
+            .bind(VisaApplicationData::getMajorAwards, VisaApplicationData::setMajorAwards);
+
+        TextField publications = new TextField("Publications or Media Coverage");
+        binder.forField(publications)
+            .bind(VisaApplicationData::getPublications, VisaApplicationData::setPublications);
+
+        o1Section.add(fieldOfExtraordinaryAbility, majorAwards, publications);
         o1Section.bindVisible(Signal.computed(() ->
             needsVisaSignal.value() && visaTypeSignal.value() == VisaType.O1
         ));
 
-        add(needsVisaCheckbox, visaSection, h1bSection, previousH1BSection, l1Section, o1Section);
+        // Display area for collected values
+        Div resultDisplay = new Div();
+        resultDisplay.getStyle()
+            .set("margin-top", "2em")
+            .set("padding", "1em")
+            .set("border", "1px solid #ccc")
+            .set("border-radius", "4px")
+            .set("background-color", "#f5f5f5");
+        resultDisplay.setVisible(false);
+
+        Pre resultText = new Pre();
+        resultText.getStyle().set("margin", "0");
+        resultDisplay.add(new H3("Collected Form Data"), resultText);
+
+        // Show Values button
+        Button showValuesButton = new Button("Show Collected Values", event -> {
+            resultText.setText(data.toString());
+            resultDisplay.setVisible(true);
+            Notification.show("Form data displayed below", 2000, Notification.Position.BOTTOM_START);
+        });
+        showValuesButton.addThemeName("primary");
+
+        add(
+            needsVisaCheckbox,
+            visaSection,
+            h1bSection,
+            previousH1BSection,
+            l1Section,
+            o1Section,
+            showValuesButton,
+            resultDisplay
+        );
     }
 }
