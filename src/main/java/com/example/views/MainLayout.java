@@ -7,8 +7,10 @@ import com.vaadin.flow.component.sidenav.SideNav;
 import com.vaadin.flow.component.sidenav.SideNavItem;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.server.menu.MenuConfiguration;
+import jakarta.annotation.security.PermitAll;
 
 @PageTitle("Signal API Use Cases")
+@PermitAll
 public class MainLayout extends AppLayout {
 
     public MainLayout() {

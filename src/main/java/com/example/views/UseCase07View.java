@@ -20,10 +20,12 @@ import com.vaadin.signals.ValueSignal;
 import com.vaadin.signals.WritableSignal;
 
 import java.util.List;
+import jakarta.annotation.security.PermitAll;
 
 @Route(value = "use-case-07", layout = MainLayout.class)
 @PageTitle("Use Case 7: Progressive Disclosure with Nested Conditions")
 @Menu(order = 31, title = "UC 7: Nested Conditions")
+@PermitAll
 public class UseCase07View extends VerticalLayout {
 
     enum VisaType { H1B, L1, O1, OTHER }

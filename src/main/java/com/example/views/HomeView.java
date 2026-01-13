@@ -10,10 +10,12 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.Menu;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
+import jakarta.annotation.security.PermitAll;
 
 @Route(value = "", layout = MainLayout.class)
 @PageTitle("Signal API Use Cases - Home")
 @Menu(order = 0, title = "Home")
+@PermitAll
 public class HomeView extends VerticalLayout {
 
     public HomeView() {

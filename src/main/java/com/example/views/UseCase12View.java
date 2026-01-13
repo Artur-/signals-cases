@@ -25,10 +25,12 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
+import jakarta.annotation.security.PermitAll;
 
 @Route(value = "use-case-12", layout = MainLayout.class)
 @PageTitle("Use Case 12: Shopping Cart with Real-time Totals")
 @Menu(order = 51, title = "UC 12: Shopping Cart")
+@PermitAll
 public class UseCase12View extends VerticalLayout {
 
     record CartItem(String id, String name, BigDecimal price, int quantity) {}

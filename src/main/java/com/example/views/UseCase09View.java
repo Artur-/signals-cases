@@ -18,10 +18,12 @@ import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 
 import java.util.List;
+import jakarta.annotation.security.PermitAll;
 
 @Route(value = "use-case-09", layout = MainLayout.class)
 @PageTitle("Use Case 9: Filtered and Sorted Data Grid")
 @Menu(order = 40, title = "UC 9: Filtered Data Grid")
+@PermitAll
 public class UseCase09View extends VerticalLayout {
 
     record Product(String id, String name, String category, double price, int stock) {}

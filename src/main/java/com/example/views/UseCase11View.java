@@ -16,10 +16,12 @@ import com.vaadin.flow.router.Route;
 
 import java.util.List;
 import java.util.Map;
+import jakarta.annotation.security.PermitAll;
 
 @Route(value = "use-case-11", layout = MainLayout.class)
 @PageTitle("Use Case 11: Cascading Location Selector")
 @Menu(order = 50, title = "UC 11: Cascading Selector")
+@PermitAll
 public class UseCase11View extends VerticalLayout {
 
     public UseCase11View() {

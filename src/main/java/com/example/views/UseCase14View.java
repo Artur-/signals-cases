@@ -22,10 +22,12 @@ import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 
 import java.util.List;
+import jakarta.annotation.security.PermitAll;
 
 @Route(value = "use-case-14", layout = MainLayout.class)
 @PageTitle("Use Case 14: Multi-Step Wizard with Validation")
 @Menu(order = 60, title = "UC 14: Multi-Step Wizard")
+@PermitAll
 public class UseCase14View extends VerticalLayout {
 
     enum Step { PERSONAL_INFO, COMPANY_INFO, PLAN_SELECTION, REVIEW }

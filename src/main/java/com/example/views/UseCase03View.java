@@ -15,11 +15,13 @@ import com.vaadin.flow.component.textfield.PasswordField;
 import com.vaadin.flow.router.Menu;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
+import jakarta.annotation.security.PermitAll;
 import java.util.concurrent.CompletableFuture;
 
 @Route(value = "use-case-03", layout = MainLayout.class)
 @PageTitle("Use Case 3: Dynamic Button State")
 @Menu(order = 12, title = "UC 3: Dynamic Button State")
+@PermitAll
 public class UseCase03View extends VerticalLayout {
 
     enum SubmissionState { IDLE, SUBMITTING, SUCCESS, ERROR }

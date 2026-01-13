@@ -24,10 +24,12 @@ import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 
 import java.util.List;
+import jakarta.annotation.security.PermitAll;
 
 @Route(value = "use-case-15", layout = MainLayout.class)
 @PageTitle("Use Case 15: Form with Binder Integration and Signal Validation")
 @Menu(order = 61, title = "UC 15: Binder Integration")
+@PermitAll
 public class UseCase15View extends VerticalLayout {
 
     enum AccountType { PERSONAL, BUSINESS }

@@ -1,22 +1,22 @@
 package com.example.views;
 
 import com.example.MissingAPI;
-
-
-// Note: This code uses the proposed Signal API and will not compile yet
+import com.example.security.SecurityService;
 
 import com.vaadin.flow.component.button.Button;
-import com.vaadin.signals.Signal;
-import com.vaadin.signals.WritableSignal;
-import com.vaadin.signals.ValueSignal;
-import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H3;
+import com.vaadin.flow.component.html.Paragraph;
+import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.Menu;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
+import com.vaadin.signals.Signal;
+import com.vaadin.signals.ValueSignal;
+import com.vaadin.signals.WritableSignal;
+import jakarta.annotation.security.PermitAll;
 
 import java.util.Set;
 import java.util.function.Function;
@@ -24,24 +24,52 @@ import java.util.function.Function;
 @Route(value = "use-case-08", layout = MainLayout.class)
 @PageTitle("Use Case 8: Permission-Based Component Visibility")
 @Menu(order = 32, title = "UC 8: Permission-Based UI")
+@PermitAll
 public class UseCase08View extends VerticalLayout {
 
-    enum UserRole { VIEWER, EDITOR, ADMIN, SUPER_ADMIN }
     enum Permission { VIEW_DASHBOARD, EDIT_CONTENT, DELETE_CONTENT, MANAGE_USERS, VIEW_LOGS, SYSTEM_SETTINGS }
 
-    public UseCase08View() {
-        // Create signal for current user role (simulating user switching)
-        WritableSignal<UserRole> currentRoleSignal = new ValueSignal<>(UserRole.VIEWER);
+    private final SecurityService securityService;
 
-        // Role selector (for demo purposes)
-        ComboBox<UserRole> roleSelector = new ComboBox<>("Simulate User Role", UserRole.values());
-        roleSelector.setValue(UserRole.VIEWER);
-        MissingAPI.bindValue(roleSelector, currentRoleSignal);
+    public UseCase08View(SecurityService securityService) {
+        this.securityService = securityService;
 
-        // Computed signal for user permissions based on role
-        Signal<Set<Permission>> permissionsSignal = Signal.computed(() ->
-            getPermissionsForRole(currentRoleSignal.value())
+        // Get current user info from Spring Security
+        String username = securityService.getUsername();
+        Set<String> roles = securityService.getRoles();
+
+        // Create signal for user permissions based on actual Spring Security roles
+        WritableSignal<Set<Permission>> permissionsSignal = new ValueSignal<>(
+            getPermissionsForRoles(roles)
         );
+
+        // User info display
+        Div userInfoBox = new Div();
+        userInfoBox.getStyle()
+            .set("background-color", "#e8f5e9")
+            .set("padding", "1em")
+            .set("border-radius", "4px")
+            .set("margin-bottom", "1em");
+
+        H3 userInfoTitle = new H3("Current User Information");
+        userInfoTitle.getStyle().set("margin-top", "0");
+
+        Paragraph userInfo = new Paragraph();
+        userInfo.getStyle()
+            .set("font-family", "monospace")
+            .set("white-space", "pre-line");
+        userInfo.setText(String.format(
+            "Username: %s\nRoles: %s\nPermissions: %d granted",
+            username,
+            String.join(", ", roles),
+            permissionsSignal.value().size()
+        ));
+
+        Button logoutButton = new Button("Logout", event -> securityService.logout());
+        logoutButton.addThemeName("error");
+        logoutButton.addThemeName("small");
+
+        userInfoBox.add(userInfoTitle, userInfo, logoutButton);
 
         // Helper function to create permission-based visibility signal
         Function<Permission, Signal<Boolean>> hasPermission = (Permission permission) ->
@@ -90,24 +118,64 @@ public class UseCase08View extends VerticalLayout {
 
         // Status indicator showing current permissions
         Div permissionsDisplay = new Div();
-        permissionsDisplay.add(new H3("Your Current Permissions:"));
-        MissingAPI.bindText(permissionsDisplay, permissionsSignal.map(perms ->
-            "Your Current Permissions: " + String.join(", ", perms.stream()
+        permissionsDisplay.getStyle()
+            .set("background-color", "#fff3e0")
+            .set("padding", "1em")
+            .set("border-radius", "4px")
+            .set("margin-top", "1em");
+
+        Span permissionsTitle = new Span("Visible Sections Based On Your Permissions:");
+        permissionsTitle.getStyle()
+            .set("font-weight", "bold")
+            .set("display", "block")
+            .set("margin-bottom", "0.5em");
+
+        Span permissionsList = new Span();
+        MissingAPI.bindText(permissionsList, permissionsSignal.map(perms ->
+            String.join(", ", perms.stream()
                 .map(Permission::name)
                 .toList())
         ));
 
-        add(roleSelector, permissionsDisplay, dashboardSection, editButtons,
-            userManagementSection, logsSection, settingsSection);
+        permissionsDisplay.add(permissionsTitle, permissionsList);
+
+        // Info about impersonation
+        Div impersonationHint = new Div();
+        impersonationHint.getStyle()
+            .set("background-color", "#e3f2fd")
+            .set("padding", "1em")
+            .set("border-radius", "4px")
+            .set("margin-top", "1em")
+            .set("font-style", "italic");
+        impersonationHint.setText(
+            "💡 Tip: Use Vaadin Copilot's impersonation feature to test different user roles without logging out"
+        );
+
+        add(userInfoBox, permissionsDisplay, impersonationHint,
+            dashboardSection, editButtons, userManagementSection, logsSection, settingsSection);
     }
 
-    private Set<Permission> getPermissionsForRole(UserRole role) {
-        return switch (role) {
-            case VIEWER -> Set.of(Permission.VIEW_DASHBOARD);
-            case EDITOR -> Set.of(Permission.VIEW_DASHBOARD, Permission.EDIT_CONTENT);
-            case ADMIN -> Set.of(Permission.VIEW_DASHBOARD, Permission.EDIT_CONTENT,
-                               Permission.DELETE_CONTENT, Permission.MANAGE_USERS);
-            case SUPER_ADMIN -> Set.of(Permission.values());
-        };
+    private Set<Permission> getPermissionsForRoles(Set<String> roles) {
+        // Map Spring Security roles to application permissions
+        Set<Permission> permissions = new java.util.HashSet<>();
+
+        if (roles.contains("VIEWER")) {
+            permissions.add(Permission.VIEW_DASHBOARD);
+        }
+        if (roles.contains("EDITOR")) {
+            permissions.add(Permission.VIEW_DASHBOARD);
+            permissions.add(Permission.EDIT_CONTENT);
+        }
+        if (roles.contains("ADMIN")) {
+            permissions.add(Permission.VIEW_DASHBOARD);
+            permissions.add(Permission.EDIT_CONTENT);
+            permissions.add(Permission.DELETE_CONTENT);
+            permissions.add(Permission.MANAGE_USERS);
+        }
+        if (roles.contains("SUPER_ADMIN")) {
+            permissions.addAll(Set.of(Permission.values()));
+        }
+
+        return permissions;
     }
 }

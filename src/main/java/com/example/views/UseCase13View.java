@@ -21,10 +21,12 @@ import com.vaadin.flow.router.Route;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
+import jakarta.annotation.security.PermitAll;
 
 @Route(value = "use-case-13", layout = MainLayout.class)
 @PageTitle("Use Case 13: Master-Detail Invoice View")
 @Menu(order = 52, title = "UC 13: Master-Detail Invoice")
+@PermitAll
 public class UseCase13View extends VerticalLayout {
 
     record Invoice(String id, String customerName, LocalDate date, BigDecimal total, String status) {}

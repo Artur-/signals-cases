@@ -24,10 +24,12 @@ import com.vaadin.flow.router.Route;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import jakarta.annotation.security.PermitAll;
 
 @Route(value = "use-case-17", layout = MainLayout.class)
 @PageTitle("Use Case 17: Employee Management Grid with Dynamic Editability")
 @Menu(order = 63, title = "UC 17: Grid Providers")
+@PermitAll
 public class UseCase17View extends VerticalLayout {
 
     enum UserRole { VIEWER, EDITOR, ADMIN }
