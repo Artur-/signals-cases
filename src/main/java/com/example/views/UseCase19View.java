@@ -2,27 +2,22 @@ package com.example.views;
 
 import com.example.MissingAPI;
 import com.example.security.CurrentUserSignal;
+import com.example.signals.CollaborativeSignals;
+import com.example.signals.UserSessionRegistry;
 import com.vaadin.flow.component.AttachEvent;
 import com.vaadin.flow.component.DetachEvent;
-import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.html.Paragraph;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
-import com.vaadin.flow.dom.DomEventListener;
-import com.vaadin.flow.dom.Element;
 import com.vaadin.flow.router.Menu;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
-import com.vaadin.flow.shared.Registration;
-import com.vaadin.signals.Signal;
-import com.vaadin.signals.ValueSignal;
 import com.vaadin.signals.WritableSignal;
 import jakarta.annotation.security.PermitAll;
 
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Use Case 19: Collaborative Cursor Positions
@@ -45,42 +40,20 @@ import java.util.concurrent.ConcurrentHashMap;
 @PermitAll
 public class UseCase19View extends VerticalLayout {
 
-    public static class CursorPosition {
-        private final int x;
-        private final int y;
-
-        public CursorPosition(int x, int y) {
-            this.x = x;
-            this.y = y;
-        }
-
-        public int getX() {
-            return x;
-        }
-
-        public int getY() {
-            return y;
-        }
-
-        @Override
-        public String toString() {
-            return "(" + x + ", " + y + ")";
-        }
-    }
-
-    // Shared cursor positions for all users
-    private static final Map<String, WritableSignal<CursorPosition>> userCursors =
-        new ConcurrentHashMap<>();
-
     private final String currentUser;
-    private final WritableSignal<CursorPosition> myCursorSignal;
+    private final WritableSignal<CollaborativeSignals.CursorPosition> myCursorSignal;
+    private final CollaborativeSignals collaborativeSignals;
+    private final UserSessionRegistry userSessionRegistry;
 
-    public UseCase19View(CurrentUserSignal currentUserSignal) {
+    public UseCase19View(CurrentUserSignal currentUserSignal,
+                         CollaborativeSignals collaborativeSignals,
+                         UserSessionRegistry userSessionRegistry) {
         this.currentUser = currentUserSignal.getUserSignal().value().getUsername();
+        this.collaborativeSignals = collaborativeSignals;
+        this.userSessionRegistry = userSessionRegistry;
 
         // Register this user's cursor signal
-        this.myCursorSignal = userCursors.computeIfAbsent(currentUser,
-            k -> new ValueSignal<>(new CursorPosition(0, 0)));
+        this.myCursorSignal = collaborativeSignals.getCursorSignalForUser(currentUser);
 
         setSpacing(true);
         setPadding(true);
@@ -118,7 +91,7 @@ public class UseCase19View extends VerticalLayout {
             // Get mouse position relative to canvas
             double clientX = event.getEventData().get("event.offsetX").asDouble();
             double clientY = event.getEventData().get("event.offsetY").asDouble();
-            myCursorSignal.value(new CursorPosition((int) clientX, (int) clientY));
+            myCursorSignal.value(new CollaborativeSignals.CursorPosition((int) clientX, (int) clientY));
         }).addEventData("event.offsetX").addEventData("event.offsetY");
 
         // Current users list
@@ -130,9 +103,10 @@ public class UseCase19View extends VerticalLayout {
             .set("border-radius", "4px");
 
         // Display all active users
-        for (Map.Entry<String, WritableSignal<CursorPosition>> entry : userCursors.entrySet()) {
+        for (Map.Entry<String, WritableSignal<CollaborativeSignals.CursorPosition>> entry :
+                collaborativeSignals.getUserCursors().entrySet()) {
             String username = entry.getKey();
-            WritableSignal<CursorPosition> signal = entry.getValue();
+            WritableSignal<CollaborativeSignals.CursorPosition> signal = entry.getValue();
 
             Div userItem = new Div();
             userItem.getStyle()
@@ -145,7 +119,7 @@ public class UseCase19View extends VerticalLayout {
             userLabel.getStyle().set("font-weight", username.equals(currentUser) ? "bold" : "normal");
 
             Div positionLabel = new Div();
-            MissingAPI.bindElementText(positionLabel, signal.map(CursorPosition::toString));
+            MissingAPI.bindElementText(positionLabel, signal.map(CollaborativeSignals.CursorPosition::toString));
             positionLabel.getStyle()
                 .set("font-family", "monospace")
                 .set("color", "var(--lumo-secondary-text-color)");
@@ -172,14 +146,27 @@ public class UseCase19View extends VerticalLayout {
         add(title, description, canvas, usersTitle, usersList, infoBox);
     }
 
+    @Override
+    protected void onAttach(AttachEvent attachEvent) {
+        super.onAttach(attachEvent);
+        userSessionRegistry.registerUser(currentUser);
+    }
+
+    @Override
+    protected void onDetach(DetachEvent detachEvent) {
+        super.onDetach(detachEvent);
+        userSessionRegistry.unregisterUser(currentUser);
+    }
+
     private void renderAllCursors(Div container) {
-        for (Map.Entry<String, WritableSignal<CursorPosition>> entry : userCursors.entrySet()) {
+        for (Map.Entry<String, WritableSignal<CollaborativeSignals.CursorPosition>> entry :
+                collaborativeSignals.getUserCursors().entrySet()) {
             String username = entry.getKey();
             if (username.equals(currentUser)) {
                 continue; // Don't show own cursor
             }
 
-            WritableSignal<CursorPosition> signal = entry.getValue();
+            WritableSignal<CollaborativeSignals.CursorPosition> signal = entry.getValue();
 
             Div cursorIndicator = new Div();
             cursorIndicator.getStyle()
@@ -194,8 +181,8 @@ public class UseCase19View extends VerticalLayout {
                 .set("z-index", "1000");
 
             // Bind position
-            MissingAPI.bindStyle(cursorIndicator, "left", signal.map(pos -> pos.getX() + "px"));
-            MissingAPI.bindStyle(cursorIndicator, "top", signal.map(pos -> pos.getY() + "px"));
+            MissingAPI.bindStyle(cursorIndicator, "left", signal.map(pos -> pos.x() + "px"));
+            MissingAPI.bindStyle(cursorIndicator, "top", signal.map(pos -> pos.y() + "px"));
 
             // Label
             Div label = new Div();
@@ -214,12 +201,5 @@ public class UseCase19View extends VerticalLayout {
             cursorIndicator.add(label);
             container.add(cursorIndicator);
         }
-    }
-
-    @Override
-    protected void onDetach(DetachEvent detachEvent) {
-        super.onDetach(detachEvent);
-        // In production, might want to remove inactive users after timeout
-        // userCursors.remove(currentUser);
     }
 }

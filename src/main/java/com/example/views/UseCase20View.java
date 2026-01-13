@@ -2,6 +2,10 @@ package com.example.views;
 
 import com.example.MissingAPI;
 import com.example.security.CurrentUserSignal;
+import com.example.signals.CollaborativeSignals;
+import com.example.signals.UserSessionRegistry;
+import com.vaadin.flow.component.AttachEvent;
+import com.vaadin.flow.component.DetachEvent;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H2;
@@ -12,15 +16,9 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.Menu;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
-import com.vaadin.signals.Signal;
-import com.vaadin.signals.ValueSignal;
-import com.vaadin.signals.WritableSignal;
 import jakarta.annotation.security.PermitAll;
 
-import java.util.Map;
 import java.util.Random;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Use Case 20: Competitive Button Click Game
@@ -43,25 +41,20 @@ import java.util.concurrent.atomic.AtomicInteger;
 @PermitAll
 public class UseCase20View extends VerticalLayout {
 
-    // Shared game state (static = shared across all users)
-    private static final WritableSignal<Map<String, Integer>> leaderboardSignal =
-        new ValueSignal<>(new ConcurrentHashMap<>());
-
-    private static final WritableSignal<Boolean> buttonVisibleSignal = new ValueSignal<>(false);
-    private static final WritableSignal<Integer> buttonLeftSignal = new ValueSignal<>(0);
-    private static final WritableSignal<Integer> buttonTopSignal = new ValueSignal<>(0);
-    private static final AtomicInteger roundNumber = new AtomicInteger(0);
-
     private final String currentUser;
+    private final CollaborativeSignals collaborativeSignals;
+    private final UserSessionRegistry userSessionRegistry;
     private final Random random = new Random();
 
-    public UseCase20View(CurrentUserSignal currentUserSignal) {
+    public UseCase20View(CurrentUserSignal currentUserSignal,
+                         CollaborativeSignals collaborativeSignals,
+                         UserSessionRegistry userSessionRegistry) {
         this.currentUser = currentUserSignal.getUserSignal().value().getUsername();
+        this.collaborativeSignals = collaborativeSignals;
+        this.userSessionRegistry = userSessionRegistry;
 
         // Initialize user score if not present
-        Map<String, Integer> leaderboard = leaderboardSignal.value();
-        leaderboard.putIfAbsent(currentUser, 0);
-        leaderboardSignal.value(leaderboard);
+        collaborativeSignals.initializePlayerScore(currentUser);
 
         setSpacing(true);
         setPadding(true);
@@ -94,9 +87,9 @@ public class UseCase20View extends VerticalLayout {
             .set("position", "absolute")
             .set("z-index", "10");
 
-        MissingAPI.bindVisible(targetButton, buttonVisibleSignal);
-        MissingAPI.bindStyle(targetButton, "left", buttonLeftSignal.map(left -> left + "px"));
-        MissingAPI.bindStyle(targetButton, "top", buttonTopSignal.map(top -> top + "px"));
+        MissingAPI.bindVisible(targetButton, collaborativeSignals.getButtonVisibleSignal());
+        MissingAPI.bindStyle(targetButton, "left", collaborativeSignals.getButtonLeftSignal().map(left -> left + "px"));
+        MissingAPI.bindStyle(targetButton, "top", collaborativeSignals.getButtonTopSignal().map(top -> top + "px"));
 
         gameArea.add(targetButton);
 
@@ -110,7 +103,7 @@ public class UseCase20View extends VerticalLayout {
         startButton.addThemeName("success");
 
         Button resetButton = new Button("Reset Scores", event -> {
-            leaderboardSignal.value(new ConcurrentHashMap<>());
+            collaborativeSignals.resetLeaderboard();
         });
         resetButton.addThemeName("error");
         resetButton.addThemeName("small");
@@ -127,7 +120,7 @@ public class UseCase20View extends VerticalLayout {
 
         // Bind leaderboard display
         MissingAPI.bindChildren(leaderboardDiv,
-            leaderboardSignal.map(scores -> {
+            collaborativeSignals.getLeaderboardSignal().map(scores -> {
                 return scores.entrySet().stream()
                     .sorted((e1, e2) -> e2.getValue().compareTo(e1.getValue()))
                     .map(entry -> {
@@ -168,24 +161,23 @@ public class UseCase20View extends VerticalLayout {
         int left = random.nextInt(400);
         int top = random.nextInt(200);
 
-        buttonLeftSignal.value(left);
-        buttonTopSignal.value(top);
-        buttonVisibleSignal.value(true);
-
-        roundNumber.incrementAndGet();
+        collaborativeSignals.showButtonAt(left, top);
     }
 
-    private synchronized void handleButtonClick() {
-        // Atomic operation: Only first click counts
-        if (!buttonVisibleSignal.value()) {
-            return; // Already clicked by someone else
-        }
+    private void handleButtonClick() {
+        // Atomic operation: Only first click counts (handled by CollaborativeSignals)
+        collaborativeSignals.awardPoint(currentUser);
+    }
 
-        buttonVisibleSignal.value(false);
+    @Override
+    protected void onAttach(AttachEvent attachEvent) {
+        super.onAttach(attachEvent);
+        userSessionRegistry.registerUser(currentUser);
+    }
 
-        // Award point
-        Map<String, Integer> scores = new ConcurrentHashMap<>(leaderboardSignal.value());
-        scores.merge(currentUser, 1, Integer::sum);
-        leaderboardSignal.value(scores);
+    @Override
+    protected void onDetach(DetachEvent detachEvent) {
+        super.onDetach(detachEvent);
+        userSessionRegistry.unregisterUser(currentUser);
     }
 }

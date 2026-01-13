@@ -2,6 +2,10 @@ package com.example.views;
 
 import com.example.MissingAPI;
 import com.example.security.CurrentUserSignal;
+import com.example.signals.CollaborativeSignals;
+import com.example.signals.UserSessionRegistry;
+import com.vaadin.flow.component.AttachEvent;
+import com.vaadin.flow.component.DetachEvent;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H2;
@@ -13,12 +17,7 @@ import com.vaadin.flow.router.Menu;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.signals.Signal;
-import com.vaadin.signals.ValueSignal;
-import com.vaadin.signals.WritableSignal;
 import jakarta.annotation.security.PermitAll;
-
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Use Case 21: Collaborative Form Editing with Locking
@@ -41,19 +40,16 @@ import java.util.concurrent.ConcurrentHashMap;
 @PermitAll
 public class UseCase21View extends VerticalLayout {
 
-    // Shared form data
-    private static final WritableSignal<String> companyNameSignal = new ValueSignal<>("");
-    private static final WritableSignal<String> addressSignal = new ValueSignal<>("");
-    private static final WritableSignal<String> phoneSignal = new ValueSignal<>("");
-
-    // Field locks: field name -> username
-    private static final WritableSignal<Map<String, String>> fieldLocksSignal =
-        new ValueSignal<>(new ConcurrentHashMap<>());
-
     private final String currentUser;
+    private final CollaborativeSignals collaborativeSignals;
+    private final UserSessionRegistry userSessionRegistry;
 
-    public UseCase21View(CurrentUserSignal currentUserSignal) {
+    public UseCase21View(CurrentUserSignal currentUserSignal,
+                         CollaborativeSignals collaborativeSignals,
+                         UserSessionRegistry userSessionRegistry) {
         this.currentUser = currentUserSignal.getUserSignal().value().getUsername();
+        this.collaborativeSignals = collaborativeSignals;
+        this.userSessionRegistry = userSessionRegistry;
 
         setSpacing(true);
         setPadding(true);
@@ -67,13 +63,16 @@ public class UseCase21View extends VerticalLayout {
         );
 
         // Company Name field
-        TextField companyNameField = createLockedField("companyName", "Company Name", companyNameSignal);
+        TextField companyNameField = createLockedField("companyName", "Company Name",
+            collaborativeSignals.getCompanyNameSignal());
 
         // Address field
-        TextField addressField = createLockedField("address", "Address", addressSignal);
+        TextField addressField = createLockedField("address", "Address",
+            collaborativeSignals.getAddressSignal());
 
         // Phone field
-        TextField phoneField = createLockedField("phone", "Phone Number", phoneSignal);
+        TextField phoneField = createLockedField("phone", "Phone Number",
+            collaborativeSignals.getPhoneSignal());
 
         // Active editors display
         H3 editorsTitle = new H3("Active Editors");
@@ -84,7 +83,7 @@ public class UseCase21View extends VerticalLayout {
             .set("border-radius", "4px");
 
         MissingAPI.bindChildren(editorsDiv,
-            fieldLocksSignal.map(locks -> {
+            collaborativeSignals.getFieldLocksSignal().map(locks -> {
                 if (locks.isEmpty()) {
                     Div msg = new Div();
                     msg.setText("No fields are currently being edited");
@@ -160,7 +159,8 @@ public class UseCase21View extends VerticalLayout {
         );
     }
 
-    private TextField createLockedField(String fieldName, String label, WritableSignal<String> signal) {
+    private TextField createLockedField(String fieldName, String label,
+                                         com.vaadin.signals.WritableSignal<String> signal) {
         TextField field = new TextField(label);
         field.setWidthFull();
 
@@ -169,22 +169,16 @@ public class UseCase21View extends VerticalLayout {
 
         // Lock field when focused
         field.addFocusListener(event -> {
-            Map<String, String> locks = new ConcurrentHashMap<>(fieldLocksSignal.value());
-            locks.put(fieldName, currentUser);
-            fieldLocksSignal.value(locks);
+            collaborativeSignals.lockField(fieldName, currentUser);
         });
 
         // Unlock when blurred
         field.addBlurListener(event -> {
-            Map<String, String> locks = new ConcurrentHashMap<>(fieldLocksSignal.value());
-            if (currentUser.equals(locks.get(fieldName))) {
-                locks.remove(fieldName);
-                fieldLocksSignal.value(locks);
-            }
+            collaborativeSignals.unlockField(fieldName, currentUser);
         });
 
         // Show who is editing
-        Signal<String> helperTextSignal = fieldLocksSignal.map(locks -> {
+        Signal<String> helperTextSignal = collaborativeSignals.getFieldLocksSignal().map(locks -> {
             String lockOwner = locks.get(fieldName);
             if (lockOwner == null) {
                 return "Available to edit";
@@ -197,7 +191,7 @@ public class UseCase21View extends VerticalLayout {
         MissingAPI.bindHelperText(field, helperTextSignal);
 
         // Disable if locked by another user
-        Signal<Boolean> enabledSignal = fieldLocksSignal.map(locks -> {
+        Signal<Boolean> enabledSignal = collaborativeSignals.getFieldLocksSignal().map(locks -> {
             String lockOwner = locks.get(fieldName);
             return lockOwner == null || lockOwner.equals(currentUser);
         });
@@ -213,5 +207,17 @@ public class UseCase21View extends VerticalLayout {
             case "phone" -> "Phone Number";
             default -> fieldName;
         };
+    }
+
+    @Override
+    protected void onAttach(AttachEvent attachEvent) {
+        super.onAttach(attachEvent);
+        userSessionRegistry.registerUser(currentUser);
+    }
+
+    @Override
+    protected void onDetach(DetachEvent detachEvent) {
+        super.onDetach(detachEvent);
+        userSessionRegistry.unregisterUser(currentUser);
     }
 }

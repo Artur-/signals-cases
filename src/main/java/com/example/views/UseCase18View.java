@@ -2,6 +2,10 @@ package com.example.views;
 
 import com.example.MissingAPI;
 import com.example.security.CurrentUserSignal;
+import com.example.signals.CollaborativeSignals;
+import com.example.signals.UserSessionRegistry;
+import com.vaadin.flow.component.AttachEvent;
+import com.vaadin.flow.component.DetachEvent;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H2;
@@ -14,14 +18,7 @@ import com.vaadin.flow.router.Menu;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.signals.Signal;
-import com.vaadin.signals.ValueSignal;
-import com.vaadin.signals.WritableSignal;
 import jakarta.annotation.security.PermitAll;
-
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Use Case 18: Shared Chat/Message List
@@ -49,42 +46,16 @@ import java.util.List;
 @PermitAll
 public class UseCase18View extends VerticalLayout {
 
-    public static class Message {
-        private final String author;
-        private final String text;
-        private final LocalDateTime timestamp;
-
-        public Message(String author, String text) {
-            this.author = author;
-            this.text = text;
-            this.timestamp = LocalDateTime.now();
-        }
-
-        public String getAuthor() {
-            return author;
-        }
-
-        public String getText() {
-            return text;
-        }
-
-        public LocalDateTime getTimestamp() {
-            return timestamp;
-        }
-
-        public String getFormattedTimestamp() {
-            return timestamp.format(DateTimeFormatter.ofPattern("HH:mm:ss"));
-        }
-    }
-
-    // In production, this would be application-scoped and backed by database
-    private static final WritableSignal<List<Message>> sharedMessagesSignal =
-        new ValueSignal<>(new ArrayList<>());
-
     private final String currentUser;
+    private final CollaborativeSignals collaborativeSignals;
+    private final UserSessionRegistry userSessionRegistry;
 
-    public UseCase18View(CurrentUserSignal currentUserSignal) {
+    public UseCase18View(CurrentUserSignal currentUserSignal,
+                         CollaborativeSignals collaborativeSignals,
+                         UserSessionRegistry userSessionRegistry) {
         this.currentUser = currentUserSignal.getUserSignal().value().getUsername();
+        this.collaborativeSignals = collaborativeSignals;
+        this.userSessionRegistry = userSessionRegistry;
 
         setSpacing(true);
         setPadding(true);
@@ -111,7 +82,7 @@ public class UseCase18View extends VerticalLayout {
 
         // Bind message list to UI
         MissingAPI.bindChildren(messagesContainer,
-            sharedMessagesSignal.map(messages ->
+            collaborativeSignals.getMessagesSignal().map(messages ->
                 messages.stream()
                     .map(this::createMessageComponent)
                     .toList()
@@ -131,14 +102,15 @@ public class UseCase18View extends VerticalLayout {
         Button sendButton = new Button("Send Message", event -> {
             String text = messageInput.getValue();
             if (text != null && !text.trim().isEmpty()) {
-                appendMessage(new Message(currentUser, text.trim()));
+                collaborativeSignals.appendMessage(
+                    new CollaborativeSignals.Message(currentUser, text.trim()));
                 messageInput.clear();
             }
         });
         sendButton.addThemeName("primary");
 
         Button clearButton = new Button("Clear All Messages", event -> {
-            sharedMessagesSignal.value(new ArrayList<>());
+            collaborativeSignals.clearMessages();
         });
         clearButton.addThemeName("error");
         clearButton.addThemeName("small");
@@ -156,18 +128,18 @@ public class UseCase18View extends VerticalLayout {
 
         Div messageCount = new Div();
         MissingAPI.bindElementText(messageCount,
-            sharedMessagesSignal.map(messages ->
+            collaborativeSignals.getMessagesSignal().map(messages ->
                 "💬 Total messages: " + messages.size()
             )
         );
 
         infoBox.add(new Paragraph(
             "💡 In production implementation:\n" +
-            "• Signal would be server-side (application or session scoped)\n" +
+            "• Signal is application-scoped Spring component (injected)\n" +
             "• Vaadin Push would broadcast updates to all connected clients\n" +
             "• Messages would be persisted to database\n" +
             "• Authorization would prevent editing others' messages\n" +
-            "• Signal API would handle all synchronization automatically"
+            "• Signal API handles all synchronization automatically"
         ), messageCount);
 
         add(
@@ -182,15 +154,19 @@ public class UseCase18View extends VerticalLayout {
         );
     }
 
-    private void appendMessage(Message message) {
-        // In production, this would be a server-side operation
-        // that triggers Push updates to all clients
-        List<Message> currentMessages = new ArrayList<>(sharedMessagesSignal.value());
-        currentMessages.add(message);
-        sharedMessagesSignal.value(currentMessages);
+    @Override
+    protected void onAttach(AttachEvent attachEvent) {
+        super.onAttach(attachEvent);
+        userSessionRegistry.registerUser(currentUser);
     }
 
-    private Div createMessageComponent(Message message) {
+    @Override
+    protected void onDetach(DetachEvent detachEvent) {
+        super.onDetach(detachEvent);
+        userSessionRegistry.unregisterUser(currentUser);
+    }
+
+    private Div createMessageComponent(CollaborativeSignals.Message message) {
         Div messageDiv = new Div();
         messageDiv.getStyle()
             .set("background-color", "#ffffff")
@@ -206,7 +182,7 @@ public class UseCase18View extends VerticalLayout {
             .set("margin-bottom", "0.5em");
 
         Div author = new Div();
-        author.setText("👤 " + message.getAuthor());
+        author.setText("👤 " + message.author());
         author.getStyle()
             .set("font-weight", "bold")
             .set("color", "var(--lumo-primary-color)");
@@ -220,7 +196,7 @@ public class UseCase18View extends VerticalLayout {
         header.add(author, timestamp);
 
         Div text = new Div();
-        text.setText(message.getText());
+        text.setText(message.text());
         text.getStyle()
             .set("color", "var(--lumo-body-text-color)");
 
