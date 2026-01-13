@@ -20,7 +20,7 @@ import com.vaadin.signals.Signal;
 import jakarta.annotation.security.PermitAll;
 
 /**
- * Use Case 21: Collaborative Form Editing with Locking
+ * Multi-User Case 4: Collaborative Form Editing with Locking
  *
  * Demonstrates field-level locking for collaborative editing:
  * - Show who is editing which field
@@ -34,17 +34,17 @@ import jakarta.annotation.security.PermitAll;
  * - Show editing indicators
  * - Merge conflict detection
  */
-@Route(value = "use-case-21", layout = MainLayout.class)
-@PageTitle("Use Case 21: Collaborative Editing")
-@Menu(order = 53, title = "UC 21: Collaborative Editing")
+@Route(value = "muc-04", layout = MainLayout.class)
+@PageTitle("Multi-User Case 4: Collaborative Editing")
+@Menu(order = 53, title = "MUC 4: Collaborative Editing")
 @PermitAll
-public class UseCase21View extends VerticalLayout {
+public class MUC04View extends VerticalLayout {
 
     private final String currentUser;
     private final CollaborativeSignals collaborativeSignals;
     private final UserSessionRegistry userSessionRegistry;
 
-    public UseCase21View(CurrentUserSignal currentUserSignal,
+    public MUC04View(CurrentUserSignal currentUserSignal,
                          CollaborativeSignals collaborativeSignals,
                          UserSessionRegistry userSessionRegistry) {
         this.currentUser = currentUserSignal.getUserSignal().value().getUsername();
@@ -54,7 +54,7 @@ public class UseCase21View extends VerticalLayout {
         setSpacing(true);
         setPadding(true);
 
-        H2 title = new H2("Use Case 21: Collaborative Form Editing with Locking");
+        H2 title = new H2("Multi-User Case 4: Collaborative Form Editing with Locking");
 
         Paragraph description = new Paragraph(
             "This demonstrates collaborative form editing with field-level locking. " +

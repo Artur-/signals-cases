@@ -2,182 +2,184 @@ package com.example.views;
 
 import com.example.MissingAPI;
 import com.example.security.CurrentUserSignal;
-import com.example.signals.CollaborativeSignals;
-import com.example.signals.UserSessionRegistry;
-import com.vaadin.flow.component.AttachEvent;
-import com.vaadin.flow.component.DetachEvent;
+import com.example.security.SecurityService;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.html.Paragraph;
+import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.Menu;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
+import com.vaadin.signals.Signal;
 import jakarta.annotation.security.PermitAll;
 
-import java.util.Random;
-
 /**
- * Use Case 20: Competitive Button Click Game
+ * Use Case 20: Application-Wide Current User Signal
  *
- * Demonstrates race condition handling and conflict resolution:
- * - Button appears at random position
- * - Fastest clicker gets the point
- * - All users see shared leaderboard
- * - Server-authoritative scoring (only one can win)
+ * Demonstrates using a shared signal for current user information that can be:
+ * - Used in multiple views and the main layout
+ * - Reactive to authentication changes (login, logout, impersonation)
+ * - Source of derived signals for role-based UI customization
  *
  * Key Patterns:
- * - Optimistic UI updates
- * - Server-side signal coordination
- * - Atomic operations on shared signals
- * - Conflict resolution strategy
+ * - Application-scoped signal (Spring @Component)
+ * - Signal shared across multiple components
+ * - Integration with Spring Security AuthenticationContext
+ * - Reactive to security context changes
  */
 @Route(value = "use-case-20", layout = MainLayout.class)
-@PageTitle("Use Case 20: Click Game")
-@Menu(order = 52, title = "UC 20: Click Race Game")
+@PageTitle("Use Case 20: Current User Signal")
+@Menu(order = 40, title = "UC 20: Current User Signal")
 @PermitAll
 public class UseCase20View extends VerticalLayout {
 
-    private final String currentUser;
-    private final CollaborativeSignals collaborativeSignals;
-    private final UserSessionRegistry userSessionRegistry;
-    private final Random random = new Random();
-
-    public UseCase20View(CurrentUserSignal currentUserSignal,
-                         CollaborativeSignals collaborativeSignals,
-                         UserSessionRegistry userSessionRegistry) {
-        this.currentUser = currentUserSignal.getUserSignal().value().getUsername();
-        this.collaborativeSignals = collaborativeSignals;
-        this.userSessionRegistry = userSessionRegistry;
-
-        // Initialize user score if not present
-        collaborativeSignals.initializePlayerScore(currentUser);
-
+    public UseCase20View(CurrentUserSignal currentUserSignal, SecurityService securityService) {
         setSpacing(true);
         setPadding(true);
 
-        H2 title = new H2("Use Case 20: Competitive Button Click Game");
+        H2 title = new H2("Use Case 20: Application-Wide Current User Signal");
 
         Paragraph description = new Paragraph(
-            "This demonstrates race condition handling in a multi-user game. " +
-            "Click the START button to spawn a target button at a random location. " +
-            "The fastest user to click it gets a point. Only one user can score per round."
+            "This use case demonstrates an application-scoped signal holding current user information. " +
+            "The signal is shared across views and the main layout, and reacts to authentication changes " +
+            "including login, logout, and impersonation (via Vaadin Copilot)."
         );
 
-        // Game area
-        Div gameArea = new Div();
-        gameArea.getStyle()
-            .set("position", "relative")
-            .set("background-color", "#f5f5f5")
-            .set("border", "2px solid #e0e0e0")
-            .set("border-radius", "4px")
-            .set("height", "300px")
+        // Current user info display
+        Div userInfoBox = new Div();
+        userInfoBox.getStyle()
+            .set("background-color", "#e8f5e9")
+            .set("padding", "1.5em")
+            .set("border-radius", "8px")
             .set("margin", "1em 0");
 
-        // Target button
-        Button targetButton = new Button("CLICK ME!", event -> {
-            handleButtonClick();
-        });
-        targetButton.addThemeName("primary");
-        targetButton.addThemeName("large");
-        targetButton.getStyle()
-            .set("position", "absolute")
-            .set("z-index", "10");
+        H3 userInfoTitle = new H3("Current User from Signal");
+        userInfoTitle.getStyle().set("margin-top", "0");
 
-        MissingAPI.bindVisible(targetButton, collaborativeSignals.getButtonVisibleSignal());
-        MissingAPI.bindStyle(targetButton, "left", collaborativeSignals.getButtonLeftSignal().map(left -> left + "px"));
-        MissingAPI.bindStyle(targetButton, "top", collaborativeSignals.getButtonTopSignal().map(top -> top + "px"));
+        Span usernameDisplay = new Span();
+        usernameDisplay.getStyle()
+            .set("font-size", "1.2em")
+            .set("font-weight", "bold")
+            .set("display", "block")
+            .set("margin-bottom", "0.5em");
+        MissingAPI.bindText(usernameDisplay,
+            currentUserSignal.getUserSignal().map(user ->
+                user.isAuthenticated() ? "👤 " + user.getUsername() : "👤 Not logged in"
+            )
+        );
 
-        gameArea.add(targetButton);
-
-        // Controls
-        HorizontalLayout controls = new HorizontalLayout();
-        controls.setSpacing(true);
-
-        Button startButton = new Button("START ROUND", event -> {
-            startNewRound();
-        });
-        startButton.addThemeName("success");
-
-        Button resetButton = new Button("Reset Scores", event -> {
-            collaborativeSignals.resetLeaderboard();
-        });
-        resetButton.addThemeName("error");
-        resetButton.addThemeName("small");
-
-        controls.add(startButton, resetButton);
-
-        // Leaderboard
-        H3 leaderboardTitle = new H3("Leaderboard");
-        Div leaderboardDiv = new Div();
-        leaderboardDiv.getStyle()
-            .set("background-color", "#e3f2fd")
-            .set("padding", "1em")
-            .set("border-radius", "4px");
-
-        // Bind leaderboard display
-        MissingAPI.bindChildren(leaderboardDiv,
-            collaborativeSignals.getLeaderboardSignal().map(scores -> {
-                return scores.entrySet().stream()
-                    .sorted((e1, e2) -> e2.getValue().compareTo(e1.getValue()))
-                    .map(entry -> {
-                        Div item = new Div();
-                        item.setText(String.format("%s: %d points", entry.getKey(), entry.getValue()));
-                        item.getStyle()
-                            .set("padding", "0.5em")
-                            .set("background-color", entry.getKey().equals(currentUser) ?
-                                "#fff3e0" : "transparent")
-                            .set("border-radius", "4px")
-                            .set("font-weight", entry.getKey().equals(currentUser) ?
-                                "bold" : "normal");
-                        return item;
-                    })
-                    .toList();
+        Span rolesDisplay = new Span();
+        rolesDisplay.getStyle()
+            .set("display", "block")
+            .set("color", "var(--lumo-secondary-text-color)");
+        MissingAPI.bindText(rolesDisplay,
+            currentUserSignal.getUserSignal().map(user -> {
+                if (!user.isAuthenticated()) {
+                    return "Anonymous user";
+                }
+                return "Roles: " + String.join(", ", user.getRoles());
             })
         );
 
-        // Info box
+        Button refreshButton = new Button("Refresh Signal", event -> {
+            currentUserSignal.refresh();
+        });
+        refreshButton.addThemeName("small");
+
+        userInfoBox.add(userInfoTitle, usernameDisplay, rolesDisplay, refreshButton);
+
+        // Role-based content sections
+        H3 roleBasedTitle = new H3("Role-Based UI Customization");
+
+        // Viewer content
+        Div viewerSection = new Div();
+        viewerSection.getStyle()
+            .set("padding", "1em")
+            .set("background-color", "#e3f2fd")
+            .set("border-radius", "4px")
+            .set("margin-bottom", "0.5em");
+        viewerSection.add(new Paragraph("📖 Viewer Content - You can view dashboards"));
+        Signal<Boolean> hasViewerRole = currentUserSignal.getUserSignal()
+            .map(user -> user.hasAnyRole("VIEWER", "EDITOR", "ADMIN", "SUPER_ADMIN"));
+        viewerSection.bindVisible(hasViewerRole);
+
+        // Editor content
+        Div editorSection = new Div();
+        editorSection.getStyle()
+            .set("padding", "1em")
+            .set("background-color", "#fff3e0")
+            .set("border-radius", "4px")
+            .set("margin-bottom", "0.5em");
+        editorSection.add(new Paragraph("✏️ Editor Content - You can edit content"));
+        Signal<Boolean> hasEditorRole = currentUserSignal.getUserSignal()
+            .map(user -> user.hasAnyRole("EDITOR", "ADMIN", "SUPER_ADMIN"));
+        editorSection.bindVisible(hasEditorRole);
+
+        // Admin content
+        Div adminSection = new Div();
+        adminSection.getStyle()
+            .set("padding", "1em")
+            .set("background-color", "#fce4ec")
+            .set("border-radius", "4px")
+            .set("margin-bottom", "0.5em");
+        adminSection.add(new Paragraph("⚙️ Admin Content - You can manage users and settings"));
+        Signal<Boolean> hasAdminRole = currentUserSignal.getUserSignal()
+            .map(user -> user.hasAnyRole("ADMIN", "SUPER_ADMIN"));
+        adminSection.bindVisible(hasAdminRole);
+
+        // Super Admin content
+        Div superAdminSection = new Div();
+        superAdminSection.getStyle()
+            .set("padding", "1em")
+            .set("background-color", "#f3e5f5")
+            .set("border-radius", "4px")
+            .set("margin-bottom", "0.5em");
+        superAdminSection.add(new Paragraph("🔒 Super Admin Content - Full system access"));
+        Signal<Boolean> hasSuperAdminRole = currentUserSignal.getUserSignal()
+            .map(user -> user.hasRole("SUPER_ADMIN"));
+        superAdminSection.bindVisible(hasSuperAdminRole);
+
+        // Actions
+        HorizontalLayout actions = new HorizontalLayout();
+        actions.setSpacing(true);
+
+        Button logoutButton = new Button("Logout", event -> {
+            securityService.logout();
+            currentUserSignal.refresh();
+        });
+        logoutButton.addThemeName("error");
+
+        actions.add(logoutButton);
+
+        // Info about signal sharing
         Div infoBox = new Div();
         infoBox.getStyle()
-            .set("background-color", "#fff3e0")
+            .set("background-color", "#e0f7fa")
             .set("padding", "1em")
             .set("border-radius", "4px")
             .set("margin-top", "1em")
             .set("font-style", "italic");
         infoBox.add(new Paragraph(
-            "💡 This demonstrates atomic operations and conflict resolution in multi-user scenarios. " +
-            "When multiple users try to click simultaneously, only the first click is counted (atomic operation). " +
-            "The leaderboard is a shared signal that updates for all users in real-time."
+            "💡 This signal is application-scoped and can be injected into any view or the main layout. " +
+            "Try using Vaadin Copilot's impersonation feature to switch roles and see the UI update reactively. " +
+            "The MainLayout also uses this signal to display your username in the header."
         ));
 
-        add(title, description, gameArea, controls, leaderboardTitle, leaderboardDiv, infoBox);
-    }
-
-    private void startNewRound() {
-        // Position button randomly
-        int left = random.nextInt(400);
-        int top = random.nextInt(200);
-
-        collaborativeSignals.showButtonAt(left, top);
-    }
-
-    private void handleButtonClick() {
-        // Atomic operation: Only first click counts (handled by CollaborativeSignals)
-        collaborativeSignals.awardPoint(currentUser);
-    }
-
-    @Override
-    protected void onAttach(AttachEvent attachEvent) {
-        super.onAttach(attachEvent);
-        userSessionRegistry.registerUser(currentUser);
-    }
-
-    @Override
-    protected void onDetach(DetachEvent detachEvent) {
-        super.onDetach(detachEvent);
-        userSessionRegistry.unregisterUser(currentUser);
+        add(
+            title,
+            description,
+            userInfoBox,
+            roleBasedTitle,
+            viewerSection,
+            editorSection,
+            adminSection,
+            superAdminSection,
+            actions,
+            infoBox
+        );
     }
 }
