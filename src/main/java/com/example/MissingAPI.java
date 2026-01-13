@@ -72,6 +72,14 @@ public class MissingAPI {
     }
 
     /**
+     * Binds a Div or other component's text content to a Signal via Element.setText.
+     */
+    public static void bindElementText(Component component, Signal<String> signal) {
+        ComponentEffect.bind(component, signal, (c, text) ->
+            c.getElement().setText(text != null ? text : ""));
+    }
+
+    /**
      * Binds a component's theme name to a Signal.
      */
     public static void bindThemeName(Component component, Signal<String> signal) {
@@ -212,5 +220,31 @@ public class MissingAPI {
     public static <T> void bindDragEnabled(Grid<T> grid, Signal<Boolean> signal) {
         ComponentEffect.bind(grid, signal, (g, draggable) ->
             g.setRowsDraggable(draggable));
+    }
+
+    /**
+     * Binds the browser document title to a Signal.
+     * The UI is used to get the page and execute JavaScript to update document.title.
+     */
+    public static void bindBrowserTitle(com.vaadin.flow.component.UI ui, Signal<String> signal) {
+        ComponentEffect.effect(ui, () -> {
+            String title = signal.value();
+            if (title != null) {
+                ui.getPage().setTitle(title);
+            }
+        });
+    }
+
+    /**
+     * Binds a CSS style property of a component to a Signal.
+     */
+    public static void bindStyle(Component component, String property, Signal<String> signal) {
+        ComponentEffect.bind(component, signal, (c, value) -> {
+            if (value != null) {
+                c.getElement().getStyle().set(property, value);
+            } else {
+                c.getElement().getStyle().remove(property);
+            }
+        });
     }
 }
