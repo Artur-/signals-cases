@@ -24,7 +24,7 @@ import jakarta.annotation.security.PermitAll;
 
 @Route(value = "use-case-07", layout = MainLayout.class)
 @PageTitle("Use Case 2: Progressive Disclosure with Nested Conditions")
-@Menu(order = 31, title = "UC 2: Nested Conditions")
+@Menu(order = 2, title = "UC 2: Nested Conditions")
 @PermitAll
 public class UseCase02View extends VerticalLayout {
 

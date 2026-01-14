@@ -42,7 +42,7 @@ import java.util.stream.Collectors;
  */
 @Route(value = "use-case-17", layout = MainLayout.class)
 @PageTitle("Use Case 17: Custom PC Builder")
-@Menu(order = 60, title = "UC 17: PC Builder (70 signals)")
+@Menu(order = 17, title = "UC 17: PC Builder (70 signals)")
 @PermitAll
 public class UseCase17View extends VerticalLayout {
 

@@ -28,7 +28,7 @@ import jakarta.annotation.security.PermitAll;
 
 @Route(value = "use-case-9", layout = MainLayout.class)
 @PageTitle("Use Case 9: Form with Binder Integration and Signal Validation")
-@Menu(order = 61, title = "UC 9: Binder Integration")
+@Menu(order = 9, title = "UC 9: Binder Integration")
 @PermitAll
 public class UseCase09View extends VerticalLayout {
 

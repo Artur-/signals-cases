@@ -37,7 +37,7 @@ import java.util.Random;
  */
 @Route(value = "muc-03", layout = MainLayout.class)
 @PageTitle("Multi-User Case 3: Click Game")
-@Menu(order = 52, title = "MUC 3: Click Race Game")
+@Menu(order = 20, title = "MUC 3: Click Race Game")
 @PermitAll
 public class MUC03View extends VerticalLayout {
 

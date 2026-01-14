@@ -28,7 +28,7 @@ import jakarta.annotation.security.PermitAll;
 
 @Route(value = "use-case-10", layout = MainLayout.class)
 @PageTitle("Use Case 10: Employee Management Grid with Dynamic Editability")
-@Menu(order = 63, title = "UC 10: Grid Providers")
+@Menu(order = 10, title = "UC 10: Grid Providers")
 @PermitAll
 public class UseCase10View extends VerticalLayout {
 

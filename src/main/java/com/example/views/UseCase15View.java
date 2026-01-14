@@ -46,7 +46,7 @@ import java.util.stream.Collectors;
  */
 @Route(value = "use-case-15", layout = MainLayout.class)
 @PageTitle("Use Case 15: Debounced Search")
-@Menu(order = 45, title = "UC 15: Debounced Search")
+@Menu(order = 15, title = "UC 15: Debounced Search")
 @PermitAll
 public class UseCase15View extends VerticalLayout {
 

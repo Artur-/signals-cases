@@ -29,7 +29,7 @@ import jakarta.annotation.security.PermitAll;
 
 @Route(value = "use-case-6", layout = MainLayout.class)
 @PageTitle("Use Case 6: Shopping Cart with Real-time Totals")
-@Menu(order = 51, title = "UC 6: Shopping Cart")
+@Menu(order = 6, title = "UC 6: Shopping Cart")
 @PermitAll
 public class UseCase06View extends VerticalLayout {
 

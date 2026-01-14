@@ -36,7 +36,7 @@ import jakarta.annotation.security.PermitAll;
  */
 @Route(value = "muc-04", layout = MainLayout.class)
 @PageTitle("Multi-User Case 4: Collaborative Editing")
-@Menu(order = 53, title = "MUC 4: Collaborative Editing")
+@Menu(order = 21, title = "MUC 4: Collaborative Editing")
 @PermitAll
 public class MUC04View extends VerticalLayout {
 

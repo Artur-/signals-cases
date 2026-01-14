@@ -40,7 +40,7 @@ import java.util.stream.Collectors;
  */
 @Route(value = "use-case-16", layout = MainLayout.class)
 @PageTitle("Use Case 16: URL State Integration")
-@Menu(order = 50, title = "UC 16: URL State Integration")
+@Menu(order = 16, title = "UC 16: URL State Integration")
 @PermitAll
 public class UseCase16View extends VerticalLayout implements HasUrlParameter<String>, BeforeEnterObserver {
 

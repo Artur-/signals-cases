@@ -20,7 +20,7 @@ import java.util.concurrent.CompletableFuture;
 
 @Route(value = "use-case-03", layout = MainLayout.class)
 @PageTitle("Use Case 1: Dynamic Button State")
-@Menu(order = 12, title = "UC 1: Dynamic Button State")
+@Menu(order = 1, title = "UC 1: Dynamic Button State")
 @PermitAll
 public class UseCase01View extends VerticalLayout {
 

@@ -36,7 +36,7 @@ import java.util.Map;
  */
 @Route(value = "muc-02", layout = MainLayout.class)
 @PageTitle("Multi-User Case 2: Collaborative Cursors")
-@Menu(order = 51, title = "MUC 2: Collaborative Cursors")
+@Menu(order = 19, title = "MUC 2: Collaborative Cursors")
 @PermitAll
 public class MUC02View extends VerticalLayout {
 

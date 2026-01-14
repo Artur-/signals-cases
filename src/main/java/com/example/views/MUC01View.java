@@ -42,7 +42,7 @@ import jakarta.annotation.security.PermitAll;
  */
 @Route(value = "muc-01", layout = MainLayout.class)
 @PageTitle("MUC 1: Shared Chat")
-@Menu(order = 50, title = "MUC 1: Shared Chat")
+@Menu(order = 18, title = "MUC 1: Shared Chat")
 @PermitAll
 public class MUC01View extends VerticalLayout {
 

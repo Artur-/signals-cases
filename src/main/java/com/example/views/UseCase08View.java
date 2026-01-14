@@ -26,7 +26,7 @@ import jakarta.annotation.security.PermitAll;
 
 @Route(value = "use-case-8", layout = MainLayout.class)
 @PageTitle("Use Case 8: Multi-Step Wizard with Validation")
-@Menu(order = 60, title = "UC 8: Multi-Step Wizard")
+@Menu(order = 8, title = "UC 8: Multi-Step Wizard")
 @PermitAll
 public class UseCase08View extends VerticalLayout {
 

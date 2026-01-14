@@ -23,7 +23,7 @@ import java.util.function.Function;
 
 @Route(value = "use-case-08", layout = MainLayout.class)
 @PageTitle("Use Case 3: Permission-Based Component Visibility")
-@Menu(order = 32, title = "UC 3: Permission-Based UI")
+@Menu(order = 3, title = "UC 3: Permission-Based UI")
 @PermitAll
 public class UseCase03View extends VerticalLayout {
 

@@ -25,7 +25,7 @@ import jakarta.annotation.security.PermitAll;
 
 @Route(value = "use-case-7", layout = MainLayout.class)
 @PageTitle("Use Case 7: Master-Detail Invoice View")
-@Menu(order = 52, title = "UC 7: Master-Detail Invoice")
+@Menu(order = 7, title = "UC 7: Master-Detail Invoice")
 @PermitAll
 public class UseCase07View extends VerticalLayout {
 

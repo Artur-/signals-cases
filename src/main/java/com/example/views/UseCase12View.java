@@ -31,7 +31,7 @@ import jakarta.annotation.security.PermitAll;
  */
 @Route(value = "use-case-12", layout = MainLayout.class)
 @PageTitle("Use Case 12: Dynamic View Title")
-@Menu(order = 35, title = "UC 12: Dynamic View Title")
+@Menu(order = 12, title = "UC 12: Dynamic View Title")
 @PermitAll
 public class UseCase12View extends VerticalLayout {
 

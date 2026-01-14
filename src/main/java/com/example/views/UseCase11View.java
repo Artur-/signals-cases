@@ -37,7 +37,7 @@ import jakarta.annotation.security.PermitAll;
  */
 @Route(value = "use-case-11", layout = MainLayout.class)
 @PageTitle("Use Case 11: Responsive Layout")
-@Menu(order = 30, title = "UC 11: Responsive Layout")
+@Menu(order = 11, title = "UC 11: Responsive Layout")
 @PermitAll
 public class UseCase11View extends VerticalLayout {
 

@@ -22,7 +22,7 @@ import jakarta.annotation.security.PermitAll;
 
 @Route(value = "use-case-09", layout = MainLayout.class)
 @PageTitle("Use Case 4: Filtered and Sorted Data Grid")
-@Menu(order = 40, title = "UC 4: Filtered Data Grid")
+@Menu(order = 4, title = "UC 4: Filtered Data Grid")
 @PermitAll
 public class UseCase04View extends VerticalLayout {
 

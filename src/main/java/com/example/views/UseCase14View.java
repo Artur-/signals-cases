@@ -41,7 +41,7 @@ import java.util.concurrent.CompletableFuture;
  */
 @Route(value = "use-case-14", layout = MainLayout.class)
 @PageTitle("Use Case 14: Async Data Loading")
-@Menu(order = 40, title = "UC 14: Async Data Loading")
+@Menu(order = 14, title = "UC 14: Async Data Loading")
 @PermitAll
 public class UseCase14View extends VerticalLayout {
 

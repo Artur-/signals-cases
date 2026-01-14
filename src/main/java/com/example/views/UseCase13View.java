@@ -33,7 +33,7 @@ import jakarta.annotation.security.PermitAll;
  */
 @Route(value = "use-case-13", layout = MainLayout.class)
 @PageTitle("Use Case 13: Current User Signal")
-@Menu(order = 40, title = "UC 13: Current User Signal")
+@Menu(order = 13, title = "UC 13: Current User Signal")
 @PermitAll
 public class UseCase13View extends VerticalLayout {
 

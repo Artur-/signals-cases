@@ -20,7 +20,7 @@ import jakarta.annotation.security.PermitAll;
 
 @Route(value = "use-case-5", layout = MainLayout.class)
 @PageTitle("Use Case 5: Cascading Location Selector")
-@Menu(order = 50, title = "UC 5: Cascading Selector")
+@Menu(order = 5, title = "UC 5: Cascading Selector")
 @PermitAll
 public class UseCase05View extends VerticalLayout {
 
