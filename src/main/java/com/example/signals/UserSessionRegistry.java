@@ -1,11 +1,7 @@
 package com.example.signals;
 
-import com.vaadin.signals.ValueSignal;
-import com.vaadin.signals.WritableSignal;
+import com.vaadin.signals.ListSignal;
 import org.springframework.stereotype.Component;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Application-scoped registry of currently logged-in users.
@@ -14,13 +10,12 @@ import java.util.List;
 @Component
 public class UserSessionRegistry {
 
-    private final WritableSignal<List<UserInfo>> activeUsersSignal =
-        new ValueSignal<>(new ArrayList<>());
+    private final ListSignal<UserInfo> activeUsersSignal = new ListSignal<>();
 
     /**
      * Get the signal containing the list of active users.
      */
-    public WritableSignal<List<UserInfo>> getActiveUsersSignal() {
+    public ListSignal<UserInfo> getActiveUsersSignal() {
         return activeUsersSignal;
     }
 
@@ -28,15 +23,12 @@ public class UserSessionRegistry {
      * Register a user as active.
      */
     public void registerUser(String username) {
-        List<UserInfo> users = new ArrayList<>(activeUsersSignal.value());
-
         // Check if user is already registered
-        boolean exists = users.stream()
+        boolean exists = activeUsersSignal.stream()
             .anyMatch(u -> u.username().equals(username));
 
         if (!exists) {
-            users.add(new UserInfo(username));
-            activeUsersSignal.value(users);
+            activeUsersSignal.add(new UserInfo(username));
         }
     }
 
@@ -44,23 +36,21 @@ public class UserSessionRegistry {
      * Unregister a user (e.g., on logout or session timeout).
      */
     public void unregisterUser(String username) {
-        List<UserInfo> users = new ArrayList<>(activeUsersSignal.value());
-        users.removeIf(u -> u.username().equals(username));
-        activeUsersSignal.value(users);
+        activeUsersSignal.removeIf(u -> u.username().equals(username));
     }
 
     /**
      * Get count of active users.
      */
     public int getActiveUserCount() {
-        return activeUsersSignal.value().size();
+        return activeUsersSignal.size();
     }
 
     /**
      * Check if a user is currently active.
      */
     public boolean isUserActive(String username) {
-        return activeUsersSignal.value().stream()
+        return activeUsersSignal.stream()
             .anyMatch(u -> u.username().equals(username));
     }
 }

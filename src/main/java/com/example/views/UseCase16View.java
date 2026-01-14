@@ -13,6 +13,7 @@ import com.vaadin.flow.component.select.Select;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.*;
 import com.vaadin.flow.server.VaadinServletRequest;
+import com.vaadin.signals.ListSignal;
 import com.vaadin.signals.Signal;
 import com.vaadin.signals.ValueSignal;
 import com.vaadin.signals.WritableSignal;
@@ -90,7 +91,7 @@ public class UseCase16View extends VerticalLayout implements HasUrlParameter<Str
 
     private final WritableSignal<String> searchQuerySignal = new ValueSignal<>("");
     private final WritableSignal<String> categorySignal = new ValueSignal<>("All");
-    private final WritableSignal<List<Article>> filteredArticlesSignal = new ValueSignal<>(ALL_ARTICLES);
+    private final ListSignal<Article> filteredArticlesSignal = new ListSignal<>(ALL_ARTICLES);
 
     private boolean isInitializing = true;
 
@@ -336,7 +337,8 @@ public class UseCase16View extends VerticalLayout implements HasUrlParameter<Str
             .filter(article -> article.matches(query, category))
             .collect(Collectors.toList());
 
-        filteredArticlesSignal.value(filtered);
+        filteredArticlesSignal.clear();
+        filteredArticlesSignal.addAll(filtered);
     }
 
     private String getBaseUrl() {

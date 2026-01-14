@@ -6,6 +6,7 @@ import com.example.MissingAPI;
 // Note: This code uses the proposed Signal API and will not compile yet
 
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.signals.ListSignal;
 import com.vaadin.signals.Signal;
 import com.vaadin.signals.WritableSignal;
 import com.vaadin.signals.ValueSignal;
@@ -40,11 +41,11 @@ public class UseCase06View extends VerticalLayout {
 
     public UseCase06View() {
         // Create signals for cart state
-        WritableSignal<List<CartItem>> cartItemsSignal = new ValueSignal<>(new ArrayList<>(List.of(
+        ListSignal<CartItem> cartItemsSignal = new ListSignal<>(
             new CartItem("1", "Laptop", new BigDecimal("999.99"), 1),
             new CartItem("2", "Mouse", new BigDecimal("25.99"), 2),
             new CartItem("3", "Keyboard", new BigDecimal("79.99"), 1)
-        )));
+        );
 
         WritableSignal<String> discountCodeSignal = new ValueSignal<>("");
         WritableSignal<ShippingOption> shippingOptionSignal = new ValueSignal<>(ShippingOption.STANDARD);
@@ -135,7 +136,7 @@ public class UseCase06View extends VerticalLayout {
         add(cartItemsLayout, discountField, shippingSelect, totalsDiv);
     }
 
-    private HorizontalLayout createCartItemRow(CartItem item, WritableSignal<List<CartItem>> cartItemsSignal) {
+    private HorizontalLayout createCartItemRow(CartItem item, ListSignal<CartItem> cartItemsSignal) {
         Span nameLabel = new Span(item.name() + " - $" + item.price());
         nameLabel.getStyle().set("flex-grow", "1");
 
@@ -145,11 +146,9 @@ public class UseCase06View extends VerticalLayout {
         quantityField.setMax(99);
         quantityField.setWidth("80px");
         quantityField.addValueChangeListener(e -> {
-            List<CartItem> currentItems = new ArrayList<>(cartItemsSignal.value());
-            int index = currentItems.indexOf(item);
+            int index = cartItemsSignal.indexOf(item);
             if (index >= 0) {
-                currentItems.set(index, new CartItem(item.id(), item.name(), item.price(), e.getValue()));
-                cartItemsSignal.value(currentItems);
+                cartItemsSignal.set(index, new CartItem(item.id(), item.name(), item.price(), e.getValue()));
             }
         });
 
@@ -158,9 +157,7 @@ public class UseCase06View extends VerticalLayout {
         itemTotalLabel.getStyle().set("text-align", "right");
 
         Button removeButton = new Button("Remove", e -> {
-            List<CartItem> currentItems = new ArrayList<>(cartItemsSignal.value());
-            currentItems.remove(item);
-            cartItemsSignal.value(currentItems);
+            cartItemsSignal.remove(item);
         });
         removeButton.addThemeName("error");
         removeButton.addThemeName("small");

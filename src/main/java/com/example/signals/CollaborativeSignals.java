@@ -1,5 +1,6 @@
 package com.example.signals;
 
+import com.vaadin.signals.ListSignal;
 import com.vaadin.signals.ValueSignal;
 import com.vaadin.signals.WritableSignal;
 import org.springframework.stereotype.Component;
@@ -28,21 +29,18 @@ public class CollaborativeSignals {
         }
     }
 
-    private final WritableSignal<List<Message>> messagesSignal =
-        new ValueSignal<>(new ArrayList<>());
+    private final ListSignal<Message> messagesSignal = new ListSignal<>();
 
-    public WritableSignal<List<Message>> getMessagesSignal() {
+    public ListSignal<Message> getMessagesSignal() {
         return messagesSignal;
     }
 
     public void appendMessage(Message message) {
-        List<Message> currentMessages = new ArrayList<>(messagesSignal.value());
-        currentMessages.add(message);
-        messagesSignal.value(currentMessages);
+        messagesSignal.add(message);
     }
 
     public void clearMessages() {
-        messagesSignal.value(new ArrayList<>());
+        messagesSignal.clear();
     }
 
     // ========== Use Case 19: Cursor Positions ===========

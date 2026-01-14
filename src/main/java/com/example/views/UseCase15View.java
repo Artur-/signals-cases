@@ -15,6 +15,7 @@ import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.Menu;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
+import com.vaadin.signals.ListSignal;
 import com.vaadin.signals.Signal;
 import com.vaadin.signals.ValueSignal;
 import com.vaadin.signals.WritableSignal;
@@ -80,7 +81,7 @@ public class UseCase15View extends VerticalLayout {
     private final WritableSignal<String> searchQuerySignal = new ValueSignal<>("");
     private final WritableSignal<String> debouncedQuerySignal = new ValueSignal<>("");
     private final WritableSignal<Boolean> isSearchingSignal = new ValueSignal<>(false);
-    private final WritableSignal<List<Product>> searchResultsSignal = new ValueSignal<>(List.of());
+    private final ListSignal<Product> searchResultsSignal = new ListSignal<>();
     private final WritableSignal<Integer> searchCountSignal = new ValueSignal<>(0);
 
     private Timer debounceTimer;
@@ -305,7 +306,7 @@ public class UseCase15View extends VerticalLayout {
         }
 
         if (query.isEmpty()) {
-            searchResultsSignal.value(List.of());
+            searchResultsSignal.clear();
             return;
         }
 
@@ -328,7 +329,8 @@ public class UseCase15View extends VerticalLayout {
                 .collect(Collectors.toList());
 
             getUI().ifPresent(ui -> ui.access(() -> {
-                searchResultsSignal.value(results);
+                searchResultsSignal.clear();
+                searchResultsSignal.addAll(results);
                 isSearchingSignal.value(false);
             }));
         });
