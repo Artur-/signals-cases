@@ -107,7 +107,7 @@ public class UseCase15View extends VerticalLayout {
         searchField.setPrefixComponent(new Icon(VaadinIcon.SEARCH));
         searchField.setClearButtonVisible(true);
 
-        MissingAPI.bindValue(searchField, searchQuerySignal);
+        searchField.bindValue(searchQuerySignal);
 
         // Search stats
         Div statsBox = new Div();

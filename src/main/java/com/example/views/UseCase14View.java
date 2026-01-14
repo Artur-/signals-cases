@@ -142,7 +142,7 @@ public class UseCase14View extends VerticalLayout {
             .set("gap", "0.5em");
 
         var checkbox = new com.vaadin.flow.component.checkbox.Checkbox("Simulate Error");
-        MissingAPI.bindValue(checkbox, shouldFailSignal);
+        checkbox.bindValue(shouldFailSignal);
         errorToggle.add(checkbox);
 
         controls.add(loadButton, clearButton, errorToggle);

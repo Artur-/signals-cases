@@ -751,7 +751,7 @@ public class UseCase17View extends VerticalLayout {
         combo.setItems(items);
         combo.setItemLabelGenerator(Component::getName);
         combo.setWidthFull();
-        MissingAPI.bindValue(combo, signal);
+        combo.bindValue(signal);
         return combo;
     }
 

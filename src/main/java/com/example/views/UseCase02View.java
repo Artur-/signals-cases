@@ -166,7 +166,7 @@ public class UseCase02View extends VerticalLayout {
         Checkbox needsVisaCheckbox = new Checkbox("Do you require visa sponsorship?");
         binder.forField(needsVisaCheckbox)
             .bind(VisaApplicationData::getNeedsVisa, VisaApplicationData::setNeedsVisa);
-        MissingAPI.bindValue(needsVisaCheckbox, needsVisaSignal);
+        needsVisaCheckbox.bindValue(needsVisaSignal);
 
         // Level 1: Visa-related fields (shown when needsVisa is true)
         VerticalLayout visaSection = new VerticalLayout();
@@ -175,7 +175,7 @@ public class UseCase02View extends VerticalLayout {
         visaTypeSelect.setValue(VisaType.H1B);
         binder.forField(visaTypeSelect)
             .bind(VisaApplicationData::getVisaType, VisaApplicationData::setVisaType);
-        MissingAPI.bindValue(visaTypeSelect, visaTypeSignal);
+        visaTypeSelect.bindValue(visaTypeSignal);
 
         TextField currentVisaStatus = new TextField("Current Visa Status");
         binder.forField(currentVisaStatus)
@@ -190,7 +190,7 @@ public class UseCase02View extends VerticalLayout {
         Checkbox hasH1BPreviouslyCheckbox = new Checkbox("Have you held an H1-B visa before?");
         binder.forField(hasH1BPreviouslyCheckbox)
             .bind(VisaApplicationData::getHasH1BPreviously, VisaApplicationData::setHasH1BPreviously);
-        MissingAPI.bindValue(hasH1BPreviouslyCheckbox, hasH1BPreviouslySignal);
+        hasH1BPreviouslyCheckbox.bindValue(hasH1BPreviouslySignal);
 
         TextField h1bSpecialtyOccupation = new TextField("Specialty Occupation");
         binder.forField(h1bSpecialtyOccupation)

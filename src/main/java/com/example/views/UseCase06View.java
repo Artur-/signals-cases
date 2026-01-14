@@ -127,12 +127,12 @@ public class UseCase06View extends VerticalLayout {
         TextField discountField = new TextField("Discount Code");
         discountField.setPlaceholder("Enter SAVE10 or SAVE20");
         discountField.setWidth("250px");
-        MissingAPI.bindValue(discountField, discountCodeSignal);
+        discountField.bindValue(discountCodeSignal);
 
         ComboBox<ShippingOption> shippingSelect = new ComboBox<>("Shipping Method", ShippingOption.values());
         shippingSelect.setValue(ShippingOption.STANDARD);
         shippingSelect.setWidth("200px");
-        MissingAPI.bindValue(shippingSelect, shippingOptionSignal);
+        shippingSelect.bindValue(shippingOptionSignal);
 
         optionsLayout.add(discountField, shippingSelect);
 

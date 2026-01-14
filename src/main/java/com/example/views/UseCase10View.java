@@ -75,14 +75,14 @@ public class UseCase10View extends VerticalLayout {
         // Controls
         ComboBox<UserRole> roleSelector = new ComboBox<>("Simulate User Role", UserRole.values());
         roleSelector.setValue(UserRole.VIEWER);
-        MissingAPI.bindValue(roleSelector, userRoleSignal);
+        roleSelector.bindValue(userRoleSignal);
 
         Checkbox editModeCheckbox = new Checkbox("Edit Mode");
-        MissingAPI.bindValue(editModeCheckbox, editModeSignal);
+        editModeCheckbox.bindValue(editModeSignal);
         editModeCheckbox.bindEnabled(canEditSignal);
 
         Checkbox dragDropCheckbox = new Checkbox("Enable Drag & Drop Reordering");
-        MissingAPI.bindValue(dragDropCheckbox, dragDropEnabledSignal);
+        dragDropCheckbox.bindValue(dragDropEnabledSignal);
         dragDropCheckbox.bindEnabled(canEditSignal);
 
         HorizontalLayout controls = new HorizontalLayout(roleSelector, editModeCheckbox, dragDropCheckbox);

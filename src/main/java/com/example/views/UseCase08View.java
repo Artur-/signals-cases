@@ -79,13 +79,13 @@ public class UseCase08View extends VerticalLayout {
         step1Layout.add(new H3("Step 1: Personal Information"));
 
         TextField firstNameField = new TextField("First Name");
-        MissingAPI.bindValue(firstNameField, firstNameSignal);
+        firstNameField.bindValue(firstNameSignal);
 
         TextField lastNameField = new TextField("Last Name");
-        MissingAPI.bindValue(lastNameField, lastNameSignal);
+        lastNameField.bindValue(lastNameSignal);
 
         EmailField emailField = new EmailField("Email");
-        MissingAPI.bindValue(emailField, emailSignal);
+        emailField.bindValue(emailSignal);
 
         step1Layout.add(firstNameField, lastNameField, emailField);
         step1Layout.bindVisible(currentStepSignal.map(step -> step == Step.PERSONAL_INFO));
@@ -95,15 +95,15 @@ public class UseCase08View extends VerticalLayout {
         step2Layout.add(new H3("Step 2: Company Information"));
 
         TextField companyNameField = new TextField("Company Name");
-        MissingAPI.bindValue(companyNameField, companyNameSignal);
+        companyNameField.bindValue(companyNameSignal);
 
         ComboBox<String> companySizeSelect = new ComboBox<>("Company Size",
             List.of("1-10", "11-50", "51-200", "201-1000", "1000+"));
-        MissingAPI.bindValue(companySizeSelect, companySizeSignal);
+        companySizeSelect.bindValue(companySizeSignal);
 
         ComboBox<String> industrySelect = new ComboBox<>("Industry",
             List.of("Technology", "Healthcare", "Finance", "Retail", "Manufacturing", "Other"));
-        MissingAPI.bindValue(industrySelect, industrySignal);
+        industrySelect.bindValue(industrySignal);
 
         step2Layout.add(companyNameField, companySizeSelect, industrySelect);
         step2Layout.bindVisible(currentStepSignal.map(step -> step == Step.COMPANY_INFO));
@@ -114,7 +114,7 @@ public class UseCase08View extends VerticalLayout {
 
         ComboBox<Plan> planSelect = new ComboBox<>("Plan", Plan.values());
         planSelect.setValue(Plan.STARTER);
-        MissingAPI.bindValue(planSelect, planSignal);
+        planSelect.bindValue(planSignal);
 
         Span planDescription = new Span();
         MissingAPI.bindText(planDescription, planSignal.map(plan -> switch (plan) {

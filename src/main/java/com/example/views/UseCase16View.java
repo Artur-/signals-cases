@@ -117,13 +117,13 @@ public class UseCase16View extends VerticalLayout implements HasUrlParameter<Str
         searchField.setPlaceholder("Search articles...");
         searchField.setWidth("300px");
         searchField.setClearButtonVisible(true);
-        MissingAPI.bindValue(searchField, searchQuerySignal);
+        searchField.bindValue(searchQuerySignal);
 
         Select<String> categorySelect = new Select<>();
         categorySelect.setLabel("Category");
         categorySelect.setItems("All", "Tutorial", "Guide", "Documentation");
         categorySelect.setWidth("200px");
-        MissingAPI.bindValue(categorySelect, categorySignal);
+        categorySelect.bindValue(categorySignal);
 
         controls.add(searchField, categorySelect);
 

@@ -70,12 +70,12 @@ public class UseCase09View extends VerticalLayout {
         WritableSignal<Integer> ageSignal = new ValueSignal<>(0);
 
         // Bind fields to signals
-        MissingAPI.bindValue(usernameField, usernameSignal);
-        MissingAPI.bindValue(emailField, emailSignal);
-        MissingAPI.bindValue(passwordField, passwordSignal);
-        MissingAPI.bindValue(confirmPasswordField, confirmPasswordSignal);
-        MissingAPI.bindValue(accountTypeSelect, accountTypeSignal);
-        MissingAPI.bindValue(ageField, ageSignal);
+        usernameField.bindValue(usernameSignal);
+        emailField.bindValue(emailSignal);
+        passwordField.bindValue(passwordSignal);
+        confirmPasswordField.bindValue(confirmPasswordSignal);
+        accountTypeSelect.bindValue(accountTypeSignal);
+        ageField.bindValue(ageSignal);
 
         // Validation signals
         Signal<Boolean> usernameValidSignal = Signal.computed(() -> {

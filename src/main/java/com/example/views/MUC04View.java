@@ -169,7 +169,7 @@ public class MUC04View extends VerticalLayout {
         field.setWidthFull();
 
         // Bind value
-        MissingAPI.bindValue(field, signal);
+        field.bindValue(signal);
 
         // Lock field when focused
         field.addFocusListener(event -> {

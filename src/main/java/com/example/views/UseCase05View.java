@@ -44,7 +44,7 @@ public class UseCase05View extends VerticalLayout {
         // Country selector
         ComboBox<String> countrySelect = new ComboBox<>("Country");
         countrySelect.setItems(countries);
-        MissingAPI.bindValue(countrySelect, countrySignal);
+        countrySelect.bindValue(countrySignal);
 
         // State selector - computed items based on country
         ComboBox<String> stateSelect = new ComboBox<>("State/Province");
@@ -53,7 +53,7 @@ public class UseCase05View extends VerticalLayout {
             stateSignal.value(""); // Reset state when country changes
             return country != null && !country.isEmpty() ? loadStates(country) : List.of();
         }));
-        MissingAPI.bindValue(stateSelect, stateSignal);
+        stateSelect.bindValue(stateSignal);
         MissingAPI.bindEnabled(stateSelect, countrySignal.map(country -> country != null && !country.isEmpty()));
 
         // City selector - computed items based on state
@@ -63,7 +63,7 @@ public class UseCase05View extends VerticalLayout {
             citySignal.value(""); // Reset city when state changes
             return state != null && !state.isEmpty() ? loadCities(countrySignal.value(), state) : List.of();
         }));
-        MissingAPI.bindValue(citySelect, citySignal);
+        citySelect.bindValue(citySignal);
         MissingAPI.bindEnabled(citySelect, stateSignal.map(state -> state != null && !state.isEmpty()));
 
         add(title, description, countrySelect, stateSelect, citySelect);
