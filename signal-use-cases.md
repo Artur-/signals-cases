@@ -1,6 +1,6 @@
 # Vaadin Signal API Use Cases - Current Implementation
 
-This document describes the 17 use cases currently implemented in this project.
+This document describes the 21 use cases currently implemented in this project.
 
 ## Introduction
 
@@ -8,7 +8,7 @@ Signals provide a reactive, declarative approach to building UIs where component
 
 ---
 
-## Single-User Use Cases (UC 1-13)
+## Single-User Use Cases (UC 1-17)
 
 ### UC 1: Dynamic Button State
 
@@ -181,6 +181,70 @@ Signals provide a reactive, declarative approach to building UIs where component
 
 ---
 
+### UC 14: Async Data Loading with States
+
+**Description**: User list view with async data loading that properly handles loading/success/error states. Shows loading spinner while fetching, displays data on success, or shows error message with retry button.
+
+**Key Patterns**:
+- `Signal<LoadingState<T>>` with Loading/Success/Error states
+- Async operations with CompletableFuture
+- Loading indicators during async operations
+- Error handling with retry mechanism
+- Optimistic updates with rollback
+
+**Route**: `/use-case-14`
+
+---
+
+### UC 15: Debounced Search
+
+**Description**: Product search with search-as-you-type functionality. Search input is debounced by 300ms to avoid excessive server calls. Shows searching indicator and cancels in-flight requests when new input arrives.
+
+**Key Patterns**:
+- Debouncing signal updates (300ms delay)
+- Search only after user stops typing
+- Cancel in-flight requests on new input
+- Loading state during search
+- Highlight matching text in results
+- Search count tracking
+
+**Route**: `/use-case-15`
+
+---
+
+### UC 16: Search with URL State (Router Integration)
+
+**Description**: Article search where filters (search query and category) are synchronized with URL query parameters. Enables deep linking and browser back button support.
+
+**Key Patterns**:
+- Query parameters as signals (two-way binding)
+- Update URL when signal changes
+- Load signal from URL on navigation
+- Back button support (browser history)
+- Shareable URLs with search state
+- BeforeEnterObserver integration
+
+**Route**: `/use-case-16`
+
+---
+
+### UC 17: Form Auto-Save with Persistence
+
+**Description**: Support request form with auto-save functionality. Form automatically saves draft to localStorage every 30 seconds if modified. Draft is restored on page load and cleared after successful submission.
+
+**Key Patterns**:
+- Form dirty state tracking
+- Periodic auto-save (30 second interval)
+- localStorage persistence via JavaScript
+- Draft status signal (IDLE/DIRTY/SAVING/SAVED/LOADED)
+- Visual indication of save status
+- Draft restoration on page load
+- Clear draft after submit
+
+**Route**: `/use-case-17`
+
+---
+
 ## Multi-User Collaboration (MUC 1-4)
 
 ### MUC 1: Shared Chat/Message List
@@ -297,5 +361,5 @@ Multi-user use cases share signals across sessions:
 
 ---
 
-**Total Use Cases**: 17 (13 single-user + 4 multi-user)
+**Total Use Cases**: 21 (17 single-user + 4 multi-user)
 **Last Updated**: 2026-01-13

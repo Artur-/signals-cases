@@ -4,11 +4,11 @@ This repository contains a collection of Vaadin views demonstrating the Signal A
 
 ## Overview
 
-The Vaadin Signal API provides reactive state management for Vaadin Flow applications. This project contains **17 implemented use cases** showcasing various signal patterns and real-world UI scenarios.
+The Vaadin Signal API provides reactive state management for Vaadin Flow applications. This project contains **21 implemented use cases** showcasing various signal patterns and real-world UI scenarios.
 
 ## Use Cases
 
-### Single-User Use Cases (UC 1-13)
+### Single-User Use Cases (UC 1-17)
 
 1. **Dynamic Button State** - Form validation with reactive button enable/disable
 2. **Progressive Disclosure** - Nested conditional form sections
@@ -23,6 +23,10 @@ The Vaadin Signal API provides reactive state management for Vaadin Flow applica
 11. **Responsive Layout** - Window size as signal for responsive UI
 12. **Dynamic View Title** - Reactive page title sync with browser tab
 13. **Current User Signal** - Application-wide user context from Spring Security
+14. **Async Data Loading** - Loading/success/error states for async operations
+15. **Debounced Search** - Search-as-you-type with 300ms debouncing
+16. **URL State Integration** - Query parameters as signals with router integration
+17. **Form Auto-Save** - Periodic auto-save with localStorage persistence
 
 ### Multi-User Collaboration (MUC 1-4)
 
@@ -137,4 +141,4 @@ All users see real-time updates via Vaadin's automatic UI synchronization.
 
 **Status**: Active development
 **Last Updated**: 2026-01-13
-**Total Use Cases**: 17 (13 single-user + 4 multi-user)
+**Total Use Cases**: 21 (17 single-user + 4 multi-user)
