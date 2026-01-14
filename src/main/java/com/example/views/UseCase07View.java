@@ -29,28 +29,31 @@ import jakarta.annotation.security.PermitAll;
 @PermitAll
 public class UseCase07View extends VerticalLayout {
 
-    record Invoice(String id, String customerName, LocalDate date, BigDecimal total, String status) {}
-    record LineItem(String description, int quantity, BigDecimal unitPrice, BigDecimal total) {}
-    record InvoiceDetails(Invoice invoice, String customerEmail, String customerAddress,
+    public static record Invoice(String id, String customerName, LocalDate date, BigDecimal total, String status) {}
+    public static record LineItem(String description, int quantity, BigDecimal unitPrice, BigDecimal total) {}
+    public static record InvoiceDetails(Invoice invoice, String customerEmail, String customerAddress,
                          List<LineItem> lineItems, String paymentStatus) {}
 
+    private static final Invoice EMPTY_INVOICE = new Invoice("", "", LocalDate.now(), BigDecimal.ZERO, "");
+
     public UseCase07View() {
-        // Create signal for selected invoice
-        WritableSignal<Invoice> selectedInvoiceSignal = new ValueSignal<>(null);
+        // Create signal for selected invoice (use empty invoice as initial value)
+        WritableSignal<Invoice> selectedInvoiceSignal = new ValueSignal<>(EMPTY_INVOICE);
 
         // Computed signal for invoice details
         Signal<InvoiceDetails> invoiceDetailsSignal = Signal.computed(() -> {
             Invoice selected = selectedInvoiceSignal.value();
-            return selected != null ? loadInvoiceDetails(selected.id()) : null;
+            return (selected != null && !selected.id().isEmpty()) ? loadInvoiceDetails(selected.id()) : null;
         });
 
         // Master: Invoice grid
         Grid<Invoice> invoiceGrid = new Grid<>(Invoice.class);
         invoiceGrid.setColumns("id", "customerName", "date", "total", "status");
         invoiceGrid.setItems(loadInvoices());
-        invoiceGrid.asSingleSelect().addValueChangeListener(e ->
-            selectedInvoiceSignal.value(e.getValue())
-        );
+        invoiceGrid.asSingleSelect().addValueChangeListener(e -> {
+            Invoice selected = e.getValue();
+            selectedInvoiceSignal.value(selected != null ? selected : EMPTY_INVOICE);
+        });
 
         // Detail: Invoice details panel
         VerticalLayout detailsPanel = new VerticalLayout();
