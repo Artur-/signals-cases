@@ -8,7 +8,9 @@ import com.vaadin.signals.WritableSignal;
 import com.vaadin.signals.ValueSignal;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.H3;
+import com.vaadin.flow.component.html.Paragraph;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -35,6 +37,18 @@ public class UseCase08View extends VerticalLayout {
                    Plan selectedPlan) {}
 
     public UseCase08View() {
+        setSpacing(true);
+        setPadding(true);
+
+        H2 title = new H2("Use Case 8: Multi-Step Wizard with Validation");
+
+        Paragraph description = new Paragraph(
+            "This use case demonstrates a multi-step wizard form with progressive validation. " +
+            "Complete each step to unlock the next one. " +
+            "Each step has its own validation rules, and the Next button is enabled only when the current step is valid. " +
+            "Review your information in the final step before submitting."
+        );
+
         // Create signals for current step and form data
         WritableSignal<Step> currentStepSignal = new ValueSignal<>(Step.PERSONAL_INFO);
         WritableSignal<String> firstNameSignal = new ValueSignal<>("");
@@ -182,6 +196,6 @@ public class UseCase08View extends VerticalLayout {
         }));
         progressIndicator.getStyle().set("font-weight", "bold");
 
-        add(progressIndicator, step1Layout, step2Layout, step3Layout, step4Layout, navigationLayout);
+        add(title, description, progressIndicator, step1Layout, step2Layout, step3Layout, step4Layout, navigationLayout);
     }
 }

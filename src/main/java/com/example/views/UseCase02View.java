@@ -1,5 +1,6 @@
 package com.example.views;
 
+import com.example.MissingAPI;
 import com.vaadin.flow.component.ComponentEffect;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.checkbox.Checkbox;
@@ -165,7 +166,7 @@ public class UseCase02View extends VerticalLayout {
         Checkbox needsVisaCheckbox = new Checkbox("Do you require visa sponsorship?");
         binder.forField(needsVisaCheckbox)
             .bind(VisaApplicationData::getNeedsVisa, VisaApplicationData::setNeedsVisa);
-        needsVisaCheckbox.bindValue(needsVisaSignal);
+        MissingAPI.bindValue(needsVisaCheckbox, needsVisaSignal);
 
         // Level 1: Visa-related fields (shown when needsVisa is true)
         VerticalLayout visaSection = new VerticalLayout();
@@ -174,7 +175,7 @@ public class UseCase02View extends VerticalLayout {
         visaTypeSelect.setValue(VisaType.H1B);
         binder.forField(visaTypeSelect)
             .bind(VisaApplicationData::getVisaType, VisaApplicationData::setVisaType);
-        visaTypeSelect.bindValue(visaTypeSignal);
+        MissingAPI.bindValue(visaTypeSelect, visaTypeSignal);
 
         TextField currentVisaStatus = new TextField("Current Visa Status");
         binder.forField(currentVisaStatus)
@@ -189,7 +190,7 @@ public class UseCase02View extends VerticalLayout {
         Checkbox hasH1BPreviouslyCheckbox = new Checkbox("Have you held an H1-B visa before?");
         binder.forField(hasH1BPreviouslyCheckbox)
             .bind(VisaApplicationData::getHasH1BPreviously, VisaApplicationData::setHasH1BPreviously);
-        hasH1BPreviouslyCheckbox.bindValue(hasH1BPreviouslySignal);
+        MissingAPI.bindValue(hasH1BPreviouslyCheckbox, hasH1BPreviouslySignal);
 
         TextField h1bSpecialtyOccupation = new TextField("Specialty Occupation");
         binder.forField(h1bSpecialtyOccupation)

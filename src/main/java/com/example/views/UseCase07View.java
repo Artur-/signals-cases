@@ -7,7 +7,9 @@ import com.vaadin.signals.Signal;
 import com.vaadin.signals.WritableSignal;
 import com.vaadin.signals.ValueSignal;
 import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.H3;
+import com.vaadin.flow.component.html.Paragraph;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -34,6 +36,18 @@ public class UseCase07View extends VerticalLayout {
     private static final Invoice EMPTY_INVOICE = new Invoice("", "", LocalDate.now(), BigDecimal.ZERO, "");
 
     public UseCase07View() {
+        setSpacing(true);
+        setPadding(true);
+
+        H2 title = new H2("Use Case 7: Master-Detail Invoice View");
+
+        Paragraph description = new Paragraph(
+            "This use case demonstrates a master-detail pattern with reactive selection handling. " +
+            "Select an invoice from the grid to see its detailed information in the side panel. " +
+            "The detail panel updates automatically when you select a different invoice, " +
+            "showing customer information, line items, and payment status."
+        );
+
         // Create signal for selected invoice (use empty invoice as initial value)
         WritableSignal<Invoice> selectedInvoiceSignal = new ValueSignal<>(EMPTY_INVOICE);
 
@@ -95,7 +109,7 @@ public class UseCase07View extends VerticalLayout {
         // Layout
         HorizontalLayout mainLayout = new HorizontalLayout(invoiceGrid, detailsPanel);
         mainLayout.setSizeFull();
-        add(new H3("Invoices"), mainLayout);
+        add(title, description, mainLayout);
     }
 
     private List<Invoice> loadInvoices() {

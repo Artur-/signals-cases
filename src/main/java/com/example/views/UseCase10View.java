@@ -12,7 +12,9 @@ import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.contextmenu.GridContextMenu;
 import com.vaadin.flow.component.grid.dnd.GridDropMode;
+import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.H3;
+import com.vaadin.flow.component.html.Paragraph;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.Menu;
@@ -36,6 +38,18 @@ public class UseCase10View extends VerticalLayout {
     public static record Employee(String id, String name, String department, EmployeeStatus status, double salary) {}
 
     public UseCase10View() {
+        setSpacing(true);
+        setPadding(true);
+
+        H2 title = new H2("Use Case 10: Employee Management Grid with Dynamic Editability");
+
+        Paragraph description = new Paragraph(
+            "This use case demonstrates a Grid with dynamic row and cell editability based on user permissions. " +
+            "Simulate different user roles (Viewer, Editor, Admin) to see how the grid adapts. " +
+            "Admins can edit salaries and enable drag-and-drop reordering. " +
+            "Only active employees can be selected, and the context menu changes based on permissions and employee status."
+        );
+
         // Create signals for permissions and edit mode
         WritableSignal<UserRole> userRoleSignal = new ValueSignal<>(UserRole.VIEWER);
         WritableSignal<Boolean> editModeSignal = new ValueSignal<>(false);
@@ -176,7 +190,8 @@ public class UseCase10View extends VerticalLayout {
         addButton.bindEnabled(canEditSignal);
 
         add(
-            new H3("Employee Management"),
+            title,
+            description,
             controls,
             addButton,
             grid

@@ -8,7 +8,9 @@ import com.vaadin.signals.WritableSignal;
 import com.vaadin.signals.ValueSignal;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.H3;
+import com.vaadin.flow.component.html.Paragraph;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.EmailField;
@@ -35,6 +37,18 @@ public class UseCase09View extends VerticalLayout {
                            AccountType accountType, Integer age) {}
 
     public UseCase09View() {
+        setSpacing(true);
+        setPadding(true);
+
+        H2 title = new H2("Use Case 9: Form with Binder Integration and Signal Validation");
+
+        Paragraph description = new Paragraph(
+            "This use case demonstrates Vaadin Binder integration with reactive signal-based validation. " +
+            "The form validates in real-time as you type, showing specific error messages for each field. " +
+            "Note how the age requirement changes based on account type (Personal: 13+, Business: 18+). " +
+            "The submit button is enabled only when all fields pass validation."
+        );
+
         // Create binder
         Binder<UserRegistration> binder = new Binder<>(UserRegistration.class);
 
@@ -165,7 +179,8 @@ public class UseCase09View extends VerticalLayout {
         statusDiv.add(statusLabel);
 
         add(
-            new H3("User Registration"),
+            title,
+            description,
             usernameField, usernameError,
             emailField, emailError,
             passwordField, passwordError,

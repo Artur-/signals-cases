@@ -3,6 +3,8 @@ package com.example.views;
 import com.example.MissingAPI;
 
 import com.vaadin.flow.component.combobox.ComboBox;
+import com.vaadin.flow.component.html.H2;
+import com.vaadin.flow.component.html.Paragraph;
 import com.vaadin.signals.Signal;
 import com.vaadin.signals.WritableSignal;
 import com.vaadin.signals.ValueSignal;
@@ -22,6 +24,17 @@ import jakarta.annotation.security.PermitAll;
 public class UseCase05View extends VerticalLayout {
 
     public UseCase05View() {
+        setSpacing(true);
+        setPadding(true);
+
+        H2 title = new H2("Use Case 5: Cascading Location Selector");
+
+        Paragraph description = new Paragraph(
+            "This use case demonstrates cascading dropdowns where each selection filters the next dropdown. " +
+            "Select a country to see states, then select a state to see cities. " +
+            "All filtering is reactive through computed signals."
+        );
+
         // Create signals for selections - use first country as default
         List<String> countries = loadCountries();
         WritableSignal<String> countrySignal = new ValueSignal<>(countries.get(0));
@@ -53,7 +66,7 @@ public class UseCase05View extends VerticalLayout {
         MissingAPI.bindValue(citySelect, citySignal);
         MissingAPI.bindEnabled(citySelect, stateSignal.map(state -> state != null && !state.isEmpty()));
 
-        add(countrySelect, stateSelect, citySelect);
+        add(title, description, countrySelect, stateSelect, citySelect);
     }
 
     private List<String> loadCountries() {
