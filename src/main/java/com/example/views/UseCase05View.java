@@ -25,33 +25,36 @@ import jakarta.annotation.security.PermitAll;
 public class UseCase05View extends VerticalLayout {
 
     public UseCase05View() {
-        // Create signals for selections
-        WritableSignal<String> countrySignal = new ValueSignal<>(null);
-        WritableSignal<String> stateSignal = new ValueSignal<>(null);
-        WritableSignal<String> citySignal = new ValueSignal<>(null);
+        // Create signals for selections - use first country as default
+        List<String> countries = loadCountries();
+        WritableSignal<String> countrySignal = new ValueSignal<>(countries.get(0));
+        WritableSignal<String> stateSignal = new ValueSignal<>("");
+        WritableSignal<String> citySignal = new ValueSignal<>("");
 
         // Country selector
         ComboBox<String> countrySelect = new ComboBox<>("Country");
-        countrySelect.setItems(loadCountries());
+        countrySelect.setItems(countries);
         MissingAPI.bindValue(countrySelect, countrySignal);
 
         // State selector - computed items based on country
         ComboBox<String> stateSelect = new ComboBox<>("State/Province");
+        stateSelect.setItems(List.of()); // Initialize with empty items
         MissingAPI.bindItems(stateSelect, countrySignal.map(country -> {
-            stateSignal.value(null); // Reset state when country changes
-            return country != null ? loadStates(country) : List.of();
+            stateSignal.value(""); // Reset state when country changes
+            return country != null && !country.isEmpty() ? loadStates(country) : List.of();
         }));
         MissingAPI.bindValue(stateSelect, stateSignal);
-        stateSelect.bindEnabled(countrySignal.map(country -> country != null));
+        MissingAPI.bindEnabled(stateSelect, countrySignal.map(country -> country != null && !country.isEmpty()));
 
         // City selector - computed items based on state
         ComboBox<String> citySelect = new ComboBox<>("City");
+        citySelect.setItems(List.of()); // Initialize with empty items
         MissingAPI.bindItems(citySelect, stateSignal.map(state -> {
-            citySignal.value(null); // Reset city when state changes
-            return state != null ? loadCities(countrySignal.value(), state) : List.of();
+            citySignal.value(""); // Reset city when state changes
+            return state != null && !state.isEmpty() ? loadCities(countrySignal.value(), state) : List.of();
         }));
         MissingAPI.bindValue(citySelect, citySignal);
-        citySelect.bindEnabled(stateSignal.map(state -> state != null));
+        MissingAPI.bindEnabled(citySelect, stateSignal.map(state -> state != null && !state.isEmpty()));
 
         add(countrySelect, stateSelect, citySelect);
     }

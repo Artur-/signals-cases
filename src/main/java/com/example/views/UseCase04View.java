@@ -26,7 +26,7 @@ import jakarta.annotation.security.PermitAll;
 @PermitAll
 public class UseCase04View extends VerticalLayout {
 
-    record Product(String id, String name, String category, double price, int stock) {}
+    public static record Product(String id, String name, String category, double price, int stock) {}
 
     public UseCase04View() {
         // Create signals for filter inputs

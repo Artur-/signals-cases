@@ -231,7 +231,8 @@ public class UseCase17View extends VerticalLayout {
         new CPU("cpu3", "Intel Core i5-14600K", 319, "LGA1700", 125, 70),
         new CPU("cpu4", "AMD Ryzen 9 7950X", 549, "AM5", 170, 98),
         new CPU("cpu5", "AMD Ryzen 7 7700X", 349, "AM5", 105, 80),
-        new CPU("cpu6", "AMD Ryzen 5 7600X", 229, "AM5", 105, 65)
+        new CPU("cpu6", "AMD Ryzen 5 7600X", 229, "AM5", 105, 65),
+        new CPU("cpu0", "None", 0, "None", 0, 0)
     );
 
     private static final List<Motherboard> ALL_MOTHERBOARDS = Arrays.asList(
@@ -240,7 +241,8 @@ public class UseCase17View extends VerticalLayout {
         new Motherboard("mb3", "ASUS TUF B760", 189, "LGA1700", "DDR5", 5600, 128, "ATX", 2, 4),
         new Motherboard("mb4", "ASUS ROG X670E", 429, "AM5", "DDR5", 6400, 128, "ATX", 4, 6),
         new Motherboard("mb5", "MSI MPG X670", 319, "AM5", "DDR5", 6000, 128, "ATX", 3, 6),
-        new Motherboard("mb6", "ASUS TUF B650", 199, "AM5", "DDR5", 5600, 128, "ATX", 2, 4)
+        new Motherboard("mb6", "ASUS TUF B650", 199, "AM5", "DDR5", 5600, 128, "ATX", 2, 4),
+        new Motherboard("mb0", "None", 0, "None", "None", 0, 0, "None", 0, 0)
     );
 
     private static final List<RAM> ALL_RAM = Arrays.asList(
@@ -249,7 +251,8 @@ public class UseCase17View extends VerticalLayout {
         new RAM("ram3", "64GB DDR5-6000 (2x32GB)", 219, "DDR5", 6000, 64),
         new RAM("ram4", "16GB DDR5-5600 (2x8GB)", 59, "DDR5", 5600, 16),
         new RAM("ram5", "32GB DDR4-3200 (2x16GB)", 79, "DDR4", 3200, 32),
-        new RAM("ram6", "16GB DDR4-3200 (2x8GB)", 45, "DDR4", 3200, 16)
+        new RAM("ram6", "16GB DDR4-3200 (2x8GB)", 45, "DDR4", 3200, 16),
+        new RAM("ram0", "None", 0, "None", 0, 0)
     );
 
     private static final List<GPU> ALL_GPUS = Arrays.asList(
@@ -258,7 +261,8 @@ public class UseCase17View extends VerticalLayout {
         new GPU("gpu3", "NVIDIA RTX 4070 Ti", 799, 285, 285, 75),
         new GPU("gpu4", "AMD RX 7900 XTX", 999, 355, 320, 85),
         new GPU("gpu5", "AMD RX 7900 XT", 849, 315, 305, 78),
-        new GPU("gpu6", "NVIDIA RTX 4060 Ti", 499, 160, 244, 55)
+        new GPU("gpu6", "NVIDIA RTX 4060 Ti", 499, 160, 244, 55),
+        new GPU("gpu0", "None", 0, 0, 0, 0)
     );
 
     private static final List<Storage> ALL_STORAGE = Arrays.asList(
@@ -276,14 +280,16 @@ public class UseCase17View extends VerticalLayout {
         new PSU("psu2", "850W Corsair RM850x (80+ Gold)", 149, 850, "ATX", "80+ Gold"),
         new PSU("psu3", "750W Corsair RM750x (80+ Gold)", 119, 750, "ATX", "80+ Gold"),
         new PSU("psu4", "650W Corsair RM650x (80+ Gold)", 99, 650, "ATX", "80+ Gold"),
-        new PSU("psu5", "550W Corsair RM550x (80+ Gold)", 79, 550, "ATX", "80+ Gold")
+        new PSU("psu5", "550W Corsair RM550x (80+ Gold)", 79, 550, "ATX", "80+ Gold"),
+        new PSU("psu0", "None", 0, 0, "None", "None")
     );
 
     private static final List<Case> ALL_CASES = Arrays.asList(
         new Case("case1", "NZXT H7 Flow (ATX)", 129, "ATX", 400, 185, "ATX"),
         new Case("case2", "Fractal Design North (ATX)", 139, "ATX", 360, 170, "ATX"),
         new Case("case3", "Lian Li O11 Dynamic (ATX)", 149, "ATX", 420, 167, "ATX"),
-        new Case("case4", "Corsair 4000D Airflow (ATX)", 104, "ATX", 360, 170, "ATX")
+        new Case("case4", "Corsair 4000D Airflow (ATX)", 104, "ATX", 360, 170, "ATX"),
+        new Case("case0", "None", 0, "None", 0, 0, "None")
     );
 
     private static final List<Cooler> ALL_COOLERS = Arrays.asList(
@@ -291,22 +297,23 @@ public class UseCase17View extends VerticalLayout {
         new Cooler("cool2", "be quiet! Dark Rock Pro 4 (Air)", 89, "Air", 162, 250, "LGA1700", "AM5"),
         new Cooler("cool3", "Arctic Liquid Freezer II 360 (AIO)", 149, "AIO", 60, 350, "LGA1700", "AM5"),
         new Cooler("cool4", "NZXT Kraken X63 (AIO)", 139, "AIO", 58, 280, "LGA1700", "AM5"),
-        new Cooler("cool5", "Cooler Master Hyper 212 (Air)", 49, "Air", 158, 150, "LGA1700", "AM5")
+        new Cooler("cool5", "Cooler Master Hyper 212 (Air)", 49, "Air", 158, 150, "LGA1700", "AM5"),
+        new Cooler("cool0", "None", 0, "None", 0, 0, "None", "None")
     );
 
     // ==================== Signal Declarations (~70 total) ====================
 
     // 1. Component Selection Signals (12)
-    private final WritableSignal<CPU> cpuSignal = new ValueSignal<>(null);
-    private final WritableSignal<Motherboard> motherboardSignal = new ValueSignal<>(null);
-    private final WritableSignal<RAM> ramSignal = new ValueSignal<>(null);
-    private final WritableSignal<GPU> gpuSignal = new ValueSignal<>(null);
-    private final WritableSignal<Storage> storage1Signal = new ValueSignal<>(null);
-    private final WritableSignal<Storage> storage2Signal = new ValueSignal<>(ALL_STORAGE.get(6)); // None
-    private final WritableSignal<Storage> storage3Signal = new ValueSignal<>(ALL_STORAGE.get(6)); // None
-    private final WritableSignal<PSU> psuSignal = new ValueSignal<>(null);
-    private final WritableSignal<Case> caseSignal = new ValueSignal<>(null);
-    private final WritableSignal<Cooler> coolerSignal = new ValueSignal<>(null);
+    private final WritableSignal<CPU> cpuSignal = new ValueSignal<>(ALL_CPUS.get(ALL_CPUS.size() - 1)); // None
+    private final WritableSignal<Motherboard> motherboardSignal = new ValueSignal<>(ALL_MOTHERBOARDS.get(ALL_MOTHERBOARDS.size() - 1)); // None
+    private final WritableSignal<RAM> ramSignal = new ValueSignal<>(ALL_RAM.get(ALL_RAM.size() - 1)); // None
+    private final WritableSignal<GPU> gpuSignal = new ValueSignal<>(ALL_GPUS.get(ALL_GPUS.size() - 1)); // None
+    private final WritableSignal<Storage> storage1Signal = new ValueSignal<>(ALL_STORAGE.get(ALL_STORAGE.size() - 1)); // None
+    private final WritableSignal<Storage> storage2Signal = new ValueSignal<>(ALL_STORAGE.get(ALL_STORAGE.size() - 1)); // None
+    private final WritableSignal<Storage> storage3Signal = new ValueSignal<>(ALL_STORAGE.get(ALL_STORAGE.size() - 1)); // None
+    private final WritableSignal<PSU> psuSignal = new ValueSignal<>(ALL_PSUS.get(ALL_PSUS.size() - 1)); // None
+    private final WritableSignal<Case> caseSignal = new ValueSignal<>(ALL_CASES.get(ALL_CASES.size() - 1)); // None
+    private final WritableSignal<Cooler> coolerSignal = new ValueSignal<>(ALL_COOLERS.get(ALL_COOLERS.size() - 1)); // None
 
     // 2. Computed Price Signals (10)
     private Signal<Double> cpuPriceSignal;
@@ -442,7 +449,7 @@ public class UseCase17View extends VerticalLayout {
         cpuSocketMatchSignal = Signal.computed(() -> {
             CPU cpu = cpuSignal.value();
             Motherboard mobo = motherboardSignal.value();
-            if (cpu == null || mobo == null) return true;
+            if (cpu == null || mobo == null || "None".equals(cpu.getName()) || "None".equals(mobo.getName())) return true;
             return cpu.getSocket().equals(mobo.getSocket());
         });
 
@@ -982,15 +989,15 @@ public class UseCase17View extends VerticalLayout {
     }
 
     private void resetBuild() {
-        cpuSignal.value(null);
-        motherboardSignal.value(null);
-        ramSignal.value(null);
-        gpuSignal.value(null);
-        storage1Signal.value(null);
-        storage2Signal.value(ALL_STORAGE.get(6)); // None
-        storage3Signal.value(ALL_STORAGE.get(6)); // None
-        psuSignal.value(null);
-        caseSignal.value(null);
-        coolerSignal.value(null);
+        cpuSignal.value(ALL_CPUS.get(ALL_CPUS.size() - 1)); // None
+        motherboardSignal.value(ALL_MOTHERBOARDS.get(ALL_MOTHERBOARDS.size() - 1)); // None
+        ramSignal.value(ALL_RAM.get(ALL_RAM.size() - 1)); // None
+        gpuSignal.value(ALL_GPUS.get(ALL_GPUS.size() - 1)); // None
+        storage1Signal.value(ALL_STORAGE.get(ALL_STORAGE.size() - 1)); // None
+        storage2Signal.value(ALL_STORAGE.get(ALL_STORAGE.size() - 1)); // None
+        storage3Signal.value(ALL_STORAGE.get(ALL_STORAGE.size() - 1)); // None
+        psuSignal.value(ALL_PSUS.get(ALL_PSUS.size() - 1)); // None
+        caseSignal.value(ALL_CASES.get(ALL_CASES.size() - 1)); // None
+        coolerSignal.value(ALL_COOLERS.get(ALL_COOLERS.size() - 1)); // None
     }
 }

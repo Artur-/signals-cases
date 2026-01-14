@@ -1,0 +1,16 @@
+# flyctl launch added from .gitignore
+target
+**/.idea
+**/.vscode
+**/.settings
+**/.project
+**/.classpath
+
+**/*.iml
+**/.DS_Store
+
+# The following files are generated/updated by vaadin-maven-plugin
+**/node_modules
+**/src/main/frontend/generated
+**/vite.generated.ts
+fly.toml
