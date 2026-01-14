@@ -136,11 +136,17 @@ public class CollaborativeSignals {
         return remaining > 0;
     }
 
-    public void showButtonAt(int left, int top) {
+    public void startNewRound(int left, int top) {
         buttonLeftSignal.value(left);
         buttonTopSignal.value(top);
         clicksRemainingSignal.value(5); // 5 clicks per round
         roundNumberSignal.value(roundNumberSignal.value() + 1);
+        buttonVisibleSignal.value(true);
+    }
+
+    public void repositionButton(int left, int top) {
+        buttonLeftSignal.value(left);
+        buttonTopSignal.value(top);
         buttonVisibleSignal.value(true);
     }
 

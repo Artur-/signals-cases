@@ -176,11 +176,11 @@ public class MUC03View extends VerticalLayout {
     }
 
     private void startNewRound() {
-        // Position button randomly
+        // Position button randomly and start a new round
         int left = random.nextInt(400);
         int top = random.nextInt(200);
 
-        collaborativeSignals.showButtonAt(left, top);
+        collaborativeSignals.startNewRound(left, top);
     }
 
     private void handleButtonClick() {
@@ -188,7 +188,7 @@ public class MUC03View extends VerticalLayout {
         // CollaborativeSignals)
         boolean moreClicksRemain = collaborativeSignals.awardPoint(currentUser);
 
-        // If there are more clicks remaining, spawn next button after random
+        // If there are more clicks remaining, reposition button after random
         // delay
         if (moreClicksRemain) {
             new Thread(() -> {
@@ -197,12 +197,12 @@ public class MUC03View extends VerticalLayout {
                     int delay = 500 + random.nextInt(1500);
                     Thread.sleep(delay);
 
-                    // Position next button randomly
+                    // Reposition button at random location
                     int left = random.nextInt(400);
                     int top = random.nextInt(200);
 
                     getUI().ifPresent(ui -> ui.access(() -> collaborativeSignals
-                            .showButtonAt(left, top)));
+                            .repositionButton(left, top)));
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
                 }
