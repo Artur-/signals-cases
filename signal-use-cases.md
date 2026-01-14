@@ -1,6 +1,6 @@
 # Vaadin Signal API Use Cases - Current Implementation
 
-This document describes the 20 use cases currently implemented in this project.
+This document describes the 21 use cases currently implemented in this project.
 
 ## Introduction
 
@@ -8,7 +8,7 @@ Signals provide a reactive, declarative approach to building UIs where component
 
 ---
 
-## Single-User Use Cases (UC 1-16)
+## Single-User Use Cases (UC 1-17)
 
 ### UC 1: Dynamic Button State
 
@@ -228,6 +228,37 @@ Signals provide a reactive, declarative approach to building UIs where component
 
 ---
 
+### UC 17: Custom PC Builder - Complex State at Scale
+
+**Description**: E-commerce product configurator for building a custom PC. Users select components (CPU, GPU, RAM, storage, etc.) and the system reactively calculates total price, power consumption, compatibility checks, and performance estimates. Demonstrates handling ~70 interdependent signals with multi-level computed values.
+
+**Key Patterns**:
+- **Scale**: ~70 signals (12 selections + 40+ computed + 15 compatibility + 8 performance)
+- **Multi-level computed signals**: Signals that depend on other computed signals (3 levels deep)
+- **Complex validation**: 15+ cross-component compatibility checks (socket matching, physical clearances, power requirements)
+- **Conditional options**: Available motherboards filtered by CPU socket selection
+- **Multiple aggregation types**: Price totals, power consumption, performance scores
+- **Real-time updates**: All 70 signals update reactively when any component changes
+
+**Signal Categories**:
+1. **Component Selections (12)**: CPU, Motherboard, RAM, GPU, 3x Storage, PSU, Case, Cooler
+2. **Price Signals (11)**: Individual component prices + total
+3. **Power Signals (6)**: CPU/GPU power, total consumption, PSU sufficiency, recommended wattage, margin
+4. **Compatibility (15)**: Socket matching, RAM compatibility, GPU/cooler clearances, PSU wattage, slot availability
+5. **Performance (8)**: CPU/GPU scores, gaming/productivity estimates, bottleneck detection, overall rating
+6. **Validation (5)**: Missing components, warning messages, can build, configuration validity
+7. **UI State (4)**: Show/hide detail panels, view modes
+
+**Demonstrates**:
+- Signal framework can handle 70+ signals efficiently
+- Complex business logic with signals (compatibility rules, performance calculations)
+- Multi-level signal dependencies remain performant
+- Conditional UI based on multiple signal combinations
+
+**Route**: `/use-case-17`
+
+---
+
 ## Multi-User Collaboration (MUC 1-4)
 
 ### MUC 1: Shared Chat/Message List
@@ -344,5 +375,5 @@ Multi-user use cases share signals across sessions:
 
 ---
 
-**Total Use Cases**: 20 (16 single-user + 4 multi-user)
+**Total Use Cases**: 21 (17 single-user + 4 multi-user)
 **Last Updated**: 2026-01-14
