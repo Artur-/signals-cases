@@ -50,24 +50,7 @@ import java.util.stream.Collectors;
 @PermitAll
 public class UseCase15View extends VerticalLayout {
 
-    public static class Product {
-        private final String id;
-        private final String name;
-        private final String category;
-        private final double price;
-
-        public Product(String id, String name, String category, double price) {
-            this.id = id;
-            this.name = name;
-            this.category = category;
-            this.price = price;
-        }
-
-        public String getId() { return id; }
-        public String getName() { return name; }
-        public String getCategory() { return category; }
-        public double getPrice() { return price; }
-
+    public record Product(String id, String name, String category, double price) {
         public boolean matches(String query) {
             String lowerQuery = query.toLowerCase();
             return name.toLowerCase().contains(lowerQuery) ||
@@ -229,16 +212,16 @@ public class UseCase15View extends VerticalLayout {
 
             // Highlight matching text
             String query = debouncedQuerySignal.value();
-            nameDiv.getElement().setProperty("innerHTML", highlightMatch(product.getName(), query));
+            nameDiv.getElement().setProperty("innerHTML", highlightMatch(product.name(), query));
 
-            Div categoryDiv = new Div(product.getCategory());
+            Div categoryDiv = new Div(product.category());
             categoryDiv.getStyle()
                 .set("font-size", "0.9em")
                 .set("color", "var(--lumo-secondary-text-color)");
 
             leftSide.add(nameDiv, categoryDiv);
 
-            Div priceDiv = new Div("$" + String.format("%.2f", product.getPrice()));
+            Div priceDiv = new Div("$" + String.format("%.2f", product.price()));
             priceDiv.getStyle()
                 .set("font-weight", "bold")
                 .set("color", "var(--lumo-primary-color)");
