@@ -2,9 +2,6 @@ package com.example.views;
 
 import com.example.MissingAPI;
 
-
-// Note: This code uses the proposed Signal API and will not compile yet
-
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.signals.Signal;
 import com.vaadin.signals.WritableSignal;
@@ -68,7 +65,7 @@ public class UseCase01View extends VerticalLayout {
         ));
 
         // Bind button text based on submission state
-        MissingAPI.bindText(submitButton, submissionStateSignal.map(state -> switch(state) {
+        submitButton.bindText(submissionStateSignal.map(state -> switch (state) {
             case IDLE -> "Create Account";
             case SUBMITTING -> "Creating...";
             case SUCCESS -> "Success!";
@@ -86,13 +83,9 @@ public class UseCase01View extends VerticalLayout {
             CompletableFuture.runAsync(() -> {
                 try {
                     Thread.sleep(2000);
-                    getUI().ifPresent(ui -> ui.access(() ->
-                        submissionStateSignal.value(SubmissionState.SUCCESS)
-                    ));
+                    submissionStateSignal.value(SubmissionState.SUCCESS);
                 } catch (Exception ex) {
-                    getUI().ifPresent(ui -> ui.access(() ->
-                        submissionStateSignal.value(SubmissionState.ERROR)
-                    ));
+                    submissionStateSignal.value(SubmissionState.ERROR);
                 }
             });
         });

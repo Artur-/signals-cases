@@ -83,8 +83,7 @@ public class MissingAPI {
      * Binds a component's theme name to a Signal.
      */
     public static void bindThemeName(Component component, Signal<String> signal) {
-        ComponentEffect.bind(component, signal, (c, themeName) ->
-            c.getElement().setAttribute("theme", themeName != null ? themeName : ""));
+        component.getElement().bindAttribute("theme", signal);
     }
 
     /**
