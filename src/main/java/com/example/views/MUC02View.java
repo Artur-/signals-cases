@@ -4,7 +4,6 @@ import jakarta.annotation.security.PermitAll;
 
 import java.util.Map;
 
-import com.example.MissingAPI;
 import com.example.security.CurrentUserSignal;
 import com.example.signals.CollaborativeSignals;
 import com.example.signals.UserSessionRegistry;
@@ -123,7 +122,7 @@ public class MUC02View extends VerticalLayout {
                     username.equals(currentUser) ? "bold" : "normal");
 
             Div positionLabel = new Div();
-            MissingAPI.bindElementText(positionLabel,
+            positionLabel.bindText(
                     signal.map(CollaborativeSignals.CursorPosition::toString));
             positionLabel.getStyle().set("font-family", "monospace")
                     .set("color", "var(--lumo-secondary-text-color)");
@@ -180,9 +179,9 @@ public class MUC02View extends VerticalLayout {
                     .set("z-index", "1000");
 
             // Bind position
-            MissingAPI.bindStyle(cursorIndicator, "left",
+            cursorIndicator.getStyle().bind("left",
                     signal.map(pos -> pos.x() + "px"));
-            MissingAPI.bindStyle(cursorIndicator, "top",
+            cursorIndicator.getStyle().bind("top",
                     signal.map(pos -> pos.y() + "px"));
 
             // Label

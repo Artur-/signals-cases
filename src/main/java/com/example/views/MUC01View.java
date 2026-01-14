@@ -120,9 +120,8 @@ public class MUC01View extends VerticalLayout {
                 .set("margin-top", "1em").set("font-style", "italic");
 
         Div messageCount = new Div();
-        MissingAPI.bindElementText(messageCount,
-                collaborativeSignals.getMessagesSignal().map(
-                        messages -> "💬 Total messages: " + messages.size()));
+        messageCount.bindText(collaborativeSignals.getMessagesSignal()
+                .map(messages -> "💬 Total messages: " + messages.size()));
 
         infoBox.add(new Paragraph("💡 In production implementation:\n"
                 + "• Signal is application-scoped Spring component (injected)\n"

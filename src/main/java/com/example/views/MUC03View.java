@@ -85,11 +85,10 @@ public class MUC03View extends VerticalLayout {
         targetButton.getStyle().set("position", "absolute").set("z-index",
                 "10");
 
-        MissingAPI.bindVisible(targetButton,
-                collaborativeSignals.getButtonVisibleSignal());
-        MissingAPI.bindStyle(targetButton, "left", collaborativeSignals
+        targetButton.bindVisible(collaborativeSignals.getButtonVisibleSignal());
+        targetButton.getStyle().bind("left", collaborativeSignals
                 .getButtonLeftSignal().map(left -> left + "px"));
-        MissingAPI.bindStyle(targetButton, "top", collaborativeSignals
+        targetButton.getStyle().bind("top", collaborativeSignals
                 .getButtonTopSignal().map(top -> top + "px"));
 
         gameArea.add(targetButton);

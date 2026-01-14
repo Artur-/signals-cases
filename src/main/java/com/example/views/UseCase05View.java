@@ -55,7 +55,7 @@ public class UseCase05View extends VerticalLayout {
                     : List.of();
         }));
         stateSelect.bindValue(stateSignal);
-        MissingAPI.bindEnabled(stateSelect, countrySignal
+        stateSelect.bindEnabled(countrySignal
                 .map(country -> country != null && !country.isEmpty()));
 
         // City selector - computed items based on state
@@ -68,7 +68,7 @@ public class UseCase05View extends VerticalLayout {
                     : List.of();
         }));
         citySelect.bindValue(citySignal);
-        MissingAPI.bindEnabled(citySelect,
+        citySelect.bindEnabled(
                 stateSignal.map(state -> state != null && !state.isEmpty()));
 
         add(title, description, countrySelect, stateSelect, citySelect);

@@ -881,7 +881,7 @@ public class UseCase17View extends VerticalLayout {
 
         Button addToCartButton = new Button("Add to Cart");
         addToCartButton.addThemeVariants();
-        MissingAPI.bindEnabled(addToCartButton, canBuildSignal);
+        addToCartButton.bindEnabled(canBuildSignal);
 
         Signal<String> cartButtonText = Signal.computed(() -> {
             if (canBuildSignal.value()) {
@@ -1095,7 +1095,7 @@ public class UseCase17View extends VerticalLayout {
     private Div createStatBox(String label, Signal<String> valueSignal,
             Signal<String> bgColorSignal) {
         Div box = new Div();
-        MissingAPI.bindStyle(box, "background-color", bgColorSignal);
+        box.getStyle().bind("background-color", bgColorSignal);
         box.getStyle().set("padding", "1em").set("border-radius", "4px")
                 .set("margin-bottom", "0.5em");
 

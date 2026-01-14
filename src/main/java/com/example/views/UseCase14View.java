@@ -152,8 +152,7 @@ public class UseCase14View extends VerticalLayout {
         // Disable load button while loading
         Signal<Boolean> isLoadingSignal = usersSignal
                 .map(LoadingState::isLoading);
-        MissingAPI.bindEnabled(loadButton,
-                isLoadingSignal.map(loading -> !loading));
+        loadButton.bindEnabled(isLoadingSignal.map(loading -> !loading));
 
         Button clearButton = new Button("Clear",
                 event -> usersSignal.value(LoadingState.idle()));
@@ -185,7 +184,7 @@ public class UseCase14View extends VerticalLayout {
                 .set("font-style", "italic");
         idleContent.add(idleMessage);
         Signal<Boolean> isIdleSignal = usersSignal.map(LoadingState::isIdle);
-        MissingAPI.bindVisible(idleContent, isIdleSignal);
+        idleContent.bindVisible(isIdleSignal);
 
         // Loading state
         Div loadingContent = new Div();
@@ -201,7 +200,7 @@ public class UseCase14View extends VerticalLayout {
         loadingMessage.getStyle().set("color", "var(--lumo-primary-color)");
 
         loadingContent.add(progressBar, loadingMessage);
-        MissingAPI.bindVisible(loadingContent, isLoadingSignal);
+        loadingContent.bindVisible(isLoadingSignal);
 
         // Success state
         Div successContent = new Div();
@@ -241,7 +240,7 @@ public class UseCase14View extends VerticalLayout {
         successContent.add(successTitle, userList);
         Signal<Boolean> isSuccessSignal = usersSignal
                 .map(LoadingState::isSuccess);
-        MissingAPI.bindVisible(successContent, isSuccessSignal);
+        successContent.bindVisible(isSuccessSignal);
 
         // Error state
         Div errorContent = new Div();
@@ -264,7 +263,7 @@ public class UseCase14View extends VerticalLayout {
 
         errorContent.add(errorTitle, errorMessage, retryButton);
         Signal<Boolean> isErrorSignal = usersSignal.map(LoadingState::isError);
-        MissingAPI.bindVisible(errorContent, isErrorSignal);
+        errorContent.bindVisible(isErrorSignal);
 
         stateBox.add(idleContent, loadingContent, successContent, errorContent);
 

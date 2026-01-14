@@ -176,7 +176,7 @@ public class MUC04View extends VerticalLayout {
                         return "🔒 " + lockOwner + " is editing this field";
                     }
                 });
-        MissingAPI.bindHelperText(field, helperTextSignal);
+        field.getElement().bindProperty("helperText", helperTextSignal);
 
         // Disable if locked by another user
         Signal<Boolean> enabledSignal = collaborativeSignals
@@ -184,7 +184,7 @@ public class MUC04View extends VerticalLayout {
                     String lockOwner = locks.get(fieldName);
                     return lockOwner == null || lockOwner.equals(currentUser);
                 });
-        MissingAPI.bindEnabled(field, enabledSignal);
+        field.bindEnabled(enabledSignal);
 
         return field;
     }

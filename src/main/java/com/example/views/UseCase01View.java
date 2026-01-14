@@ -4,8 +4,6 @@ import jakarta.annotation.security.PermitAll;
 
 import java.util.concurrent.CompletableFuture;
 
-import com.example.MissingAPI;
-
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.Paragraph;
@@ -88,7 +86,7 @@ public class UseCase01View extends VerticalLayout {
                 }));
 
         // Bind theme variant
-        MissingAPI.bindThemeName(submitButton,
+        submitButton.getElement().bindAttribute("theme",
                 submissionStateSignal.map(
                         state -> state == SubmissionState.SUCCESS ? "success"
                                 : "primary"));

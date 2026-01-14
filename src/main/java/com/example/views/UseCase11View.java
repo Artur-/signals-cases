@@ -2,8 +2,6 @@ package com.example.views;
 
 import jakarta.annotation.security.PermitAll;
 
-import com.example.MissingAPI;
-
 import com.vaadin.flow.component.AttachEvent;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.DetachEvent;
@@ -125,7 +123,7 @@ public class UseCase11View extends VerticalLayout {
                 "#fff3e0");
         Signal<Boolean> isSmallScreen = windowSizeSignal
                 .map(WindowSize::isSmallScreen);
-        MissingAPI.bindVisible(mobileSection, isSmallScreen);
+        mobileSection.bindVisible(isSmallScreen);
 
         // Tablet-only content
         Div tabletSection = createSection("💻 Tablet-Only Content",
@@ -134,7 +132,7 @@ public class UseCase11View extends VerticalLayout {
                 "#f3e5f5");
         Signal<Boolean> isMediumScreen = windowSizeSignal
                 .map(WindowSize::isMediumScreen);
-        MissingAPI.bindVisible(tabletSection, isMediumScreen);
+        tabletSection.bindVisible(isMediumScreen);
 
         // Desktop-only content
         Div desktopSection = createSection("🖥️ Desktop-Only Content",
@@ -143,7 +141,7 @@ public class UseCase11View extends VerticalLayout {
                 "#e8f5e9");
         Signal<Boolean> isLargeScreen = windowSizeSignal
                 .map(WindowSize::isLargeScreen);
-        MissingAPI.bindVisible(desktopSection, isLargeScreen);
+        desktopSection.bindVisible(isLargeScreen);
 
         // Responsive card grid
         H3 cardGridTitle = new H3("Responsive Card Grid");
@@ -251,8 +249,8 @@ public class UseCase11View extends VerticalLayout {
 
         gridContainer.getStyle().set("display", "flex").set("margin", "1em 0");
 
-        MissingAPI.bindStyle(gridContainer, "flex-direction", flexDirection);
-        MissingAPI.bindStyle(gridContainer, "flex-wrap", flexWrap);
+        gridContainer.getStyle().bind("flex-direction", flexDirection);
+        gridContainer.getStyle().bind("flex-wrap", flexWrap);
 
         return gridContainer;
     }

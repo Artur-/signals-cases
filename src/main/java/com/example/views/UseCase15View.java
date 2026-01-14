@@ -157,7 +157,7 @@ public class UseCase15View extends VerticalLayout {
 
         Icon searchingIcon = new Icon(VaadinIcon.SPINNER);
         searchingIcon.getStyle().set("animation", "spin 1s linear infinite");
-        MissingAPI.bindVisible(searchingIcon, isSearchingSignal);
+        searchingIcon.bindVisible(isSearchingSignal);
 
         Span statusText = new Span();
         statusText.bindText(isSearchingSignal

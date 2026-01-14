@@ -2,8 +2,6 @@ package com.example.views;
 
 import jakarta.annotation.security.PermitAll;
 
-import com.example.MissingAPI;
-
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.html.Div;
@@ -180,7 +178,7 @@ public class UseCase09View extends VerticalLayout {
         statusLabel.bindText(formValidSignal
                 .map(valid -> valid ? "Form is valid - Ready to submit"
                         : "Please complete all required fields correctly"));
-        MissingAPI.bindAttribute(statusLabel, "style",
+        statusLabel.getElement().bindAttribute("style",
                 formValidSignal
                         .map(valid -> valid ? "color: green; font-weight: bold;"
                                 : "color: orange;"));
