@@ -1,7 +1,6 @@
 package com.example.views;
 
-import com.example.MissingAPI;
-
+import com.vaadin.flow.component.ComponentEffect;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.combobox.ComboBox;
@@ -15,8 +14,7 @@ import com.vaadin.flow.data.binder.Binder;
 import com.vaadin.flow.router.Menu;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
-import com.vaadin.signals.Signal;
-import com.vaadin.signals.ValueSignal;
+import com.vaadin.signals.ReferenceSignal;
 import com.vaadin.signals.WritableSignal;
 
 import java.util.List;
@@ -133,6 +131,11 @@ public class UseCase02View extends VerticalLayout {
         }
     }
 
+    public static class Results {
+        WritableSignal<String> text = new ReferenceSignal<>("");
+        WritableSignal<Boolean> visible = new ReferenceSignal<>(false);
+    }
+
     public UseCase02View() {
         // Create binder and bean
         Binder<VisaApplicationData> binder = new Binder<>(VisaApplicationData.class);
@@ -140,15 +143,15 @@ public class UseCase02View extends VerticalLayout {
         binder.setBean(data);
 
         // Signals for conditional visibility
-        WritableSignal<Boolean> needsVisaSignal = new ValueSignal<>(false);
-        WritableSignal<VisaType> visaTypeSignal = new ValueSignal<>(VisaType.H1B);
-        WritableSignal<Boolean> hasH1BPreviouslySignal = new ValueSignal<>(false);
+        WritableSignal<Boolean> needsVisaSignal = new ReferenceSignal<>(false);
+        WritableSignal<VisaType> visaTypeSignal = new ReferenceSignal<>(VisaType.H1B);
+        WritableSignal<Boolean> hasH1BPreviouslySignal = new ReferenceSignal<>(false);
 
         // Base question: needs visa sponsorship
         Checkbox needsVisaCheckbox = new Checkbox("Do you require visa sponsorship?");
         binder.forField(needsVisaCheckbox)
             .bind(VisaApplicationData::getNeedsVisa, VisaApplicationData::setNeedsVisa);
-        MissingAPI.bindValue(needsVisaCheckbox, needsVisaSignal);
+        needsVisaCheckbox.bindValue(needsVisaSignal);
 
         // Level 1: Visa-related fields (shown when needsVisa is true)
         VerticalLayout visaSection = new VerticalLayout();
@@ -157,7 +160,7 @@ public class UseCase02View extends VerticalLayout {
         visaTypeSelect.setValue(VisaType.H1B);
         binder.forField(visaTypeSelect)
             .bind(VisaApplicationData::getVisaType, VisaApplicationData::setVisaType);
-        MissingAPI.bindValue(visaTypeSelect, visaTypeSignal);
+        visaTypeSelect.bindValue(visaTypeSignal);
 
         TextField currentVisaStatus = new TextField("Current Visa Status");
         binder.forField(currentVisaStatus)
@@ -172,16 +175,14 @@ public class UseCase02View extends VerticalLayout {
         Checkbox hasH1BPreviouslyCheckbox = new Checkbox("Have you held an H1-B visa before?");
         binder.forField(hasH1BPreviouslyCheckbox)
             .bind(VisaApplicationData::getHasH1BPreviously, VisaApplicationData::setHasH1BPreviously);
-        MissingAPI.bindValue(hasH1BPreviouslyCheckbox, hasH1BPreviouslySignal);
+        hasH1BPreviouslyCheckbox.bindValue(hasH1BPreviouslySignal);
 
         TextField h1bSpecialtyOccupation = new TextField("Specialty Occupation");
         binder.forField(h1bSpecialtyOccupation)
             .bind(VisaApplicationData::getH1bSpecialtyOccupation, VisaApplicationData::setH1bSpecialtyOccupation);
 
         h1bSection.add(hasH1BPreviouslyCheckbox, h1bSpecialtyOccupation);
-        h1bSection.bindVisible(Signal.computed(() ->
-            needsVisaSignal.value() && visaTypeSignal.value() == VisaType.H1B
-        ));
+        h1bSection.bindVisible(() -> needsVisaSignal.value() && visaTypeSignal.value() == VisaType.H1B);
 
         // Level 3: Previous H1-B details (shown when has H1-B previously)
         VerticalLayout previousH1BSection = new VerticalLayout();
@@ -199,11 +200,11 @@ public class UseCase02View extends VerticalLayout {
             .bind(VisaApplicationData::getPreviousH1BStartDate, VisaApplicationData::setPreviousH1BStartDate);
 
         previousH1BSection.add(previousEmployer, previousPetitionNumber, previousH1BStartDate);
-        previousH1BSection.bindVisible(Signal.computed(() ->
+        previousH1BSection.bindVisible(() ->
             needsVisaSignal.value() &&
             visaTypeSignal.value() == VisaType.H1B &&
             hasH1BPreviouslySignal.value()
-        ));
+        );
 
         // Level 2: L1 specific fields (shown when visa type is L1)
         VerticalLayout l1Section = new VerticalLayout();
@@ -222,9 +223,9 @@ public class UseCase02View extends VerticalLayout {
             .bind(VisaApplicationData::getL1Category, VisaApplicationData::setL1Category);
 
         l1Section.add(parentCompanyName, yearsWithParentCompany, l1Category);
-        l1Section.bindVisible(Signal.computed(() ->
+        l1Section.bindVisible(() ->
             needsVisaSignal.value() && visaTypeSignal.value() == VisaType.L1
-        ));
+        );
 
         // Level 2: O1 specific fields (shown when visa type is O1)
         VerticalLayout o1Section = new VerticalLayout();
@@ -242,9 +243,9 @@ public class UseCase02View extends VerticalLayout {
             .bind(VisaApplicationData::getPublications, VisaApplicationData::setPublications);
 
         o1Section.add(fieldOfExtraordinaryAbility, majorAwards, publications);
-        o1Section.bindVisible(Signal.computed(() ->
+        o1Section.bindVisible(() ->
             needsVisaSignal.value() && visaTypeSignal.value() == VisaType.O1
-        ));
+        );
 
         // Display area for collected values
         Div resultDisplay = new Div();
@@ -259,12 +260,16 @@ public class UseCase02View extends VerticalLayout {
         Pre resultText = new Pre();
         resultText.getStyle().set("margin", "0");
         resultDisplay.add(new H3("Collected Form Data"), resultText);
+        Results results = new Results();
+        resultText.bindText(results.text);
+        ComponentEffect.bind(resultText, results.text, (component, signal) ->
+            Notification.show("Form data displayed below", 2000, Notification.Position.BOTTOM_START));
+        resultDisplay.bindVisible(results.visible);
 
         // Show Values button
         Button showValuesButton = new Button("Show Collected Values", event -> {
-            resultText.setText(data.toString());
-            resultDisplay.setVisible(true);
-            Notification.show("Form data displayed below", 2000, Notification.Position.BOTTOM_START);
+            results.text.value(data.toString());
+            results.visible.value(true);
         });
         showValuesButton.addThemeName("primary");
 
