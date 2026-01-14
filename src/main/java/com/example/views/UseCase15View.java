@@ -81,7 +81,7 @@ public class UseCase15View extends VerticalLayout {
     private final WritableSignal<String> searchQuerySignal = new ValueSignal<>("");
     private final WritableSignal<String> debouncedQuerySignal = new ValueSignal<>("");
     private final WritableSignal<Boolean> isSearchingSignal = new ValueSignal<>(false);
-    private final ListSignal<Product> searchResultsSignal = new ListSignal<>();
+    private final ListSignal<Product> searchResultsSignal = new ListSignal<>(Product.class);
     private final WritableSignal<Integer> searchCountSignal = new ValueSignal<>(0);
 
     private Timer debounceTimer;
@@ -196,7 +196,9 @@ public class UseCase15View extends VerticalLayout {
             .set("gap", "0.5em")
             .set("margin-top", "1em");
 
-        MissingAPI.bindComponentChildren(resultsContainer, searchResultsSignal, product -> {
+        MissingAPI.bindComponentChildren(resultsContainer,
+            searchResultsSignal.map(prodSignals -> prodSignals.stream().map(ValueSignal::value).toList()),
+            product -> {
             Div card = new Div();
             card.getStyle()
                 .set("background-color", "#ffffff")
@@ -330,7 +332,7 @@ public class UseCase15View extends VerticalLayout {
 
             getUI().ifPresent(ui -> ui.access(() -> {
                 searchResultsSignal.clear();
-                searchResultsSignal.addAll(results);
+                results.forEach(searchResultsSignal::insertLast);
                 isSearchingSignal.value(false);
             }));
         });

@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class UserSessionRegistry {
 
-    private final ListSignal<UserInfo> activeUsersSignal = new ListSignal<>();
+    private final ListSignal<UserInfo> activeUsersSignal = new ListSignal<>(UserInfo.class);
 
     /**
      * Get the signal containing the list of active users.
@@ -24,11 +24,11 @@ public class UserSessionRegistry {
      */
     public void registerUser(String username) {
         // Check if user is already registered
-        boolean exists = activeUsersSignal.stream()
-            .anyMatch(u -> u.username().equals(username));
+        boolean exists = activeUsersSignal.value().stream()
+            .anyMatch(userSignal -> userSignal.value().username().equals(username));
 
         if (!exists) {
-            activeUsersSignal.add(new UserInfo(username));
+            activeUsersSignal.insertLast(new UserInfo(username));
         }
     }
 
@@ -36,22 +36,25 @@ public class UserSessionRegistry {
      * Unregister a user (e.g., on logout or session timeout).
      */
     public void unregisterUser(String username) {
-        activeUsersSignal.removeIf(u -> u.username().equals(username));
+        activeUsersSignal.value().stream()
+            .filter(userSignal -> userSignal.value().username().equals(username))
+            .findFirst()
+            .ifPresent(activeUsersSignal::remove);
     }
 
     /**
      * Get count of active users.
      */
     public int getActiveUserCount() {
-        return activeUsersSignal.size();
+        return activeUsersSignal.value().size();
     }
 
     /**
      * Check if a user is currently active.
      */
     public boolean isUserActive(String username) {
-        return activeUsersSignal.stream()
-            .anyMatch(u -> u.username().equals(username));
+        return activeUsersSignal.value().stream()
+            .anyMatch(userSignal -> userSignal.value().username().equals(username));
     }
 }
 

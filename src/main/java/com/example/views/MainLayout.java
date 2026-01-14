@@ -37,14 +37,14 @@ public class MainLayout extends AppLayout {
                 .set("color", "var(--lumo-secondary-text-color)")
                 .set("font-size", "var(--lumo-font-size-s)");
         MissingAPI.bindText(activeUsersDisplay,
-            userSessionRegistry.getActiveUsersSignal().map(users -> {
-                if (users.isEmpty()) {
+            userSessionRegistry.getActiveUsersSignal().map(userSignals -> {
+                if (userSignals.isEmpty()) {
                     return "";
                 }
-                String usernames = users.stream()
-                    .map(UserInfo::username)
+                String usernames = userSignals.stream()
+                    .map(userSignal -> userSignal.value().username())
                     .collect(Collectors.joining(", "));
-                return "👥 " + users.size() + " online: " + usernames;
+                return "👥 " + userSignals.size() + " online: " + usernames;
             })
         );
 

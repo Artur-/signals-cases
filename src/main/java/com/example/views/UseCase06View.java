@@ -41,11 +41,10 @@ public class UseCase06View extends VerticalLayout {
 
     public UseCase06View() {
         // Create signals for cart state
-        ListSignal<CartItem> cartItemsSignal = new ListSignal<>(
-            new CartItem("1", "Laptop", new BigDecimal("999.99"), 1),
-            new CartItem("2", "Mouse", new BigDecimal("25.99"), 2),
-            new CartItem("3", "Keyboard", new BigDecimal("79.99"), 1)
-        );
+        ListSignal<CartItem> cartItemsSignal = new ListSignal<>(CartItem.class);
+        cartItemsSignal.insertLast(new CartItem("1", "Laptop", new BigDecimal("999.99"), 1));
+        cartItemsSignal.insertLast(new CartItem("2", "Mouse", new BigDecimal("25.99"), 2));
+        cartItemsSignal.insertLast(new CartItem("3", "Keyboard", new BigDecimal("79.99"), 1));
 
         WritableSignal<String> discountCodeSignal = new ValueSignal<>("");
         WritableSignal<ShippingOption> shippingOptionSignal = new ValueSignal<>(ShippingOption.STANDARD);
@@ -53,7 +52,10 @@ public class UseCase06View extends VerticalLayout {
         // Computed signal for subtotal
         Signal<BigDecimal> subtotalSignal = Signal.computed(() ->
             cartItemsSignal.value().stream()
-                .map(item -> item.price().multiply(BigDecimal.valueOf(item.quantity())))
+                .map(itemSignal -> {
+                    CartItem item = itemSignal.value();
+                    return item.price().multiply(BigDecimal.valueOf(item.quantity()));
+                })
                 .reduce(BigDecimal.ZERO, BigDecimal::add)
         );
 
@@ -94,9 +96,9 @@ public class UseCase06View extends VerticalLayout {
         // Cart items display
         VerticalLayout cartItemsLayout = new VerticalLayout();
         cartItemsLayout.add(new H3("Shopping Cart"));
-        MissingAPI.bindChildren(cartItemsLayout, cartItemsSignal.map(items ->
-            items.stream()
-                .map(item -> createCartItemRow(item, cartItemsSignal))
+        MissingAPI.bindChildren(cartItemsLayout, cartItemsSignal.map(itemSignals ->
+            itemSignals.stream()
+                .map(itemSignal -> createCartItemRow(itemSignal, cartItemsSignal))
                 .toList()
         ));
 
@@ -136,7 +138,8 @@ public class UseCase06View extends VerticalLayout {
         add(cartItemsLayout, discountField, shippingSelect, totalsDiv);
     }
 
-    private HorizontalLayout createCartItemRow(CartItem item, ListSignal<CartItem> cartItemsSignal) {
+    private HorizontalLayout createCartItemRow(ValueSignal<CartItem> itemSignal, ListSignal<CartItem> cartItemsSignal) {
+        CartItem item = itemSignal.value();
         Span nameLabel = new Span(item.name() + " - $" + item.price());
         nameLabel.getStyle().set("flex-grow", "1");
 
@@ -146,10 +149,8 @@ public class UseCase06View extends VerticalLayout {
         quantityField.setMax(99);
         quantityField.setWidth("80px");
         quantityField.addValueChangeListener(e -> {
-            int index = cartItemsSignal.indexOf(item);
-            if (index >= 0) {
-                cartItemsSignal.set(index, new CartItem(item.id(), item.name(), item.price(), e.getValue()));
-            }
+            CartItem current = itemSignal.value();
+            itemSignal.value(new CartItem(current.id(), current.name(), current.price(), e.getValue()));
         });
 
         Span itemTotalLabel = new Span("$" + item.price().multiply(BigDecimal.valueOf(item.quantity())));
@@ -157,7 +158,7 @@ public class UseCase06View extends VerticalLayout {
         itemTotalLabel.getStyle().set("text-align", "right");
 
         Button removeButton = new Button("Remove", e -> {
-            cartItemsSignal.remove(item);
+            cartItemsSignal.remove(itemSignal);
         });
         removeButton.addThemeName("error");
         removeButton.addThemeName("small");

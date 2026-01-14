@@ -29,14 +29,14 @@ public class CollaborativeSignals {
         }
     }
 
-    private final ListSignal<Message> messagesSignal = new ListSignal<>();
+    private final ListSignal<Message> messagesSignal = new ListSignal<>(Message.class);
 
     public ListSignal<Message> getMessagesSignal() {
         return messagesSignal;
     }
 
     public void appendMessage(Message message) {
-        messagesSignal.add(message);
+        messagesSignal.insertLast(message);
     }
 
     public void clearMessages() {

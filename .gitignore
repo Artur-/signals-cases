@@ -14,3 +14,4 @@ src/main/frontend/generated/
 vite.generated.ts
 
 .playwright-mcp
+.vaadin-node-tasks.lock

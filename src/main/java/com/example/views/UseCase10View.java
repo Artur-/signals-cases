@@ -58,7 +58,8 @@ public class UseCase10View extends VerticalLayout {
         );
 
         // Load employees
-        ListSignal<Employee> employeesSignal = new ListSignal<>(loadEmployees());
+        ListSignal<Employee> employeesSignal = new ListSignal<>(Employee.class);
+        loadEmployees().forEach(employeesSignal::insertLast);
 
         // Controls
         ComboBox<UserRole> roleSelector = new ComboBox<>("Simulate User Role", UserRole.values());
@@ -78,7 +79,9 @@ public class UseCase10View extends VerticalLayout {
         // Employee grid
         Grid<Employee> grid = new Grid<>(Employee.class);
         grid.setColumns("id", "name", "department", "status", "salary");
-        MissingAPI.bindItems(grid, employeesSignal);
+        MissingAPI.bindItems(grid, employeesSignal.map(empSignals ->
+            empSignals.stream().map(ValueSignal::value).toList()
+        ));
 
         // Dynamic cell editability based on signals
         MissingAPI.bindEditable(grid.getColumnByKey("name"), Signal.computed(() ->
@@ -140,20 +143,23 @@ public class UseCase10View extends VerticalLayout {
             // Show "Delete" only if user can delete and employee is not active
             if (canDeleteSignal.value() && employee.status() != EmployeeStatus.ACTIVE) {
                 contextMenu.addItem("Delete", e -> {
-                    employeesSignal.remove(employee);
+                    employeesSignal.value().stream()
+                        .filter(empSignal -> empSignal.value().equals(employee))
+                        .findFirst()
+                        .ifPresent(employeesSignal::remove);
                 });
             }
 
             // Show status-specific actions
             if (employee.status() == EmployeeStatus.ACTIVE && canEditSignal.value()) {
                 contextMenu.addItem("Mark as On Leave", e -> {
-                    int index = employeesSignal.indexOf(employee);
-                    if (index >= 0) {
-                        employeesSignal.set(index, new Employee(
+                    employeesSignal.value().stream()
+                        .filter(empSignal -> empSignal.value().equals(employee))
+                        .findFirst()
+                        .ifPresent(empSignal -> empSignal.value(new Employee(
                             employee.id(), employee.name(), employee.department(),
                             EmployeeStatus.ON_LEAVE, employee.salary()
-                        ));
-                    }
+                        )));
                 });
             }
 
@@ -162,8 +168,8 @@ public class UseCase10View extends VerticalLayout {
 
         // Action buttons
         Button addButton = new Button("Add Employee", e -> {
-            employeesSignal.add(new Employee(
-                "E" + (employeesSignal.size() + 1),
+            employeesSignal.insertLast(new Employee(
+                "E" + (employeesSignal.value().size() + 1),
                 "New Employee",
                 "Unassigned",
                 EmployeeStatus.ACTIVE,

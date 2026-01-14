@@ -82,9 +82,9 @@ public class MUC01View extends VerticalLayout {
 
         // Bind message list to UI
         MissingAPI.bindChildren(messagesContainer,
-            collaborativeSignals.getMessagesSignal().map(messages ->
-                messages.stream()
-                    .map(this::createMessageComponent)
+            collaborativeSignals.getMessagesSignal().map(messageSignals ->
+                messageSignals.stream()
+                    .map(msgSignal -> createMessageComponent(msgSignal.value()))
                     .toList()
             )
         );

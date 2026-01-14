@@ -91,7 +91,7 @@ public class UseCase16View extends VerticalLayout implements HasUrlParameter<Str
 
     private final WritableSignal<String> searchQuerySignal = new ValueSignal<>("");
     private final WritableSignal<String> categorySignal = new ValueSignal<>("All");
-    private final ListSignal<Article> filteredArticlesSignal = new ListSignal<>(ALL_ARTICLES);
+    private final ListSignal<Article> filteredArticlesSignal = new ListSignal<>(Article.class);
 
     private boolean isInitializing = true;
 
@@ -201,7 +201,9 @@ public class UseCase16View extends VerticalLayout implements HasUrlParameter<Str
             .set("gap", "0.5em")
             .set("margin-top", "1em");
 
-        MissingAPI.bindComponentChildren(resultsContainer, filteredArticlesSignal, article -> {
+        MissingAPI.bindComponentChildren(resultsContainer,
+            filteredArticlesSignal.map(artSignals -> artSignals.stream().map(ValueSignal::value).toList()),
+            article -> {
             Div card = new Div();
             card.getStyle()
                 .set("background-color", "#ffffff")
@@ -338,7 +340,7 @@ public class UseCase16View extends VerticalLayout implements HasUrlParameter<Str
             .collect(Collectors.toList());
 
         filteredArticlesSignal.clear();
-        filteredArticlesSignal.addAll(filtered);
+        filtered.forEach(filteredArticlesSignal::insertLast);
     }
 
     private String getBaseUrl() {
