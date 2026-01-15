@@ -96,22 +96,8 @@ public class MUC06View extends VerticalLayout {
                 .computed(() -> totalSignal.value() - completedSignal.value());
 
         // User count display
-        Div userCountBox = new Div();
-        userCountBox.getStyle().set("background-color", "#fff3e0")
-                .set("padding", "0.75em").set("border-radius", "4px")
-                .set("margin-bottom", "1em").set("border-left",
-                        "4px solid var(--lumo-warning-color)");
-
-        Span userCountLabel = new Span();
-        userCountLabel.bindText(userSessionRegistry.getDisplayNamesSignal()
-                .map(displayNames -> {
-                    String usernames = String.join(", ", displayNames);
-                    return "👥 Active users: " + displayNames.size() + " ("
-                            + usernames + ")";
-                }));
-        userCountLabel.getStyle().set("font-weight", "500");
-
-        userCountBox.add(userCountLabel);
+        ActiveUsersDisplay userCountBox = new ActiveUsersDisplay(
+                userSessionRegistry, "Active users", true);
 
         // Statistics panel
         Div statsBox = new Div();

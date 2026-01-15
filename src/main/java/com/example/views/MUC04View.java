@@ -82,21 +82,8 @@ public class MUC04View extends VerticalLayout {
                 collaborativeSignals.getPhoneSignal());
 
         // Active sessions display
-        Div activeSessionsBox = new Div();
-        activeSessionsBox.getStyle().set("background-color", "#fff3e0")
-                .set("padding", "0.75em").set("border-radius", "4px")
-                .set("margin-bottom", "1em");
-
-        Span sessionCountLabel = new Span();
-        sessionCountLabel.bindText(userSessionRegistry.getDisplayNamesSignal()
-                .map(displayNames -> {
-                    String usernames = String.join(", ", displayNames);
-                    return "👥 Active sessions: " + displayNames.size() + " ("
-                            + usernames + ")";
-                }));
-        sessionCountLabel.getStyle().set("font-weight", "500");
-
-        activeSessionsBox.add(sessionCountLabel);
+        ActiveUsersDisplay activeSessionsBox = new ActiveUsersDisplay(
+                userSessionRegistry);
 
         // Active editors display
         H3 editorsTitle = new H3("Active Editors");

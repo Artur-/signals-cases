@@ -105,21 +105,8 @@ public class MUC02View extends VerticalLayout {
         }).addEventData("event.offsetX").addEventData("event.offsetY");
 
         // Active sessions display
-        Div activeSessionsBox = new Div();
-        activeSessionsBox.getStyle().set("background-color", "#fff3e0")
-                .set("padding", "0.75em").set("border-radius", "4px")
-                .set("margin-bottom", "1em");
-
-        Span sessionCountLabel = new Span();
-        sessionCountLabel.bindText(userSessionRegistry.getDisplayNamesSignal()
-                .map(displayNames -> {
-                    String usernames = String.join(", ", displayNames);
-                    return "👥 Active sessions: " + displayNames.size() + " ("
-                            + usernames + ")";
-                }));
-        sessionCountLabel.getStyle().set("font-weight", "500");
-
-        activeSessionsBox.add(sessionCountLabel);
+        ActiveUsersDisplay activeSessionsBox = new ActiveUsersDisplay(
+                userSessionRegistry);
 
         // Current users list (cursor tracking)
         H3 usersTitle = new H3("Cursor Tracking");
