@@ -83,7 +83,7 @@ public class MUC04View extends VerticalLayout {
 
         // Active sessions display
         ActiveUsersDisplay activeSessionsBox = new ActiveUsersDisplay(
-                userSessionRegistry);
+                userSessionRegistry, "muc-04");
 
         // Active editors display
         H3 editorsTitle = new H3("Active Editors");

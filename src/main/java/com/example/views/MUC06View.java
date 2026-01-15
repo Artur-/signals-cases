@@ -97,7 +97,7 @@ public class MUC06View extends VerticalLayout {
 
         // User count display
         ActiveUsersDisplay userCountBox = new ActiveUsersDisplay(
-                userSessionRegistry, "Active users", true);
+                userSessionRegistry, "Active on this view", "muc-06", true);
 
         // Statistics panel
         Div statsBox = new Div();

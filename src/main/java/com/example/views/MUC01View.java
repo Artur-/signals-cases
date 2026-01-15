@@ -73,6 +73,10 @@ public class MUC01View extends VerticalLayout {
                         + "In production, this would use server-side signals with Push to broadcast messages to all users. "
                         + "Try opening this page in multiple browser windows (different users) to see simulated collaboration.");
 
+        // Active users display
+        ActiveUsersDisplay activeUsersDisplay = new ActiveUsersDisplay(
+                userSessionRegistry, "muc-01");
+
         // Message display area
         Div messagesContainer = new Div();
         messagesContainer.setWidthFull();
@@ -137,8 +141,8 @@ public class MUC01View extends VerticalLayout {
                 + "• Signal API handles all synchronization automatically"),
                 messageCount);
 
-        add(title, description, new H3("Messages"), messagesContainer,
-                inputTitle, messageInput, sendLayout, infoBox);
+        add(title, description, activeUsersDisplay, new H3("Messages"),
+                messagesContainer, inputTitle, messageInput, sendLayout, infoBox);
     }
 
     @Override

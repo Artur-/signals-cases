@@ -106,7 +106,7 @@ public class MUC02View extends VerticalLayout {
 
         // Active sessions display
         ActiveUsersDisplay activeSessionsBox = new ActiveUsersDisplay(
-                userSessionRegistry);
+                userSessionRegistry, "muc-02");
 
         // Current users list (cursor tracking)
         H3 usersTitle = new H3("Cursor Tracking");

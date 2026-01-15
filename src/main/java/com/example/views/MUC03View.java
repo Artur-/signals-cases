@@ -133,7 +133,7 @@ public class MUC03View extends VerticalLayout {
 
         // Active sessions display
         ActiveUsersDisplay activeSessionsBox = new ActiveUsersDisplay(
-                userSessionRegistry);
+                userSessionRegistry, "muc-03");
 
         // Leaderboard
         H3 leaderboardTitle = new H3("Leaderboard");
