@@ -20,8 +20,6 @@ import com.vaadin.flow.component.select.Select;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.router.BeforeEnterObserver;
-import com.vaadin.flow.router.BeforeEvent;
-import com.vaadin.flow.router.HasUrlParameter;
 import com.vaadin.flow.router.Menu;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.QueryParameters;
@@ -48,7 +46,7 @@ import com.vaadin.signals.WritableSignal;
 @Menu(order = 16, title = "UC 16: URL State Integration")
 @PermitAll
 public class UseCase16View extends VerticalLayout
-        implements HasUrlParameter<String>, BeforeEnterObserver {
+        implements BeforeEnterObserver {
 
     public static class Article {
         private final String id;
@@ -328,12 +326,6 @@ public class UseCase16View extends VerticalLayout
 
         // Initial filter
         updateFilteredResults();
-    }
-
-    @Override
-    public void setParameter(BeforeEvent event, String parameter) {
-        // URL parameter support (not used in this case, but required by
-        // interface)
     }
 
     private void updateUrl() {
