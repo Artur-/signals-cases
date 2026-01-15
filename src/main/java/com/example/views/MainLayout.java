@@ -35,14 +35,12 @@ public class MainLayout extends AppLayout {
                 .set("color", "var(--lumo-secondary-text-color)")
                 .set("font-size", "var(--lumo-font-size-s)");
         activeUsersDisplay.bindText(
-                userSessionRegistry.getActiveUsersSignal().map(userSignals -> {
-                    if (userSignals.isEmpty()) {
+                userSessionRegistry.getDisplayNamesSignal().map(displayNames -> {
+                    if (displayNames.isEmpty()) {
                         return "";
                     }
-                    String usernames = userSignals.stream()
-                            .map(userSignal -> userSignal.value().username())
-                            .collect(Collectors.joining(", "));
-                    return "👥 " + userSignals.size() + " online: " + usernames;
+                    String usernames = String.join(", ", displayNames);
+                    return "👥 " + displayNames.size() + " online: " + usernames;
                 }));
 
         // Current user display using signal

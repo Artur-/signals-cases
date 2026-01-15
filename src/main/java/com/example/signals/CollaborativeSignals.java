@@ -8,6 +8,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.springframework.stereotype.Component;
 
 import com.vaadin.signals.ListSignal;
+import com.vaadin.signals.MapSignal;
 import com.vaadin.signals.ValueSignal;
 import com.vaadin.signals.WritableSignal;
 
@@ -48,28 +49,42 @@ public class CollaborativeSignals {
     // ========== Use Case 19: Cursor Positions ===========
 
     public record CursorPosition(int x, int y) {
+        // Default constructor for Jackson deserialization
+        public CursorPosition() {
+            this(0, 0);
+        }
+
         @Override
         public String toString() {
             return "(" + x + ", " + y + ")";
         }
     }
 
-    private final Map<String, WritableSignal<CursorPosition>> userCursors = new ConcurrentHashMap<>();
+    // MapSignal where key is "username:sessionId" and value is CursorPosition
+    private final MapSignal<CursorPosition> sessionCursorsSignal = new MapSignal<>(
+            CursorPosition.class);
 
-    public Map<String, WritableSignal<CursorPosition>> getUserCursors() {
-        return userCursors;
+    public MapSignal<CursorPosition> getSessionCursorsSignal() {
+        return sessionCursorsSignal;
     }
 
     public WritableSignal<CursorPosition> getCursorSignalForUser(
-            String username) {
-        return userCursors.computeIfAbsent(username,
-                k -> new ValueSignal<>(new CursorPosition(0, 0)));
+            String username, String sessionId) {
+        String sessionKey = username + ":" + sessionId;
+        return sessionCursorsSignal
+                .putIfAbsent(sessionKey, new CursorPosition(0, 0)).signal();
+    }
+
+    public void unregisterCursor(String username, String sessionId) {
+        String sessionKey = username + ":" + sessionId;
+        sessionCursorsSignal.remove(sessionKey);
     }
 
     // ========== Use Case 20: Click Game ===========
 
-    private final WritableSignal<Map<String, Integer>> leaderboardSignal = new ValueSignal<>(
-            new ConcurrentHashMap<>());
+    // MapSignal where key is "username:sessionId" and value is score (Integer)
+    private final MapSignal<Integer> leaderboardSignal = new MapSignal<>(
+            Integer.class);
 
     private final WritableSignal<Boolean> buttonVisibleSignal = new ValueSignal<>(
             false);
@@ -82,7 +97,7 @@ public class CollaborativeSignals {
     private final WritableSignal<Integer> roundNumberSignal = new ValueSignal<>(
             0);
 
-    public WritableSignal<Map<String, Integer>> getLeaderboardSignal() {
+    public MapSignal<Integer> getLeaderboardSignal() {
         return leaderboardSignal;
     }
 
@@ -106,24 +121,27 @@ public class CollaborativeSignals {
         return roundNumberSignal;
     }
 
-    public void initializePlayerScore(String username) {
-        Map<String, Integer> scores = new ConcurrentHashMap<>(
-                leaderboardSignal.value());
-        scores.putIfAbsent(username, 0);
-        leaderboardSignal.value(scores);
+    public void initializePlayerScore(String username, String sessionId) {
+        String sessionKey = username + ":" + sessionId;
+        leaderboardSignal.putIfAbsent(sessionKey, 0);
     }
 
-    public synchronized boolean awardPoint(String username) {
+    public synchronized boolean awardPoint(String username, String sessionId) {
         if (!buttonVisibleSignal.value()
                 || clicksRemainingSignal.value() <= 0) {
             return false; // Round already finished
         }
 
         // Award the point
-        Map<String, Integer> scores = new ConcurrentHashMap<>(
-                leaderboardSignal.value());
-        scores.merge(username, 1, Integer::sum);
-        leaderboardSignal.value(scores);
+        String sessionKey = username + ":" + sessionId;
+        ValueSignal<Integer> scoreSignal = leaderboardSignal.value()
+                .get(sessionKey);
+        if (scoreSignal != null) {
+            scoreSignal.value(scoreSignal.value() + 1);
+        } else {
+            // Initialize if not present
+            leaderboardSignal.put(sessionKey, 1);
+        }
 
         // Decrement clicks remaining
         int remaining = clicksRemainingSignal.value() - 1;
@@ -151,17 +169,26 @@ public class CollaborativeSignals {
     }
 
     public void resetLeaderboard() {
-        leaderboardSignal.value(new ConcurrentHashMap<>());
+        leaderboardSignal.clear();
+    }
+
+    public void unregisterScore(String username, String sessionId) {
+        String sessionKey = username + ":" + sessionId;
+        leaderboardSignal.remove(sessionKey);
     }
 
     // ========== Use Case 21: Form Locking ===========
+
+    public record FieldLock(String username, String sessionId) {
+    }
 
     private final WritableSignal<String> companyNameSignal = new ValueSignal<>(
             "");
     private final WritableSignal<String> addressSignal = new ValueSignal<>("");
     private final WritableSignal<String> phoneSignal = new ValueSignal<>("");
-    private final WritableSignal<Map<String, String>> fieldLocksSignal = new ValueSignal<>(
-            new ConcurrentHashMap<>());
+    // MapSignal where key is fieldName and value is FieldLock
+    private final MapSignal<FieldLock> fieldLocksSignal = new MapSignal<>(
+            FieldLock.class);
 
     public WritableSignal<String> getCompanyNameSignal() {
         return companyNameSignal;
@@ -175,29 +202,37 @@ public class CollaborativeSignals {
         return phoneSignal;
     }
 
-    public WritableSignal<Map<String, String>> getFieldLocksSignal() {
+    public MapSignal<FieldLock> getFieldLocksSignal() {
         return fieldLocksSignal;
     }
 
-    public void lockField(String fieldName, String username) {
-        Map<String, String> locks = new ConcurrentHashMap<>(
-                fieldLocksSignal.value());
-        locks.put(fieldName, username);
-        fieldLocksSignal.value(locks);
+    public void lockField(String fieldName, String username, String sessionId) {
+        fieldLocksSignal.put(fieldName, new FieldLock(username, sessionId));
     }
 
-    public void unlockField(String fieldName, String username) {
-        Map<String, String> locks = new ConcurrentHashMap<>(
-                fieldLocksSignal.value());
-        if (username.equals(locks.get(fieldName))) {
-            locks.remove(fieldName);
-            fieldLocksSignal.value(locks);
+    public void unlockField(String fieldName, String username,
+            String sessionId) {
+        ValueSignal<FieldLock> lockSignal = fieldLocksSignal.value()
+                .get(fieldName);
+        if (lockSignal != null) {
+            FieldLock lock = lockSignal.value();
+            if (lock != null && username.equals(lock.username())
+                    && sessionId.equals(lock.sessionId())) {
+                fieldLocksSignal.remove(fieldName);
+            }
         }
     }
 
-    public boolean isFieldLockedByOther(String fieldName, String username) {
-        String lockOwner = fieldLocksSignal.value().get(fieldName);
-        return lockOwner != null && !lockOwner.equals(username);
+    public boolean isFieldLockedByOther(String fieldName, String username,
+            String sessionId) {
+        ValueSignal<FieldLock> lockSignal = fieldLocksSignal.value()
+                .get(fieldName);
+        if (lockSignal == null) {
+            return false;
+        }
+        FieldLock lockOwner = lockSignal.value();
+        return lockOwner != null && !(username.equals(lockOwner.username())
+                && sessionId.equals(lockOwner.sessionId()));
     }
 
     // ========== MUC 6: Shared Task List ===========

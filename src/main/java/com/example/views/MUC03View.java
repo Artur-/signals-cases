@@ -7,15 +7,18 @@ import java.util.Random;
 import com.example.MissingAPI;
 import com.example.security.CurrentUserSignal;
 import com.example.signals.CollaborativeSignals;
+import com.example.signals.SessionIdHelper;
 import com.example.signals.UserSessionRegistry;
 
 import com.vaadin.flow.component.AttachEvent;
 import com.vaadin.flow.component.DetachEvent;
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.html.Paragraph;
+import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.Menu;
@@ -42,6 +45,7 @@ public class MUC03View extends VerticalLayout {
     private final CollaborativeSignals collaborativeSignals;
     private final UserSessionRegistry userSessionRegistry;
     private final Random random = new Random();
+    private String sessionId;
 
     public MUC03View(CurrentUserSignal currentUserSignal,
             CollaborativeSignals collaborativeSignals,
@@ -55,9 +59,6 @@ public class MUC03View extends VerticalLayout {
         this.currentUser = userInfo.getUsername();
         this.collaborativeSignals = collaborativeSignals;
         this.userSessionRegistry = userSessionRegistry;
-
-        // Initialize user score if not present
-        collaborativeSignals.initializePlayerScore(currentUser);
 
         setSpacing(true);
         setPadding(true);
@@ -130,6 +131,23 @@ public class MUC03View extends VerticalLayout {
 
         controls.add(startButton, resetButton);
 
+        // Active sessions display
+        Div activeSessionsBox = new Div();
+        activeSessionsBox.getStyle().set("background-color", "#fff3e0")
+                .set("padding", "0.75em").set("border-radius", "4px")
+                .set("margin-bottom", "1em");
+
+        Span sessionCountLabel = new Span();
+        sessionCountLabel.bindText(userSessionRegistry.getDisplayNamesSignal()
+                .map(displayNames -> {
+                    String usernames = String.join(", ", displayNames);
+                    return "👥 Active sessions: " + displayNames.size() + " ("
+                            + usernames + ")";
+                }));
+        sessionCountLabel.getStyle().set("font-weight", "500");
+
+        activeSessionsBox.add(sessionCountLabel);
+
         // Leaderboard
         H3 leaderboardTitle = new H3("Leaderboard");
         Div leaderboardDiv = new Div();
@@ -138,24 +156,46 @@ public class MUC03View extends VerticalLayout {
 
         // Bind leaderboard display
         MissingAPI.bindChildren(leaderboardDiv,
-                collaborativeSignals.getLeaderboardSignal().map(scores -> {
-                    return scores.entrySet().stream().sorted(
-                            (e1, e2) -> e2.getValue().compareTo(e1.getValue()))
+                com.vaadin.signals.Signal.computed(() -> {
+                    var scores = collaborativeSignals.getLeaderboardSignal()
+                            .value();
+                    var users = userSessionRegistry.getActiveUsersSignal()
+                            .value();
+                    var displayNames = userSessionRegistry.getDisplayNamesSignal()
+                            .value();
+
+                    // Build mapping from sessionKey to display name
+                    java.util.Map<String, String> displayNameMap = new java.util.HashMap<>();
+                    for (int i = 0; i < users.size()
+                            && i < displayNames.size(); i++) {
+                        String sessionKey = users.get(i).value()
+                                .getCompositeKey();
+                        displayNameMap.put(sessionKey, displayNames.get(i));
+                    }
+
+                    return scores.entrySet().stream()
+                            .sorted((e1, e2) -> Integer.compare(
+                                    e2.getValue().value(),
+                                    e1.getValue().value()))
                             .map(entry -> {
-                                String username = entry.getKey();
-                                boolean isCurrentUser = username
-                                        .equals(currentUser);
+                                String sessionKey = entry.getKey();
+                                int score = entry.getValue().value();
+                                String displayName = displayNameMap
+                                        .getOrDefault(sessionKey, sessionKey);
+                                boolean isCurrentSession = sessionId != null
+                                        && sessionKey.equals(
+                                                currentUser + ":" + sessionId);
 
                                 Div item = new Div();
                                 item.setText(String.format("%s: %d points",
-                                        username, entry.getValue()));
+                                        displayName, score));
                                 item.getStyle().set("padding", "0.5em")
                                         .set("background-color",
-                                                isCurrentUser ? "#fff3e0"
+                                                isCurrentSession ? "#fff3e0"
                                                         : "transparent")
                                         .set("border-radius", "4px")
                                         .set("font-weight",
-                                                isCurrentUser ? "bold"
+                                                isCurrentSession ? "bold"
                                                         : "normal");
                                 return item;
                             }).toList();
@@ -173,8 +213,8 @@ public class MUC03View extends VerticalLayout {
                         + "The leaderboard is a shared signal that updates for all users in real-time. "
                         + "Race against other players to get the most points!"));
 
-        add(title, description, roundStatus, clicksStatus, gameArea, controls,
-                leaderboardTitle, leaderboardDiv, infoBox);
+        add(title, description, activeSessionsBox, roundStatus, clicksStatus,
+                gameArea, controls, leaderboardTitle, leaderboardDiv, infoBox);
     }
 
     private void startNewRound() {
@@ -186,7 +226,8 @@ public class MUC03View extends VerticalLayout {
     private void handleButtonClick() {
         // Atomic operation: Only first click counts (handled by
         // CollaborativeSignals)
-        boolean moreClicksRemain = collaborativeSignals.awardPoint(currentUser);
+        boolean moreClicksRemain = collaborativeSignals.awardPoint(currentUser,
+                sessionId);
 
         // If there are more clicks remaining, reposition button after random
         // delay
@@ -217,12 +258,15 @@ public class MUC03View extends VerticalLayout {
     @Override
     protected void onAttach(AttachEvent attachEvent) {
         super.onAttach(attachEvent);
-        userSessionRegistry.registerUser(currentUser);
+        this.sessionId = SessionIdHelper.getCurrentSessionId();
+        userSessionRegistry.registerUser(currentUser, sessionId);
+        collaborativeSignals.initializePlayerScore(currentUser, sessionId);
     }
 
     @Override
     protected void onDetach(DetachEvent detachEvent) {
         super.onDetach(detachEvent);
-        userSessionRegistry.unregisterUser(currentUser);
+        userSessionRegistry.unregisterUser(currentUser, sessionId);
+        collaborativeSignals.unregisterScore(currentUser, sessionId);
     }
 }

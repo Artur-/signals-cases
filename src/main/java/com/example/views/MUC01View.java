@@ -5,10 +5,12 @@ import jakarta.annotation.security.PermitAll;
 import com.example.MissingAPI;
 import com.example.security.CurrentUserSignal;
 import com.example.signals.CollaborativeSignals;
+import com.example.signals.SessionIdHelper;
 import com.example.signals.UserSessionRegistry;
 
 import com.vaadin.flow.component.AttachEvent;
 import com.vaadin.flow.component.DetachEvent;
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H2;
@@ -45,6 +47,7 @@ public class MUC01View extends VerticalLayout {
     private final String currentUser;
     private final CollaborativeSignals collaborativeSignals;
     private final UserSessionRegistry userSessionRegistry;
+    private String sessionId;
 
     public MUC01View(CurrentUserSignal currentUserSignal,
             CollaborativeSignals collaborativeSignals,
@@ -97,9 +100,11 @@ public class MUC01View extends VerticalLayout {
 
         Button sendButton = new Button("Send Message", event -> {
             String text = messageInput.getValue();
-            if (text != null && !text.trim().isEmpty()) {
+            if (text != null && !text.trim().isEmpty() && sessionId != null) {
+                // Look up current display name
+                String displayName = getCurrentDisplayName();
                 collaborativeSignals.appendMessage(
-                        new CollaborativeSignals.Message(currentUser,
+                        new CollaborativeSignals.Message(displayName,
                                 text.trim()));
                 messageInput.clear();
             }
@@ -139,13 +144,14 @@ public class MUC01View extends VerticalLayout {
     @Override
     protected void onAttach(AttachEvent attachEvent) {
         super.onAttach(attachEvent);
-        userSessionRegistry.registerUser(currentUser);
+        this.sessionId = SessionIdHelper.getCurrentSessionId();
+        userSessionRegistry.registerUser(currentUser, sessionId);
     }
 
     @Override
     protected void onDetach(DetachEvent detachEvent) {
         super.onDetach(detachEvent);
-        userSessionRegistry.unregisterUser(currentUser);
+        userSessionRegistry.unregisterUser(currentUser, sessionId);
     }
 
     private Div createMessageComponent(CollaborativeSignals.Message message) {
@@ -178,5 +184,25 @@ public class MUC01View extends VerticalLayout {
 
         messageDiv.add(header, text);
         return messageDiv;
+    }
+
+    private String getCurrentDisplayName() {
+        if (sessionId == null) {
+            return currentUser;
+        }
+
+        var users = userSessionRegistry.getActiveUsersSignal().value();
+        var displayNames = userSessionRegistry.getDisplayNamesSignal().value();
+
+        // Find matching session key for current user
+        String sessionKey = currentUser + ":" + sessionId;
+        for (int i = 0; i < users.size() && i < displayNames.size(); i++) {
+            if (sessionKey.equals(users.get(i).value().getCompositeKey())) {
+                return displayNames.get(i);
+            }
+        }
+
+        // Fallback to username
+        return currentUser;
     }
 }

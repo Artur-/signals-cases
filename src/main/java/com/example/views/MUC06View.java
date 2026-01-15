@@ -8,10 +8,12 @@ import java.util.UUID;
 import com.example.MissingAPI;
 import com.example.security.CurrentUserSignal;
 import com.example.signals.CollaborativeSignals;
+import com.example.signals.SessionIdHelper;
 import com.example.signals.UserSessionRegistry;
 
 import com.vaadin.flow.component.AttachEvent;
 import com.vaadin.flow.component.DetachEvent;
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.checkbox.Checkbox;
@@ -101,12 +103,10 @@ public class MUC06View extends VerticalLayout {
                         "4px solid var(--lumo-warning-color)");
 
         Span userCountLabel = new Span();
-        userCountLabel.bindText(userSessionRegistry.getActiveUsersSignal()
-                .map(users -> {
-                    String usernames = users.stream()
-                            .map(u -> u.value().username()).toList().stream()
-                            .collect(java.util.stream.Collectors.joining(", "));
-                    return "👥 Active users: " + users.size() + " ("
+        userCountLabel.bindText(userSessionRegistry.getDisplayNamesSignal()
+                .map(displayNames -> {
+                    String usernames = String.join(", ", displayNames);
+                    return "👥 Active users: " + displayNames.size() + " ("
                             + usernames + ")";
                 }));
         userCountLabel.getStyle().set("font-weight", "500");
@@ -182,13 +182,15 @@ public class MUC06View extends VerticalLayout {
     @Override
     protected void onAttach(AttachEvent attachEvent) {
         super.onAttach(attachEvent);
-        userSessionRegistry.registerUser(currentUser);
+        String sessionId = SessionIdHelper.getCurrentSessionId();
+        userSessionRegistry.registerUser(currentUser, sessionId);
     }
 
     @Override
     protected void onDetach(DetachEvent detachEvent) {
         super.onDetach(detachEvent);
-        userSessionRegistry.unregisterUser(currentUser);
+        String sessionId = SessionIdHelper.getCurrentSessionId();
+        userSessionRegistry.unregisterUser(currentUser, sessionId);
     }
 
     private HorizontalLayout createTaskRow(

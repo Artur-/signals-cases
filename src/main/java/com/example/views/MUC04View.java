@@ -5,15 +5,18 @@ import jakarta.annotation.security.PermitAll;
 import com.example.MissingAPI;
 import com.example.security.CurrentUserSignal;
 import com.example.signals.CollaborativeSignals;
+import com.example.signals.SessionIdHelper;
 import com.example.signals.UserSessionRegistry;
 
 import com.vaadin.flow.component.AttachEvent;
 import com.vaadin.flow.component.DetachEvent;
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.html.Paragraph;
+import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.Menu;
@@ -40,6 +43,7 @@ public class MUC04View extends VerticalLayout {
     private final String currentUser;
     private final CollaborativeSignals collaborativeSignals;
     private final UserSessionRegistry userSessionRegistry;
+    private String sessionId;
 
     public MUC04View(CurrentUserSignal currentUserSignal,
             CollaborativeSignals collaborativeSignals,
@@ -77,6 +81,23 @@ public class MUC04View extends VerticalLayout {
         TextField phoneField = createLockedField("phone", "Phone Number",
                 collaborativeSignals.getPhoneSignal());
 
+        // Active sessions display
+        Div activeSessionsBox = new Div();
+        activeSessionsBox.getStyle().set("background-color", "#fff3e0")
+                .set("padding", "0.75em").set("border-radius", "4px")
+                .set("margin-bottom", "1em");
+
+        Span sessionCountLabel = new Span();
+        sessionCountLabel.bindText(userSessionRegistry.getDisplayNamesSignal()
+                .map(displayNames -> {
+                    String usernames = String.join(", ", displayNames);
+                    return "👥 Active sessions: " + displayNames.size() + " ("
+                            + usernames + ")";
+                }));
+        sessionCountLabel.getStyle().set("font-weight", "500");
+
+        activeSessionsBox.add(sessionCountLabel);
+
         // Active editors display
         H3 editorsTitle = new H3("Active Editors");
         Div editorsDiv = new Div();
@@ -95,12 +116,17 @@ public class MUC04View extends VerticalLayout {
                     return locks.entrySet().stream().map(entry -> {
                         Div item = new Div();
                         String fieldLabel = formatFieldName(entry.getKey());
+                        CollaborativeSignals.FieldLock lock = entry.getValue()
+                                .value();
                         item.setText(String.format("🔒 %s: %s", fieldLabel,
-                                entry.getValue()));
-                        item.getStyle().set("padding", "0.5em").set(
-                                "background-color",
-                                entry.getValue().equals(currentUser) ? "#fff3e0"
-                                        : "transparent")
+                                lock.username()));
+                        boolean isCurrentSession = sessionId != null
+                                && lock.username().equals(currentUser)
+                                && lock.sessionId().equals(sessionId);
+                        item.getStyle().set("padding", "0.5em")
+                                .set("background-color",
+                                        isCurrentSession ? "#fff3e0"
+                                                : "transparent")
                                 .set("border-radius", "4px");
                         return item;
                     }).toList();
@@ -141,9 +167,9 @@ public class MUC04View extends VerticalLayout {
                         + "• Real-time value synchronization\n"
                         + "• Merge strategies for concurrent edits"));
 
-        add(title, description, new H3("Shared Form Data"), companyNameField,
-                addressField, phoneField, saveButton, editorsTitle, editorsDiv,
-                infoBox);
+        add(title, description, activeSessionsBox, new H3("Shared Form Data"),
+                companyNameField, addressField, phoneField, saveButton,
+                editorsTitle, editorsDiv, infoBox);
     }
 
     private TextField createLockedField(String fieldName, String label,
@@ -156,24 +182,38 @@ public class MUC04View extends VerticalLayout {
 
         // Lock field when focused
         field.addFocusListener(event -> {
-            collaborativeSignals.lockField(fieldName, currentUser);
+            if (sessionId != null) {
+                collaborativeSignals.lockField(fieldName, currentUser,
+                        sessionId);
+            }
         });
 
         // Unlock when blurred
         field.addBlurListener(event -> {
-            collaborativeSignals.unlockField(fieldName, currentUser);
+            if (sessionId != null) {
+                collaborativeSignals.unlockField(fieldName, currentUser,
+                        sessionId);
+            }
         });
 
         // Show who is editing
         Signal<String> helperTextSignal = collaborativeSignals
                 .getFieldLocksSignal().map(locks -> {
-                    String lockOwner = locks.get(fieldName);
-                    if (lockOwner == null) {
+                    com.vaadin.signals.ValueSignal<CollaborativeSignals.FieldLock> lockSignal = locks
+                            .get(fieldName);
+                    if (lockSignal == null) {
                         return "Available to edit";
-                    } else if (lockOwner.equals(currentUser)) {
+                    }
+                    CollaborativeSignals.FieldLock lock = lockSignal.value();
+                    if (lock == null) {
+                        return "Available to edit";
+                    } else if (sessionId != null
+                            && lock.username().equals(currentUser)
+                            && lock.sessionId().equals(sessionId)) {
                         return "You are editing this field";
                     } else {
-                        return "🔒 " + lockOwner + " is editing this field";
+                        return "🔒 " + lock.username()
+                                + " is editing this field";
                     }
                 });
         field.getElement().bindProperty("helperText", helperTextSignal);
@@ -181,8 +221,15 @@ public class MUC04View extends VerticalLayout {
         // Disable if locked by another user
         Signal<Boolean> enabledSignal = collaborativeSignals
                 .getFieldLocksSignal().map(locks -> {
-                    String lockOwner = locks.get(fieldName);
-                    return lockOwner == null || lockOwner.equals(currentUser);
+                    com.vaadin.signals.ValueSignal<CollaborativeSignals.FieldLock> lockSignal = locks
+                            .get(fieldName);
+                    if (lockSignal == null) {
+                        return true;
+                    }
+                    CollaborativeSignals.FieldLock lock = lockSignal.value();
+                    return lock == null || (sessionId != null
+                            && lock.username().equals(currentUser)
+                            && lock.sessionId().equals(sessionId));
                 });
         field.bindEnabled(enabledSignal);
 
@@ -201,12 +248,13 @@ public class MUC04View extends VerticalLayout {
     @Override
     protected void onAttach(AttachEvent attachEvent) {
         super.onAttach(attachEvent);
-        userSessionRegistry.registerUser(currentUser);
+        this.sessionId = SessionIdHelper.getCurrentSessionId();
+        userSessionRegistry.registerUser(currentUser, sessionId);
     }
 
     @Override
     protected void onDetach(DetachEvent detachEvent) {
         super.onDetach(detachEvent);
-        userSessionRegistry.unregisterUser(currentUser);
+        userSessionRegistry.unregisterUser(currentUser, sessionId);
     }
 }
