@@ -104,9 +104,7 @@ public class MainLayout extends AppLayout implements BeforeEnterObserver {
         super.onAttach(attachEvent);
         this.sessionId = SessionIdHelper.getCurrentSessionId();
 
-        if (currentUser != null) {
-            userSessionRegistry.registerUser(currentUser, sessionId);
-
+        if (currentUser != null && sessionId != null) {
             // Load current nickname if exists
             String currentNickname = userSessionRegistry.getNickname(currentUser,
                     sessionId);
@@ -127,11 +125,15 @@ public class MainLayout extends AppLayout implements BeforeEnterObserver {
 
     @Override
     public void beforeEnter(BeforeEnterEvent event) {
-        // Update user's current view
+        // Get sessionId if not already set (beforeEnter fires before onAttach)
+        if (sessionId == null) {
+            sessionId = SessionIdHelper.getCurrentSessionId();
+        }
+
+        // Register user with current route (or update route if already registered)
         if (currentUser != null && sessionId != null) {
             String viewRoute = event.getLocation().getPath();
-            userSessionRegistry.updateUserView(currentUser, sessionId,
-                    viewRoute);
+            userSessionRegistry.registerUser(currentUser, sessionId, viewRoute);
         }
     }
 }
