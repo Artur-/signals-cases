@@ -17,6 +17,7 @@ import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.H3;
+import com.vaadin.flow.component.html.Image;
 import com.vaadin.flow.component.html.Paragraph;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
@@ -173,9 +174,13 @@ public class MUC03View extends VerticalLayout {
                                         && sessionKey.equals(
                                                 currentUser + ":" + sessionId);
 
-                                Div item = new Div();
-                                item.setText(String.format("%s: %d points",
-                                        displayName, score));
+                                // Extract username from sessionKey (format: "username:sessionId")
+                                String username = sessionKey.split(":")[0];
+
+                                HorizontalLayout item = new HorizontalLayout();
+                                item.setSpacing(true);
+                                item.setAlignItems(
+                                        com.vaadin.flow.component.orderedlayout.FlexComponent.Alignment.CENTER);
                                 item.getStyle().set("padding", "0.5em")
                                         .set("background-color",
                                                 isCurrentSession ? "#fff3e0"
@@ -184,6 +189,21 @@ public class MUC03View extends VerticalLayout {
                                         .set("font-weight",
                                                 isCurrentSession ? "bold"
                                                         : "normal");
+
+                                // Avatar
+                                Image avatar = new Image(
+                                        MainLayout.getProfilePicturePath(username),
+                                        "");
+                                avatar.setWidth("32px");
+                                avatar.setHeight("32px");
+                                avatar.getStyle().set("border-radius", "50%")
+                                        .set("object-fit", "cover");
+
+                                // Name and score
+                                Span nameLabel = new Span(String.format("%s: %d points",
+                                        displayName, score));
+
+                                item.add(avatar, nameLabel);
                                 return item;
                             }).toList();
                 }));

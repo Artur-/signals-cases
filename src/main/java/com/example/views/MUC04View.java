@@ -15,8 +15,10 @@ import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.H3;
+import com.vaadin.flow.component.html.Image;
 import com.vaadin.flow.component.html.Paragraph;
 import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.Menu;
@@ -92,29 +94,50 @@ public class MUC04View extends VerticalLayout {
                 .set("padding", "1em").set("border-radius", "4px");
 
         MissingAPI.bindChildren(editorsDiv,
-                collaborativeSignals.getFieldLocksSignal().map(locks -> {
-                    if (locks.isEmpty()) {
-                        Div msg = new Div();
-                        msg.setText("No fields are currently being edited");
-                        msg.getStyle().set("font-style", "italic");
-                        return java.util.List.of(msg);
-                    }
+                collaborativeSignals.getFieldLocksSignal()
+                        .map(locks -> {
+                            if (locks.isEmpty()) {
+                                HorizontalLayout msg = new HorizontalLayout();
+                                Span msgText = new Span(
+                                        "No fields are currently being edited");
+                                msgText.getStyle().set("font-style", "italic");
+                                msg.add(msgText);
+                                return java.util.List.of(msg);
+                            }
 
-                    return locks.entrySet().stream().map(entry -> {
-                        Div item = new Div();
+                            return locks.entrySet().stream().map(entry -> {
                         String fieldLabel = formatFieldName(entry.getKey());
                         CollaborativeSignals.FieldLock lock = entry.getValue()
                                 .value();
-                        item.setText(String.format("🔒 %s: %s", fieldLabel,
-                                lock.username()));
                         boolean isCurrentSession = sessionId != null
                                 && lock.username().equals(currentUser)
                                 && lock.sessionId().equals(sessionId);
+
+                        HorizontalLayout item = new HorizontalLayout();
+                        item.setSpacing(true);
+                        item.setAlignItems(
+                                com.vaadin.flow.component.orderedlayout.FlexComponent.Alignment.CENTER);
                         item.getStyle().set("padding", "0.5em")
                                 .set("background-color",
                                         isCurrentSession ? "#fff3e0"
                                                 : "transparent")
                                 .set("border-radius", "4px");
+
+                        // Avatar
+                        Image avatar = new Image(
+                                MainLayout.getProfilePicturePath(lock.username()),
+                                "");
+                        avatar.setWidth("32px");
+                        avatar.setHeight("32px");
+                        avatar.getStyle().set("border-radius", "50%")
+                                .set("object-fit", "cover");
+
+                        // Field and user info
+                        Span label = new Span(
+                                String.format("🔒 %s: %s", fieldLabel,
+                                        lock.username()));
+
+                        item.add(avatar, label);
                         return item;
                     }).toList();
                 }));

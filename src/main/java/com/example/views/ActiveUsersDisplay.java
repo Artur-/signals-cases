@@ -1,9 +1,13 @@
 package com.example.views;
 
+import com.example.MissingAPI;
 import com.example.signals.UserSessionRegistry;
 
+import com.vaadin.flow.component.avatar.Avatar;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.signals.Signal;
 
 /**
  * Reusable component for displaying active users/sessions.
@@ -59,37 +63,77 @@ public class ActiveUsersDisplay extends Div {
             String labelText, String viewRoute, boolean showAccentBorder) {
         // Container styling
         getStyle().set("background-color", "#fff3e0").set("padding", "0.75em")
-                .set("border-radius", "4px").set("margin-bottom", "1em");
+                .set("border-radius", "4px").set("margin-bottom", "1em")
+                .set("display", "flex").set("flex-direction", "column")
+                .set("gap", "0.5em");
 
         if (showAccentBorder) {
             getStyle().set("border-left",
                     "4px solid var(--lumo-warning-color)");
         }
 
-        // Label with reactive binding - filter by view if specified
-        Span label = new Span();
-        if (viewRoute != null) {
-            // Show only users on this specific view
-            label.bindText(
-                    userSessionRegistry.getActiveUsersOnView(viewRoute)
-                            .map(displayNames -> {
-                                String usernames = String.join(", ",
-                                        displayNames);
-                                return "👥 " + labelText + ": "
-                                        + displayNames.size() + " (" + usernames
-                                        + ")";
-                            }));
-        } else {
-            // Show all users across all views
-            label.bindText(userSessionRegistry.getDisplayNamesSignal()
-                    .map(displayNames -> {
-                        String usernames = String.join(", ", displayNames);
-                        return "👥 " + labelText + ": " + displayNames.size()
-                                + " (" + usernames + ")";
-                    }));
-        }
-        label.getStyle().set("font-weight", "500");
+        // Title with count
+        Span title = new Span();
+        title.getStyle().set("font-weight", "500");
 
-        add(label);
+        // Users container with avatars
+        Div usersContainer = new Div();
+        usersContainer.getStyle().set("display", "flex")
+                .set("flex-wrap", "wrap").set("gap", "0.5em");
+
+        // Determine which signal to use based on viewRoute
+        Signal<java.util.List<String>> displayNamesSignal = viewRoute != null
+                ? userSessionRegistry.getActiveUsersOnView(viewRoute)
+                : userSessionRegistry.getDisplayNamesSignal();
+
+        // Bind title with count
+        title.bindText(displayNamesSignal
+                .map(displayNames -> "👥 " + labelText + ": "
+                        + displayNames.size()));
+
+        // Bind user avatars and names
+        MissingAPI.bindChildren(usersContainer, Signal.computed(() -> {
+            var displayNames = displayNamesSignal.value();
+            var users = userSessionRegistry.getActiveUsersSignal().value();
+
+            // Filter users if viewRoute is specified
+            java.util.List<com.example.signals.UserInfo> filteredUsers;
+            if (viewRoute != null) {
+                filteredUsers = users.stream()
+                        .map(userSignal -> userSignal.value())
+                        .filter(user -> viewRoute.equals(user.currentView()))
+                        .toList();
+            } else {
+                filteredUsers = users.stream()
+                        .map(userSignal -> userSignal.value()).toList();
+            }
+
+            return filteredUsers.stream().map(user -> {
+                // Display name (use nickname if set, otherwise username)
+                String displayName = user.nickname() != null
+                        && !user.nickname().isEmpty() ? user.nickname()
+                                : user.username();
+
+                HorizontalLayout userItem = new HorizontalLayout();
+                userItem.setSpacing(true);
+                userItem.setAlignItems(
+                        com.vaadin.flow.component.orderedlayout.FlexComponent.Alignment.CENTER);
+                userItem.getStyle().set("padding", "0.25em 0.5em")
+                        .set("background-color", "rgba(255, 255, 255, 0.7)")
+                        .set("border-radius", "16px");
+
+                // Avatar (default 40x40 size)
+                Avatar avatar = new Avatar(displayName);
+                avatar.setImage(MainLayout.getProfilePicturePath(user.username()));
+
+                Span nameLabel = new Span(displayName);
+                nameLabel.getStyle().set("font-size", "var(--lumo-font-size-s)");
+
+                userItem.add(avatar, nameLabel);
+                return userItem;
+            }).toList();
+        }));
+
+        add(title, usersContainer);
     }
 }

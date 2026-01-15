@@ -12,8 +12,11 @@ import com.vaadin.flow.component.AttachEvent;
 import com.vaadin.flow.component.DetachEvent;
 import com.vaadin.flow.component.applayout.AppLayout;
 import com.vaadin.flow.component.applayout.DrawerToggle;
+import com.vaadin.flow.component.avatar.Avatar;
 import com.vaadin.flow.component.html.H1;
+import com.vaadin.flow.component.html.Image;
 import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.sidenav.SideNav;
 import com.vaadin.flow.component.sidenav.SideNavItem;
 import com.vaadin.flow.component.textfield.TextField;
@@ -50,20 +53,47 @@ public class MainLayout extends AppLayout implements BeforeEnterObserver {
         title.getStyle().set("font-size", "var(--lumo-font-size-l)")
                 .set("margin", "0");
 
-        // Active users display using signal
-        Span activeUsersDisplay = new Span();
+        // Active users display with avatars
+        HorizontalLayout activeUsersDisplay = new HorizontalLayout();
+        activeUsersDisplay.setSpacing(true);
+        activeUsersDisplay.setAlignItems(
+                com.vaadin.flow.component.orderedlayout.FlexComponent.Alignment.CENTER);
         activeUsersDisplay.getStyle().set("margin-left", "auto")
-                .set("margin-right", "1em")
-                .set("color", "var(--lumo-secondary-text-color)")
+                .set("margin-right", "1em");
+
+        Span activeUsersLabel = new Span();
+        activeUsersLabel.getStyle().set("color",
+                "var(--lumo-secondary-text-color)")
                 .set("font-size", "var(--lumo-font-size-s)");
-        activeUsersDisplay.bindText(
-                userSessionRegistry.getDisplayNamesSignal().map(displayNames -> {
-                    if (displayNames.isEmpty()) {
-                        return "";
+        activeUsersLabel.bindText(userSessionRegistry.getDisplayNamesSignal()
+                .map(displayNames -> displayNames.isEmpty() ? ""
+                        : "👥 " + displayNames.size() + " online:"));
+
+        com.vaadin.flow.component.html.Div avatarsContainer = new com.vaadin.flow.component.html.Div();
+        avatarsContainer.getStyle().set("display", "flex").set("gap", "0.25em");
+
+        com.example.MissingAPI.bindChildren(avatarsContainer,
+                com.vaadin.signals.Signal.computed(() -> {
+                    var users = userSessionRegistry.getActiveUsersSignal()
+                            .value();
+                    var displayNames = userSessionRegistry.getDisplayNamesSignal()
+                            .value();
+
+                    java.util.List<Avatar> avatars = new java.util.ArrayList<>();
+                    for (int i = 0; i < users.size(); i++) {
+                        var user = users.get(i).value();
+                        String displayName = i < displayNames.size()
+                                ? displayNames.get(i)
+                                : user.username();
+
+                        Avatar avatar = new Avatar(displayName);
+                        avatar.setImage(getProfilePicturePath(user.username()));
+                        avatars.add(avatar);
                     }
-                    String usernames = String.join(", ", displayNames);
-                    return "👥 " + displayNames.size() + " online: " + usernames;
+                    return avatars;
                 }));
+
+        activeUsersDisplay.add(activeUsersLabel, avatarsContainer);
 
         // Nickname setting UI
         nicknameField = new TextField();
@@ -80,14 +110,31 @@ public class MainLayout extends AppLayout implements BeforeEnterObserver {
             }
         });
 
-        // Current user display using signal
-        Span userDisplay = new Span();
-        userDisplay.getStyle().set("margin-right", "1em")
-                .set("color", "var(--lumo-secondary-text-color)")
-                .set("font-size", "var(--lumo-font-size-s)");
-        userDisplay.bindText(currentUserSignal.getUserSignal()
-                .map(user -> user.isAuthenticated() ? "👤 " + user.getUsername()
+        // Current user display with avatar
+        HorizontalLayout userDisplay = new HorizontalLayout();
+        userDisplay.setSpacing(true);
+        userDisplay.setAlignItems(com.vaadin.flow.component.orderedlayout.FlexComponent.Alignment.CENTER);
+        userDisplay.getStyle().set("margin-right", "1em");
+
+        Avatar userAvatar = new Avatar();
+        userAvatar.getElement().bindProperty("name",
+                currentUserSignal.getUserSignal().map(user -> user.isAuthenticated()
+                        ? user.getUsername()
                         : ""));
+        userAvatar.getElement().bindProperty("img",
+                currentUserSignal.getUserSignal().map(user -> user.isAuthenticated()
+                        ? getProfilePicturePath(user.getUsername())
+                        : ""));
+        userAvatar.bindVisible(currentUserSignal.getUserSignal()
+                .map(user -> user.isAuthenticated()));
+
+        Span userName = new Span();
+        userName.getStyle().set("color", "var(--lumo-secondary-text-color)")
+                .set("font-size", "var(--lumo-font-size-s)");
+        userName.bindText(currentUserSignal.getUserSignal()
+                .map(user -> user.isAuthenticated() ? user.getUsername() : ""));
+
+        userDisplay.add(userAvatar, userName);
 
         addToNavbar(toggle, title, activeUsersDisplay, nicknameField,
                 userDisplay);
@@ -135,5 +182,23 @@ public class MainLayout extends AppLayout implements BeforeEnterObserver {
             String viewRoute = event.getLocation().getPath();
             userSessionRegistry.registerUser(currentUser, sessionId, viewRoute);
         }
+    }
+
+    /**
+     * Get the profile picture path for a username.
+     * Images are stored in src/main/resources/META-INF/resources/profile-pictures/
+     */
+    public static String getProfilePicturePath(String username) {
+        if (username == null) {
+            return "";
+        }
+        // Map username to profile picture (images are in META-INF/resources/profile-pictures)
+        return switch (username.toLowerCase()) {
+            case "admin" -> "/profile-pictures/admin.png";
+            case "editor" -> "/profile-pictures/editor.png";
+            case "viewer" -> "/profile-pictures/viewer.png";
+            case "superadmin" -> "/profile-pictures/superadmin.png";
+            default -> ""; // No image for unknown users
+        };
     }
 }
