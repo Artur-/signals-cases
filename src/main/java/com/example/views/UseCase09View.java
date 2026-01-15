@@ -187,6 +187,6 @@ public class UseCase09View extends VerticalLayout {
         add(title, description, usernameField, usernameError, emailField,
                 emailError, passwordField, passwordError, confirmPasswordField,
                 confirmPasswordError, accountTypeSelect, ageField, ageError,
-                statusDiv, submitButton);
+                statusDiv, submitButton, new SourceCodeLink(getClass()));
     }
 }

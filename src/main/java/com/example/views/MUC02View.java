@@ -187,7 +187,7 @@ public class MUC02View extends VerticalLayout {
                         + "With Vaadin Push, updates propagate automatically to all connected clients."));
 
         add(title, description, activeSessionsBox, canvas, usersTitle, usersList,
-                infoBox);
+                infoBox, new SourceCodeLink(getClass()));
     }
 
     @Override

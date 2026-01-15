@@ -394,6 +394,6 @@ public class UseCase02View extends VerticalLayout {
 
         add(title, description, needsVisaCheckbox, visaSection, h1bSection,
                 previousH1BSection, l1Section, o1Section, showValuesButton,
-                resultDisplay);
+                resultDisplay, new SourceCodeLink(getClass()));
     }
 }

@@ -155,6 +155,6 @@ public class UseCase13View extends VerticalLayout {
 
         add(title, description, userInfoBox, roleBasedTitle, viewerSection,
                 editorSection, adminSection, superAdminSection, actions,
-                infoBox);
+                infoBox, new SourceCodeLink(getClass()));
     }
 }

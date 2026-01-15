@@ -105,6 +105,6 @@ public class UseCase01View extends VerticalLayout {
         });
 
         add(title, description, emailField, passwordField, confirmField,
-                submitButton);
+                submitButton, new SourceCodeLink(getClass()));
     }
 }

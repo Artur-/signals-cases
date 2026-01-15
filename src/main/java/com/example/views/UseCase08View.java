@@ -209,6 +209,7 @@ public class UseCase08View extends VerticalLayout {
         progressIndicator.getStyle().set("font-weight", "bold");
 
         add(title, description, progressIndicator, step1Layout, step2Layout,
-                step3Layout, step4Layout, navigationLayout);
+                step3Layout, step4Layout, navigationLayout,
+                new SourceCodeLink(getClass()));
     }
 }

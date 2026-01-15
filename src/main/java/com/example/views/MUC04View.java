@@ -179,7 +179,7 @@ public class MUC04View extends VerticalLayout {
 
         add(title, description, activeSessionsBox, new H3("Shared Form Data"),
                 companyNameField, addressField, phoneField, saveButton,
-                editorsTitle, editorsDiv, infoBox);
+                editorsTitle, editorsDiv, infoBox, new SourceCodeLink(getClass()));
     }
 
     private TextField createLockedField(String fieldName, String label,

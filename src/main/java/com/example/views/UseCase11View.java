@@ -193,7 +193,8 @@ public class UseCase11View extends VerticalLayout {
                         + "or use the test buttons above."));
 
         add(title, description, sizeInfoBox, mobileSection, tabletSection,
-                desktopSection, cardGridTitle, cardGrid, controlsBox, infoBox);
+                desktopSection, cardGridTitle, cardGrid, controlsBox, infoBox,
+                new SourceCodeLink(getClass()));
     }
 
     private Div createSection(String title, String content,

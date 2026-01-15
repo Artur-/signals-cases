@@ -197,7 +197,8 @@ public class UseCase10View extends VerticalLayout {
         });
         addButton.bindEnabled(canEditSignal);
 
-        add(title, description, controls, addButton, grid);
+        add(title, description, controls, addButton, grid,
+                new SourceCodeLink(getClass()));
     }
 
     private List<Employee> loadEmployees() {

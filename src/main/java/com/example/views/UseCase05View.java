@@ -71,7 +71,8 @@ public class UseCase05View extends VerticalLayout {
         citySelect.bindEnabled(
                 stateSignal.map(state -> state != null && !state.isEmpty()));
 
-        add(title, description, countrySelect, stateSelect, citySelect);
+        add(title, description, countrySelect, stateSelect, citySelect,
+                new SourceCodeLink(getClass()));
     }
 
     private List<String> loadCountries() {

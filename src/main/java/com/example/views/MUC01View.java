@@ -143,7 +143,8 @@ public class MUC01View extends VerticalLayout {
                 messageCount);
 
         add(title, description, activeUsersDisplay, new H3("Messages"),
-                messagesContainer, inputTitle, messageInput, sendLayout, infoBox);
+                messagesContainer, inputTitle, messageInput, sendLayout, infoBox,
+                new SourceCodeLink(getClass()));
     }
 
     @Override
