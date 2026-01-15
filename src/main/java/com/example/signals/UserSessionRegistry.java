@@ -76,6 +76,13 @@ public class UserSessionRegistry {
      * Register a user as active with a specific session ID.
      */
     public void registerUser(String username, String sessionId) {
+        registerUser(username, sessionId, null);
+    }
+
+    /**
+     * Register a user as active with a specific session ID and initial route.
+     */
+    public void registerUser(String username, String sessionId, String initialRoute) {
         if (username == null || sessionId == null) {
             throw new IllegalArgumentException(
                     "Username and sessionId cannot be null");
@@ -88,7 +95,10 @@ public class UserSessionRegistry {
                         userSignal.value().getCompositeKey()));
 
         if (!exists) {
-            activeUsersSignal.insertLast(new UserInfo(username, sessionId));
+            activeUsersSignal.insertLast(new UserInfo(username, sessionId, initialRoute, null));
+        } else if (initialRoute != null) {
+            // User already registered, just update the route
+            updateUserView(username, sessionId, initialRoute);
         }
     }
 
