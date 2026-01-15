@@ -191,7 +191,6 @@ public class MUC02View extends VerticalLayout {
     protected void onAttach(AttachEvent attachEvent) {
         super.onAttach(attachEvent);
         this.sessionId = SessionIdHelper.getCurrentSessionId();
-        userSessionRegistry.registerUser(currentUser, sessionId);
         this.myCursorSignal = collaborativeSignals
                 .getCursorSignalForUser(currentUser, sessionId);
     }
@@ -199,7 +198,6 @@ public class MUC02View extends VerticalLayout {
     @Override
     protected void onDetach(DetachEvent detachEvent) {
         super.onDetach(detachEvent);
-        userSessionRegistry.unregisterUser(currentUser, sessionId);
         collaborativeSignals.unregisterCursor(currentUser, sessionId);
     }
 

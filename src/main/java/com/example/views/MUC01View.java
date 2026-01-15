@@ -145,13 +145,6 @@ public class MUC01View extends VerticalLayout {
     protected void onAttach(AttachEvent attachEvent) {
         super.onAttach(attachEvent);
         this.sessionId = SessionIdHelper.getCurrentSessionId();
-        userSessionRegistry.registerUser(currentUser, sessionId);
-    }
-
-    @Override
-    protected void onDetach(DetachEvent detachEvent) {
-        super.onDetach(detachEvent);
-        userSessionRegistry.unregisterUser(currentUser, sessionId);
     }
 
     private Div createMessageComponent(CollaborativeSignals.Message message) {

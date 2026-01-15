@@ -259,14 +259,12 @@ public class MUC03View extends VerticalLayout {
     protected void onAttach(AttachEvent attachEvent) {
         super.onAttach(attachEvent);
         this.sessionId = SessionIdHelper.getCurrentSessionId();
-        userSessionRegistry.registerUser(currentUser, sessionId);
         collaborativeSignals.initializePlayerScore(currentUser, sessionId);
     }
 
     @Override
     protected void onDetach(DetachEvent detachEvent) {
         super.onDetach(detachEvent);
-        userSessionRegistry.unregisterUser(currentUser, sessionId);
         collaborativeSignals.unregisterScore(currentUser, sessionId);
     }
 }

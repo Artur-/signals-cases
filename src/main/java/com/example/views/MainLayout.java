@@ -5,23 +5,45 @@ import jakarta.annotation.security.PermitAll;
 import java.util.stream.Collectors;
 
 import com.example.security.CurrentUserSignal;
+import com.example.signals.SessionIdHelper;
 import com.example.signals.UserSessionRegistry;
 
+import com.vaadin.flow.component.AttachEvent;
+import com.vaadin.flow.component.DetachEvent;
 import com.vaadin.flow.component.applayout.AppLayout;
 import com.vaadin.flow.component.applayout.DrawerToggle;
 import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.sidenav.SideNav;
 import com.vaadin.flow.component.sidenav.SideNavItem;
+import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.router.BeforeEnterEvent;
+import com.vaadin.flow.router.BeforeEnterObserver;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.server.menu.MenuConfiguration;
 
 @PageTitle("Signal API Use Cases")
 @PermitAll
-public class MainLayout extends AppLayout {
+public class MainLayout extends AppLayout implements BeforeEnterObserver {
+
+    private final CurrentUserSignal currentUserSignal;
+    private final UserSessionRegistry userSessionRegistry;
+    private String currentUser;
+    private String sessionId;
+    private TextField nicknameField;
 
     public MainLayout(CurrentUserSignal currentUserSignal,
             UserSessionRegistry userSessionRegistry) {
+        this.currentUserSignal = currentUserSignal;
+        this.userSessionRegistry = userSessionRegistry;
+
+        // Get current user info
+        CurrentUserSignal.UserInfo userInfo = currentUserSignal.getUserSignal()
+                .value();
+        if (userInfo != null && userInfo.isAuthenticated()) {
+            this.currentUser = userInfo.getUsername();
+        }
+
         DrawerToggle toggle = new DrawerToggle();
 
         H1 title = new H1("Signal API Use Cases");
@@ -43,6 +65,21 @@ public class MainLayout extends AppLayout {
                     return "👥 " + displayNames.size() + " online: " + usernames;
                 }));
 
+        // Nickname setting UI
+        nicknameField = new TextField();
+        nicknameField.setPlaceholder("Set nickname...");
+        nicknameField.setWidth("150px");
+        nicknameField.setClearButtonVisible(true);
+        nicknameField.getStyle().set("margin-right", "1em");
+
+        // Save nickname on change
+        nicknameField.addValueChangeListener(event -> {
+            if (currentUser != null && sessionId != null) {
+                String nickname = event.getValue();
+                userSessionRegistry.setNickname(currentUser, sessionId, nickname);
+            }
+        });
+
         // Current user display using signal
         Span userDisplay = new Span();
         userDisplay.getStyle().set("margin-right", "1em")
@@ -52,12 +89,49 @@ public class MainLayout extends AppLayout {
                 .map(user -> user.isAuthenticated() ? "👤 " + user.getUsername()
                         : ""));
 
-        addToNavbar(toggle, title, activeUsersDisplay, userDisplay);
+        addToNavbar(toggle, title, activeUsersDisplay, nicknameField,
+                userDisplay);
 
         // Add auto-menu from @Menu annotations
         SideNav nav = new SideNav();
         MenuConfiguration.getMenuEntries().forEach(entry -> nav
                 .addItem(new SideNavItem(entry.title(), entry.path())));
         addToDrawer(nav);
+    }
+
+    @Override
+    protected void onAttach(AttachEvent attachEvent) {
+        super.onAttach(attachEvent);
+        this.sessionId = SessionIdHelper.getCurrentSessionId();
+
+        if (currentUser != null) {
+            userSessionRegistry.registerUser(currentUser, sessionId);
+
+            // Load current nickname if exists
+            String currentNickname = userSessionRegistry.getNickname(currentUser,
+                    sessionId);
+            if (currentNickname != null) {
+                nicknameField.setValue(currentNickname);
+            }
+        }
+    }
+
+    @Override
+    protected void onDetach(DetachEvent detachEvent) {
+        super.onDetach(detachEvent);
+
+        if (currentUser != null && sessionId != null) {
+            userSessionRegistry.unregisterUser(currentUser, sessionId);
+        }
+    }
+
+    @Override
+    public void beforeEnter(BeforeEnterEvent event) {
+        // Update user's current view
+        if (currentUser != null && sessionId != null) {
+            String viewRoute = event.getLocation().getPath();
+            userSessionRegistry.updateUserView(currentUser, sessionId,
+                    viewRoute);
+        }
     }
 }

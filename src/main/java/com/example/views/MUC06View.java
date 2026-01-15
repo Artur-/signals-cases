@@ -179,20 +179,6 @@ public class MUC06View extends VerticalLayout {
                 tasksContainer, addButton, infoBox);
     }
 
-    @Override
-    protected void onAttach(AttachEvent attachEvent) {
-        super.onAttach(attachEvent);
-        String sessionId = SessionIdHelper.getCurrentSessionId();
-        userSessionRegistry.registerUser(currentUser, sessionId);
-    }
-
-    @Override
-    protected void onDetach(DetachEvent detachEvent) {
-        super.onDetach(detachEvent);
-        String sessionId = SessionIdHelper.getCurrentSessionId();
-        userSessionRegistry.unregisterUser(currentUser, sessionId);
-    }
-
     private HorizontalLayout createTaskRow(
             ValueSignal<CollaborativeSignals.Task> taskSignal,
             ListSignal<CollaborativeSignals.Task> tasksSignal) {
