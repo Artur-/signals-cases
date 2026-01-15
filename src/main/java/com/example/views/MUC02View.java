@@ -16,8 +16,10 @@ import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.H3;
+import com.vaadin.flow.component.html.Image;
 import com.vaadin.flow.component.html.Paragraph;
 import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.Menu;
 import com.vaadin.flow.router.PageTitle;
@@ -133,28 +135,42 @@ public class MUC02View extends VerticalLayout {
                 ValueSignal<CollaborativeSignals.CursorPosition> positionSignal = entry
                         .getValue();
 
-                // Get display name from mapping (fallback to full sessionKey for
-                // debugging)
+                // Get display name and username from mapping
                 String displayName = displayNameMap.getOrDefault(sessionKey,
                         "[" + sessionKey + "]");
 
-                Div userItem = new Div();
-                userItem.getStyle().set("display", "flex")
-                        .set("justify-content", "space-between")
-                        .set("margin-bottom", "0.5em");
+                // Extract username from sessionKey (format: "username:sessionId")
+                String username = sessionKey.split(":")[0];
 
+                HorizontalLayout userItem = new HorizontalLayout();
+                userItem.setSpacing(true);
+                userItem.setAlignItems(
+                        com.vaadin.flow.component.orderedlayout.FlexComponent.Alignment.CENTER);
+                userItem.setWidthFull();
+                userItem.getStyle().set("margin-bottom", "0.5em");
+
+                // Avatar
+                Image avatar = new Image(MainLayout.getProfilePicturePath(username),
+                        "");
+                avatar.setWidth("32px");
+                avatar.setHeight("32px");
+                avatar.getStyle().set("border-radius", "50%")
+                        .set("object-fit", "cover");
+
+                // User label
                 Div userLabel = new Div();
                 userLabel.setText(displayName);
                 userLabel.getStyle().set("font-weight", "500");
 
+                // Position label
                 Div positionLabel = new Div();
                 positionLabel.bindText(positionSignal
                         .map(CollaborativeSignals.CursorPosition::toString));
                 positionLabel.getStyle().set("font-family", "monospace")
-                        .set("color",
-                                "var(--lumo-secondary-text-color)");
+                        .set("color", "var(--lumo-secondary-text-color)")
+                        .set("margin-left", "auto");
 
-                userItem.add(userLabel, positionLabel);
+                userItem.add(avatar, userLabel, positionLabel);
                 return userItem;
             }).toList();
         }));

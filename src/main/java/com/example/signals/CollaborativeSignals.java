@@ -21,9 +21,10 @@ public class CollaborativeSignals {
 
     // ========== Use Case 18: Shared Chat ===========
 
-    public record Message(String author, String text, LocalDateTime timestamp) {
-        public Message(String author, String text) {
-            this(author, text, LocalDateTime.now());
+    public record Message(String username, String author, String text,
+            LocalDateTime timestamp) {
+        public Message(String username, String author, String text) {
+            this(username, author, text, LocalDateTime.now());
         }
 
         public String getFormattedTimestamp() {

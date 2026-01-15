@@ -15,6 +15,7 @@ import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.H3;
+import com.vaadin.flow.component.html.Image;
 import com.vaadin.flow.component.html.Paragraph;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -108,8 +109,8 @@ public class MUC01View extends VerticalLayout {
                 // Look up current display name
                 String displayName = getCurrentDisplayName();
                 collaborativeSignals.appendMessage(
-                        new CollaborativeSignals.Message(displayName,
-                                text.trim()));
+                        new CollaborativeSignals.Message(currentUser,
+                                displayName, text.trim()));
                 messageInput.clear();
             }
         });
@@ -156,7 +157,20 @@ public class MUC01View extends VerticalLayout {
         messageDiv.getStyle().set("background-color", "#ffffff")
                 .set("border-left", "3px solid var(--lumo-primary-color)")
                 .set("padding", "0.75em").set("margin-bottom", "0.5em")
-                .set("border-radius", "4px");
+                .set("border-radius", "4px").set("display", "flex")
+                .set("gap", "0.75em");
+
+        // Avatar
+        Image avatar = new Image(MainLayout.getProfilePicturePath(message.username()),
+                "");
+        avatar.setWidth("40px");
+        avatar.setHeight("40px");
+        avatar.getStyle().set("border-radius", "50%").set("object-fit", "cover")
+                .set("flex-shrink", "0");
+
+        // Content area (header + text)
+        Div contentArea = new Div();
+        contentArea.getStyle().set("flex", "1");
 
         Div header = new Div();
         header.getStyle().set("display", "flex")
@@ -164,7 +178,7 @@ public class MUC01View extends VerticalLayout {
                 .set("margin-bottom", "0.5em");
 
         Div author = new Div();
-        author.setText("👤 " + message.author());
+        author.setText(message.author());
         author.getStyle().set("font-weight", "bold").set("color",
                 "var(--lumo-primary-color)");
 
@@ -179,7 +193,8 @@ public class MUC01View extends VerticalLayout {
         text.setText(message.text());
         text.getStyle().set("color", "var(--lumo-body-text-color)");
 
-        messageDiv.add(header, text);
+        contentArea.add(header, text);
+        messageDiv.add(avatar, contentArea);
         return messageDiv;
     }
 
