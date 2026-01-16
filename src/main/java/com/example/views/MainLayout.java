@@ -13,6 +13,8 @@ import com.vaadin.flow.component.DetachEvent;
 import com.vaadin.flow.component.applayout.AppLayout;
 import com.vaadin.flow.component.applayout.DrawerToggle;
 import com.vaadin.flow.component.avatar.Avatar;
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.html.Image;
 import com.vaadin.flow.component.html.Span;
@@ -20,6 +22,8 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.sidenav.SideNav;
 import com.vaadin.flow.component.sidenav.SideNavItem;
 import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.server.VaadinServletRequest;
+import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.router.BeforeEnterObserver;
 import com.vaadin.flow.router.PageTitle;
@@ -136,8 +140,18 @@ public class MainLayout extends AppLayout implements BeforeEnterObserver {
 
         userDisplay.add(userAvatar, userName);
 
+        // Logout button
+        Button logoutButton = new Button("Logout", event -> {
+            SecurityContextLogoutHandler logoutHandler = new SecurityContextLogoutHandler();
+            logoutHandler.logout(
+                    VaadinServletRequest.getCurrent().getHttpServletRequest(),
+                    null, null);
+            getUI().ifPresent(ui -> ui.getPage().setLocation("/login"));
+        });
+        logoutButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
+
         addToNavbar(toggle, title, activeUsersDisplay, nicknameField,
-                userDisplay);
+                userDisplay, logoutButton);
 
         // Add auto-menu from @Menu annotations
         SideNav nav = new SideNav();
