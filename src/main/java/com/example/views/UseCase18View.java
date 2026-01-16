@@ -1,0 +1,573 @@
+package com.example.views;
+
+import jakarta.annotation.security.PermitAll;
+
+import java.time.Instant;
+import java.time.LocalDate;
+import java.util.UUID;
+
+import com.example.MissingAPI;
+import com.example.model.Task;
+import com.example.service.TaskContext;
+import com.example.service.TaskLLMService;
+
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.checkbox.Checkbox;
+import com.vaadin.flow.component.combobox.ComboBox;
+import com.vaadin.flow.component.datepicker.DatePicker;
+import com.vaadin.flow.component.dialog.Dialog;
+import com.vaadin.flow.component.formlayout.FormLayout;
+import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.grid.GridVariant;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.H2;
+import com.vaadin.flow.component.html.H3;
+import com.vaadin.flow.component.html.Paragraph;
+import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.messages.MessageInput;
+import com.vaadin.flow.component.markdown.Markdown;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.component.orderedlayout.Scroller;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.textfield.TextArea;
+import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.router.Menu;
+import com.vaadin.flow.router.PageTitle;
+import com.vaadin.flow.router.Route;
+import com.vaadin.signals.ListSignal;
+import com.vaadin.signals.Signal;
+import com.vaadin.signals.ValueSignal;
+import com.vaadin.signals.WritableSignal;
+
+@Route(value = "use-case-18", layout = MainLayout.class)
+@PageTitle("Use Case 18: LLM-Powered Task List")
+@Menu(order = 18, title = "UC 18: LLM Task List")
+@PermitAll
+public class UseCase18View extends VerticalLayout {
+
+    private record ChatMessageData(String role, String content, Instant timestamp) {
+    }
+
+    // Signals for reactive state
+    private final ListSignal<Task> tasksSignal = new ListSignal<>(Task.class);
+    private final ListSignal<ChatMessageData> chatMessagesSignal = new ListSignal<>(ChatMessageData.class);
+
+    // Computed signals for statistics
+    private Signal<Integer> totalTasksSignal;
+    private Signal<Integer> completedTasksSignal;
+    private Signal<Integer> pendingTasksSignal;
+
+    // Services
+    private final TaskLLMService taskLLMService;
+
+    // UI Components
+    private VerticalLayout messageListContainer;
+    private MessageInput messageInput;
+    private Scroller messageScroller;
+
+    // Signals for UI state
+    private final WritableSignal<Boolean> messageInputEnabledSignal = new ValueSignal<>(true);
+
+    // Conversation ID for chat memory (one per view instance)
+    private final String conversationId = UUID.randomUUID().toString();
+
+    public UseCase18View(TaskLLMService taskLLMService) {
+        this.taskLLMService = taskLLMService;
+
+        setSizeFull();
+        setPadding(true);
+        setSpacing(true);
+
+        // Initialize with sample tasks
+        initializeSampleTasks();
+
+        // Set up computed signals
+        totalTasksSignal = tasksSignal.map(list -> list.size());
+        completedTasksSignal = Signal.computed(
+                () -> (int) tasksSignal.value().stream().filter(t -> t.value().completed()).count());
+        pendingTasksSignal = Signal.computed(() -> totalTasksSignal.value() - completedTasksSignal.value());
+
+        // Build UI - Chat on top, Grid below
+        VerticalLayout chatPanel = buildChatPanel();
+        HorizontalLayout taskPanel = buildTaskManagementPanel();
+
+        add(chatPanel);
+        add(taskPanel);
+        add(new SourceCodeLink(getClass()));
+
+        setFlexGrow(2, chatPanel);  // 40% of vertical space
+        setFlexGrow(3, taskPanel);  // 60% of vertical space
+    }
+
+    private void initializeSampleTasks() {
+        tasksSignal.insertLast(new Task(UUID.randomUUID().toString(), "Review pull requests",
+                "Review and merge pending pull requests", Task.TaskStatus.TODO, false,
+                LocalDate.now().plusDays(2)));
+        tasksSignal.insertLast(new Task(UUID.randomUUID().toString(), "Write unit tests",
+                "Add unit tests for new features", Task.TaskStatus.IN_PROGRESS, false, LocalDate.now().plusDays(5)));
+        tasksSignal.insertLast(new Task(UUID.randomUUID().toString(), "Deploy to staging",
+                "Deploy latest changes to staging environment", Task.TaskStatus.TODO, false,
+                LocalDate.now().plusDays(7)));
+    }
+
+    private VerticalLayout buildChatPanel() {
+        VerticalLayout chatPanel = new VerticalLayout();
+        chatPanel.setWidthFull();
+        chatPanel.setPadding(true);
+        chatPanel.setSpacing(true);
+        chatPanel.getStyle().set("min-height", "0");
+
+        H2 chatTitle = new H2("AI Task Assistant");
+        chatTitle.getStyle().set("margin", "0");
+
+        Paragraph chatDescription = new Paragraph(
+                "Chat with the AI to manage your tasks. Try commands like 'Add a task to buy groceries' or 'List my tasks'.");
+
+        VerticalLayout chatSection = buildChatSection();
+        chatPanel.add(chatTitle, chatDescription, chatSection);
+        chatPanel.setFlexGrow(1, chatSection);
+
+        return chatPanel;
+    }
+
+    private HorizontalLayout buildTaskManagementPanel() {
+        HorizontalLayout taskPanel = new HorizontalLayout();
+        taskPanel.setWidthFull();
+        taskPanel.setPadding(true);
+        taskPanel.setSpacing(true);
+        taskPanel.setAlignItems(Alignment.STRETCH);
+        taskPanel.getStyle().set("min-height", "0");
+
+        // Left side: Statistics and Actions
+        VerticalLayout leftSide = new VerticalLayout();
+        leftSide.setHeightFull();
+        leftSide.setPadding(false);
+        leftSide.setSpacing(true);
+        leftSide.getStyle().set("min-width", "0");
+
+        H2 title = new H2("Task Management");
+        title.getStyle().set("margin", "0");
+
+        Paragraph description = new Paragraph(
+                "Manage your tasks through traditional UI controls or use the AI assistant above.");
+
+        Button addTaskButton = new Button("Add New Task", VaadinIcon.PLUS.create());
+        addTaskButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+        addTaskButton.addClickListener(e -> openAddTaskDialog());
+
+        leftSide.add(title, description, addTaskButton, buildStatisticsSection());
+
+        // Right side: Grid
+        VerticalLayout rightSide = new VerticalLayout();
+        rightSide.setHeightFull();
+        rightSide.setPadding(false);
+        rightSide.setSpacing(false);
+        rightSide.getStyle().set("min-width", "0");
+
+        VerticalLayout grid = buildTaskGrid();
+        rightSide.add(grid);
+        rightSide.setFlexGrow(1, grid);
+
+        taskPanel.add(leftSide, rightSide);
+        taskPanel.setFlexGrow(3, leftSide);   // 30% of horizontal space
+        taskPanel.setFlexGrow(7, rightSide);  // 70% of horizontal space
+
+        return taskPanel;
+    }
+
+    private HorizontalLayout buildStatisticsSection() {
+        HorizontalLayout statsLayout = new HorizontalLayout();
+        statsLayout.setWidthFull();
+        statsLayout.setSpacing(true);
+
+        Div totalCard = createStatCard("Total", totalTasksSignal, "var(--lumo-primary-color)");
+        Div completedCard = createStatCard("Completed", completedTasksSignal, "var(--lumo-success-color)");
+        Div pendingCard = createStatCard("Pending", pendingTasksSignal, "var(--lumo-contrast-60pct)");
+
+        statsLayout.add(totalCard, completedCard, pendingCard);
+        return statsLayout;
+    }
+
+    private Div createStatCard(String label, Signal<Integer> valueSignal, String color) {
+        Div card = new Div();
+        card.getStyle().set("flex", "1").set("background-color", "#f5f5f5").set("padding", "1em")
+                .set("border-radius", "8px").set("text-align", "center");
+
+        Span valueLabel = new Span();
+        valueLabel.bindText(valueSignal.map(String::valueOf));
+        valueLabel.getStyle().set("font-size", "2em").set("font-weight", "bold").set("color", color)
+                .set("display", "block");
+
+        Span titleLabel = new Span(label);
+        titleLabel.getStyle().set("color", "var(--lumo-secondary-text-color)").set("font-size", "0.875em");
+
+        card.add(valueLabel, titleLabel);
+        return card;
+    }
+
+    private void openAddTaskDialog() {
+        Dialog dialog = new Dialog();
+        dialog.setHeaderTitle("Add New Task");
+        dialog.setWidth("500px");
+
+        FormLayout formLayout = new FormLayout();
+        formLayout.setResponsiveSteps(new FormLayout.ResponsiveStep("0", 1));
+
+        TextField titleField = new TextField("Title");
+        titleField.setPlaceholder("Enter task title");
+        titleField.setWidthFull();
+        titleField.setAutofocus(true);
+
+        TextArea descriptionField = new TextArea("Description");
+        descriptionField.setPlaceholder("Enter task description");
+        descriptionField.setWidthFull();
+        descriptionField.setMaxHeight("150px");
+
+        DatePicker dueDatePicker = new DatePicker("Due Date");
+        dueDatePicker.setValue(LocalDate.now().plusDays(7));
+        dueDatePicker.setWidthFull();
+
+        formLayout.add(titleField, descriptionField, dueDatePicker);
+
+        Button saveButton = new Button("Add Task", e -> {
+            String title = titleField.getValue();
+            String description = descriptionField.getValue();
+            LocalDate dueDate = dueDatePicker.getValue();
+
+            if (title != null && !title.isBlank()) {
+                Task newTask = Task.create(title, description).withDueDate(dueDate);
+                tasksSignal.insertLast(newTask);
+                dialog.close();
+            }
+        });
+        saveButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+
+        Button cancelButton = new Button("Cancel", e -> dialog.close());
+
+        dialog.add(formLayout);
+        dialog.getFooter().add(cancelButton, saveButton);
+        dialog.open();
+    }
+
+    private VerticalLayout buildTaskGrid() {
+        VerticalLayout gridContainer = new VerticalLayout();
+        gridContainer.setWidthFull();
+        gridContainer.setPadding(false);
+        gridContainer.setSpacing(false);
+        gridContainer.getStyle().set("min-height", "0");
+
+        H3 gridTitle = new H3("Tasks");
+        gridTitle.getStyle().set("margin", "0 0 0.5em 0");
+
+        Grid<Task> grid = new Grid<>(Task.class, false);
+        grid.addColumn(Task::title).setHeader("Title").setFlexGrow(2).setAutoWidth(true);
+        grid.addColumn(Task::description).setHeader("Description").setFlexGrow(3);
+        grid.addColumn(Task::status).setHeader("Status").setFlexGrow(1).setAutoWidth(true);
+        grid.addColumn(task -> task.completed() ? "Yes" : "No").setHeader("Completed").setFlexGrow(1)
+                .setAutoWidth(true);
+        grid.addColumn(Task::dueDate).setHeader("Due Date").setFlexGrow(1).setAutoWidth(true);
+
+        grid.addComponentColumn(task -> {
+            HorizontalLayout actions = new HorizontalLayout();
+            actions.setSpacing(true);
+
+            Button editButton = new Button(VaadinIcon.EDIT.create());
+            editButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_SMALL);
+            editButton.addClickListener(e -> openEditDialog(task));
+
+            Button deleteButton = new Button(VaadinIcon.TRASH.create());
+            deleteButton.addThemeVariants(ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_SMALL);
+            deleteButton.addClickListener(e -> {
+                tasksSignal.value().stream().filter(sig -> sig.value().equals(task)).findFirst()
+                        .ifPresent(tasksSignal::remove);
+            });
+
+            actions.add(editButton, deleteButton);
+            return actions;
+        }).setHeader("Actions").setFlexGrow(0).setAutoWidth(true);
+
+        grid.addThemeVariants(GridVariant.LUMO_ROW_STRIPES, GridVariant.LUMO_COMPACT);
+
+        // Bind directly to ListSignal - it will register dependencies on all individual ValueSignals
+        MissingAPI.bindItems(grid, tasksSignal);
+
+        gridContainer.add(gridTitle, grid);
+        gridContainer.setFlexGrow(1, grid);
+        return gridContainer;
+    }
+
+    private void openEditDialog(Task task) {
+        Dialog dialog = new Dialog();
+        dialog.setHeaderTitle("Edit Task");
+        dialog.setWidth("500px");
+
+        FormLayout formLayout = new FormLayout();
+
+        TextField titleField = new TextField("Title");
+        titleField.setValue(task.title());
+        titleField.setWidthFull();
+
+        TextArea descriptionField = new TextArea("Description");
+        descriptionField.setValue(task.description());
+        descriptionField.setWidthFull();
+        descriptionField.setMaxHeight("100px");
+
+        ComboBox<Task.TaskStatus> statusCombo = new ComboBox<>("Status");
+        statusCombo.setItems(Task.TaskStatus.values());
+        statusCombo.setValue(task.status());
+        statusCombo.setWidthFull();
+
+        Checkbox completedCheckbox = new Checkbox("Completed");
+        completedCheckbox.setValue(task.completed());
+
+        DatePicker dueDatePicker = new DatePicker("Due Date");
+        dueDatePicker.setValue(task.dueDate());
+        dueDatePicker.setWidthFull();
+
+        formLayout.add(titleField, descriptionField, statusCombo, completedCheckbox, dueDatePicker);
+
+        Button saveButton = new Button("Save", e -> {
+            // Find the signal for this task and update it
+            tasksSignal.value().stream().filter(sig -> sig.value().id().equals(task.id())).findFirst().ifPresent(sig -> {
+                Task updatedTask = new Task(task.id(), titleField.getValue(), descriptionField.getValue(),
+                        statusCombo.getValue(), completedCheckbox.getValue(), dueDatePicker.getValue());
+                sig.value(updatedTask);
+            });
+            dialog.close();
+        });
+        saveButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+
+        Button cancelButton = new Button("Cancel", e -> dialog.close());
+
+        dialog.add(formLayout);
+        dialog.getFooter().add(cancelButton, saveButton);
+        dialog.open();
+    }
+
+    private VerticalLayout buildChatSection() {
+        VerticalLayout chatContainer = new VerticalLayout();
+        chatContainer.setWidthFull();
+        chatContainer.setPadding(false);
+        chatContainer.setSpacing(true);
+        chatContainer.getStyle().set("min-height", "0");
+
+        // Message list container
+        messageListContainer = new VerticalLayout();
+        messageListContainer.setPadding(false);
+        messageListContainer.setSpacing(true);
+        messageListContainer.setWidthFull();
+
+        messageScroller = new Scroller(messageListContainer);
+        messageScroller.setWidthFull();
+        messageScroller.getStyle().set("background-color", "#f5f5f5").set("border-radius", "8px").set("padding", "1em")
+                .set("min-height", "0");
+
+        // Reactively update message list using ComponentEffect
+        com.vaadin.flow.component.ComponentEffect.bind(messageListContainer, chatMessagesSignal,
+                (container, msgSignals) -> {
+                    if (msgSignals != null) {
+                        container.removeAll();
+                        msgSignals.stream().forEach(msgSignal -> {
+                            ChatMessageData msg = msgSignal.value();
+                            container.add(createMessageComponent(msg));
+                        });
+                        // Scroll to bottom after updating messages
+                        scrollToBottom();
+                    }
+                });
+
+        // Message input
+        messageInput = new MessageInput();
+        messageInput.bindEnabled(messageInputEnabledSignal);
+        messageInput.addSubmitListener(this::onMessageSubmit);
+
+        Button clearButton = new Button("Clear Chat", VaadinIcon.TRASH.create());
+        clearButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_SMALL);
+        clearButton.addClickListener(e -> {
+            chatMessagesSignal.value().clear();
+        });
+
+        HorizontalLayout inputLayout = new HorizontalLayout();
+        inputLayout.setWidthFull();
+        inputLayout.setSpacing(true);
+        inputLayout.add(messageInput, clearButton);
+        inputLayout.setFlexGrow(1, messageInput);
+
+        chatContainer.add(messageScroller, inputLayout);
+        chatContainer.setFlexGrow(1, messageScroller);
+
+        return chatContainer;
+    }
+
+    private void scrollToBottom() {
+        // Use getElement().executeJs() to scroll to bottom
+        // We need to do this after the DOM has updated
+        getUI().ifPresent(ui -> ui.access(() -> {
+            messageScroller.getElement().executeJs("this.scrollTop = this.scrollHeight");
+        }));
+    }
+
+    private Div createMessageComponent(ChatMessageData msg) {
+        Div messageContainer = new Div();
+        messageContainer.setWidthFull();
+        messageContainer.getStyle().set("margin-bottom", "1em").set("padding", "0.75em").set("border-radius", "8px");
+
+        // Style based on role
+        if (msg.role().equals("You")) {
+            messageContainer.getStyle().set("background-color", "#e3f2fd").set("border-left", "4px solid #2196F3");
+        } else {
+            messageContainer.getStyle().set("background-color", "#f3e5f5").set("border-left", "4px solid #9c27b0");
+        }
+
+        // Header with role and timestamp
+        HorizontalLayout header = new HorizontalLayout();
+        header.setWidthFull();
+        header.setPadding(false);
+        header.setSpacing(true);
+        header.setAlignItems(Alignment.CENTER);
+
+        Span roleLabel = new Span(msg.role());
+        roleLabel.getStyle().set("font-weight", "bold").set("color", "var(--lumo-secondary-text-color)");
+
+        Span timeLabel = new Span(msg.timestamp().toString());
+        timeLabel.getStyle().set("font-size", "0.75em").set("color", "var(--lumo-tertiary-text-color)");
+
+        header.add(roleLabel, timeLabel);
+        header.setFlexGrow(1, new Div()); // Spacer
+
+        // Content with markdown rendering
+        Markdown contentMarkdown = new Markdown(msg.content().isBlank() ? "_typing..._" : msg.content());
+        contentMarkdown.setWidthFull();
+
+        messageContainer.add(header, contentMarkdown);
+        return messageContainer;
+    }
+
+    private void onMessageSubmit(MessageInput.SubmitEvent event) {
+        String userMessage = event.getValue();
+
+        if (userMessage == null || userMessage.isBlank()) {
+            return;
+        }
+
+        // Disable input while processing
+        messageInputEnabledSignal.value(false);
+
+        // Add user message
+        chatMessagesSignal.insertLast(new ChatMessageData("You", userMessage, Instant.now()));
+
+        // Create assistant message placeholder
+        Instant assistantTimestamp = Instant.now();
+        chatMessagesSignal.insertLast(new ChatMessageData("Assistant", "", assistantTimestamp));
+
+        // Get reference to the last message signal (assistant message) for updates
+        var assistantMessageSignal = chatMessagesSignal.value()
+                .get(chatMessagesSignal.value().size() - 1);
+
+        // Accumulate streaming content
+        StringBuilder streamingContent = new StringBuilder();
+
+        // Stream responses from LLM with consistent conversation ID for memory
+        taskLLMService.streamMessage(userMessage, createTaskContext(), conversationId).subscribe(token -> {
+            // Append token and update the message in the signal - must be done on UI thread
+            getUI().ifPresent(ui -> ui.access(() -> {
+                streamingContent.append(token);
+                assistantMessageSignal.value(new ChatMessageData("Assistant", streamingContent.toString(), assistantTimestamp));
+            }));
+        }, error -> {
+            // Update with error message - must be done on UI thread
+            getUI().ifPresent(ui -> ui.access(() -> {
+                streamingContent.append("\n\n❌ Error: ").append(error.getMessage());
+                assistantMessageSignal.value(new ChatMessageData("Assistant", streamingContent.toString(), assistantTimestamp));
+                messageInputEnabledSignal.value(true);
+            }));
+        }, () -> {
+            // Streaming complete - re-enable input - must be done on UI thread
+            getUI().ifPresent(ui -> ui.access(() -> {
+                messageInputEnabledSignal.value(true);
+            }));
+        });
+    }
+
+    private TaskContext createTaskContext() {
+        return new TaskContext() {
+            @Override
+            public java.util.List<Task> getAllTasks() {
+                return tasksSignal.value().stream().map(ValueSignal::value).toList();
+            }
+
+            @Override
+            public void addTask(Task task) {
+                getUI().ifPresent(ui -> ui.access(() -> {
+                    tasksSignal.insertLast(task);
+                }));
+            }
+
+            @Override
+            public boolean removeTask(String taskId) {
+                var resultHolder = new boolean[] { false };
+                getUI().ifPresent(ui -> ui.access(() -> {
+                    resultHolder[0] = tasksSignal.value().stream().filter(sig -> sig.value().id().equals(taskId))
+                            .findFirst().map(sig -> {
+                                tasksSignal.remove(sig);
+                                return true;
+                            }).orElse(false);
+                }));
+                return resultHolder[0];
+            }
+
+            @Override
+            public boolean updateTask(String taskId, String title, String description) {
+                var resultHolder = new boolean[] { false };
+                getUI().ifPresent(ui -> ui.access(() -> {
+                    resultHolder[0] = tasksSignal.value().stream()
+                            .filter(sig -> sig.value().id().equals(taskId))
+                            .findFirst()
+                            .map(sig -> {
+                                Task current = sig.value();
+                                Task updated = current.withTitle(title).withDescription(description);
+                                sig.value(updated);
+                                return true;
+                            }).orElse(false);
+                }));
+                return resultHolder[0];
+            }
+
+            @Override
+            public boolean markComplete(String taskId, boolean completed) {
+                var resultHolder = new boolean[] { false };
+                getUI().ifPresent(ui -> ui.access(() -> {
+                    resultHolder[0] = tasksSignal.value().stream()
+                            .filter(sig -> sig.value().id().equals(taskId))
+                            .findFirst()
+                            .map(sig -> {
+                                Task current = sig.value();
+                                Task updated = current.withCompleted(completed);
+                                sig.value(updated);
+                                return true;
+                            }).orElse(false);
+                }));
+                return resultHolder[0];
+            }
+
+            @Override
+            public boolean changeStatus(String taskId, Task.TaskStatus status) {
+                var resultHolder = new boolean[] { false };
+                getUI().ifPresent(ui -> ui.access(() -> {
+                    resultHolder[0] = tasksSignal.value().stream()
+                            .filter(sig -> sig.value().id().equals(taskId))
+                            .findFirst()
+                            .map(sig -> {
+                                Task current = sig.value();
+                                Task updated = current.withStatus(status);
+                                sig.value(updated);
+                                return true;
+                            }).orElse(false);
+                }));
+                return resultHolder[0];
+            }
+        };
+    }
+}

@@ -6,7 +6,9 @@ import java.util.function.Function;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.ComponentEffect;
 import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.signals.ListSignal;
 import com.vaadin.signals.Signal;
+import com.vaadin.signals.ValueSignal;
 
 /**
  * Temporary helper class providing static methods for Signal-based component
@@ -16,28 +18,50 @@ public class MissingAPI {
 
     /**
      * Binds a Grid's items to a Signal containing a List.
+     * Uses ComponentEffect.effect() to track all signal reads, including those
+     * within the signal's computation.
      */
     public static <T> void bindItems(Grid<T> grid, Signal<List<T>> signal) {
-        ComponentEffect.bind(grid, signal, (g, items) -> {
+        ComponentEffect.effect(grid, () -> {
+            List<T> items = signal.value();
             if (items != null) {
-                g.setItems(items);
+                grid.setItems(items);
             } else {
-                g.setItems(List.of());
+                grid.setItems(List.of());
             }
         });
     }
 
     /**
+     * Binds a Grid's items to a ListSignal.
+     * Registers dependencies on all individual ValueSignals within the ListSignal
+     * by reading each one, so the Grid updates when any item changes.
+     */
+    public static <T> void bindItems(Grid<T> grid, ListSignal<T> listSignal) {
+        ComponentEffect.effect(grid, () -> {
+            List<ValueSignal<T>> signals = listSignal.value();
+            // Read each individual signal to register dependency
+            List<T> items = signals.stream()
+                .map(ValueSignal::value)
+                .toList();
+            grid.setItems(items);
+        });
+    }
+
+    /**
      * Binds a ComboBox's items to a Signal containing a List.
+     * Uses ComponentEffect.effect() to track all signal reads, including those
+     * within the signal's computation.
      */
     public static <T> void bindItems(
             com.vaadin.flow.component.combobox.ComboBox<T> comboBox,
             Signal<List<T>> signal) {
-        ComponentEffect.bind(comboBox, signal, (cb, items) -> {
+        ComponentEffect.effect(comboBox, () -> {
+            List<T> items = signal.value();
             if (items != null) {
-                cb.setItems(items);
+                comboBox.setItems(items);
             } else {
-                cb.setItems(List.of());
+                comboBox.setItems(List.of());
             }
         });
     }
