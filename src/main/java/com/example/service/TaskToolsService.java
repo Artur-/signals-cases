@@ -89,6 +89,25 @@ public class TaskToolsService {
         }
     }
 
+    @Tool(description = "Update a task's due date by its ID. Date format: YYYY-MM-DD")
+    public String updateDueDate(String taskId, String dueDate, ToolContext toolContext) {
+        logger.info("🔧 Tool called: updateDueDate(taskId={}, dueDate={})", taskId, dueDate);
+
+        TaskContext context = (TaskContext) toolContext.getContext().get("taskContext");
+        if (context == null) {
+            return "Error: Task context not available";
+        }
+
+        try {
+            LocalDate date = LocalDate.parse(dueDate);
+            context.updateDueDate(taskId, date);
+            logger.info("✅ Task due date updated to {}", date);
+            return "Task due date updated to " + date;
+        } catch (Exception e) {
+            return "Error parsing due date. Please use YYYY-MM-DD format.";
+        }
+    }
+
     @Tool(description = "List all current tasks with their details")
     public String listTasks(ToolContext toolContext) {
         logger.info("🔧 Tool called: listTasks()");

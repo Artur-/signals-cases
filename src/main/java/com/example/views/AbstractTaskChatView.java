@@ -506,6 +506,11 @@ public abstract class AbstractTaskChatView extends VerticalLayout {
             public void changeStatus(String taskId, Task.TaskStatus status) {
                 updateTaskField(taskId, task -> task.withStatus(status));
             }
+
+            @Override
+            public void updateDueDate(String taskId, java.time.LocalDate dueDate) {
+                updateTaskField(taskId, task -> task.withDueDate(dueDate));
+            }
         };
     }
 }

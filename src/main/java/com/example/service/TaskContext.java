@@ -1,5 +1,6 @@
 package com.example.service;
 
+import java.time.LocalDate;
 import java.util.List;
 
 import com.example.model.Task;
@@ -19,4 +20,6 @@ public interface TaskContext {
     void updateTask(String taskId, String title, String description);
 
     void changeStatus(String taskId, Task.TaskStatus status);
+
+    void updateDueDate(String taskId, LocalDate dueDate);
 }
