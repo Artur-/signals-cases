@@ -18,16 +18,13 @@ public class MissingAPI {
 
     /**
      * Binds a Grid's items to a Signal containing a List.
-     * Uses ComponentEffect.effect() to track all signal reads, including those
-     * within the signal's computation.
      */
     public static <T> void bindItems(Grid<T> grid, Signal<List<T>> signal) {
-        ComponentEffect.effect(grid, () -> {
-            List<T> items = signal.value();
+        ComponentEffect.bind(grid, signal, (g, items) -> {
             if (items != null) {
-                grid.setItems(items);
+                g.setItems(items);
             } else {
-                grid.setItems(List.of());
+                g.setItems(List.of());
             }
         });
     }
@@ -50,18 +47,15 @@ public class MissingAPI {
 
     /**
      * Binds a ComboBox's items to a Signal containing a List.
-     * Uses ComponentEffect.effect() to track all signal reads, including those
-     * within the signal's computation.
      */
     public static <T> void bindItems(
             com.vaadin.flow.component.combobox.ComboBox<T> comboBox,
             Signal<List<T>> signal) {
-        ComponentEffect.effect(comboBox, () -> {
-            List<T> items = signal.value();
+        ComponentEffect.bind(comboBox, signal, (cb, items) -> {
             if (items != null) {
-                comboBox.setItems(items);
+                cb.setItems(items);
             } else {
-                comboBox.setItems(List.of());
+                cb.setItems(List.of());
             }
         });
     }

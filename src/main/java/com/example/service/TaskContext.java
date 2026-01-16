@@ -14,11 +14,11 @@ public interface TaskContext {
 
     void addTask(Task task);
 
-    boolean removeTask(String taskId);
+    void removeTask(String taskId);
 
-    boolean updateTask(String taskId, String title, String description);
+    void updateTask(String taskId, String title, String description);
 
-    boolean markComplete(String taskId, boolean completed);
+    void markComplete(String taskId, boolean completed);
 
-    boolean changeStatus(String taskId, Task.TaskStatus status);
+    void changeStatus(String taskId, Task.TaskStatus status);
 }

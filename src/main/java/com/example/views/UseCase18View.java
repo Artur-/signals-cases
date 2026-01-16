@@ -10,6 +10,7 @@ import com.example.MissingAPI;
 import com.example.model.Task;
 import com.example.service.TaskContext;
 import com.example.service.TaskLLMService;
+import com.example.views.SourceCodeLink;
 
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -491,6 +492,15 @@ public class UseCase18View extends VerticalLayout {
         });
     }
 
+    private void updateTaskField(String taskId, java.util.function.Function<Task, Task> updater) {
+        getUI().ifPresent(ui -> ui.access(() -> {
+            tasksSignal.value().stream()
+                    .filter(sig -> sig.value().id().equals(taskId))
+                    .findFirst()
+                    .ifPresent(sig -> sig.value(updater.apply(sig.value())));
+        }));
+    }
+
     private TaskContext createTaskContext() {
         return new TaskContext() {
             @Override
@@ -506,67 +516,28 @@ public class UseCase18View extends VerticalLayout {
             }
 
             @Override
-            public boolean removeTask(String taskId) {
-                var resultHolder = new boolean[] { false };
+            public void removeTask(String taskId) {
                 getUI().ifPresent(ui -> ui.access(() -> {
-                    resultHolder[0] = tasksSignal.value().stream().filter(sig -> sig.value().id().equals(taskId))
-                            .findFirst().map(sig -> {
-                                tasksSignal.remove(sig);
-                                return true;
-                            }).orElse(false);
+                    tasksSignal.value().stream()
+                            .filter(sig -> sig.value().id().equals(taskId))
+                            .findFirst()
+                            .ifPresent(tasksSignal::remove);
                 }));
-                return resultHolder[0];
             }
 
             @Override
-            public boolean updateTask(String taskId, String title, String description) {
-                var resultHolder = new boolean[] { false };
-                getUI().ifPresent(ui -> ui.access(() -> {
-                    resultHolder[0] = tasksSignal.value().stream()
-                            .filter(sig -> sig.value().id().equals(taskId))
-                            .findFirst()
-                            .map(sig -> {
-                                Task current = sig.value();
-                                Task updated = current.withTitle(title).withDescription(description);
-                                sig.value(updated);
-                                return true;
-                            }).orElse(false);
-                }));
-                return resultHolder[0];
+            public void updateTask(String taskId, String title, String description) {
+                updateTaskField(taskId, task -> task.withTitle(title).withDescription(description));
             }
 
             @Override
-            public boolean markComplete(String taskId, boolean completed) {
-                var resultHolder = new boolean[] { false };
-                getUI().ifPresent(ui -> ui.access(() -> {
-                    resultHolder[0] = tasksSignal.value().stream()
-                            .filter(sig -> sig.value().id().equals(taskId))
-                            .findFirst()
-                            .map(sig -> {
-                                Task current = sig.value();
-                                Task updated = current.withCompleted(completed);
-                                sig.value(updated);
-                                return true;
-                            }).orElse(false);
-                }));
-                return resultHolder[0];
+            public void markComplete(String taskId, boolean completed) {
+                updateTaskField(taskId, task -> task.withCompleted(completed));
             }
 
             @Override
-            public boolean changeStatus(String taskId, Task.TaskStatus status) {
-                var resultHolder = new boolean[] { false };
-                getUI().ifPresent(ui -> ui.access(() -> {
-                    resultHolder[0] = tasksSignal.value().stream()
-                            .filter(sig -> sig.value().id().equals(taskId))
-                            .findFirst()
-                            .map(sig -> {
-                                Task current = sig.value();
-                                Task updated = current.withStatus(status);
-                                sig.value(updated);
-                                return true;
-                            }).orElse(false);
-                }));
-                return resultHolder[0];
+            public void changeStatus(String taskId, Task.TaskStatus status) {
+                updateTaskField(taskId, task -> task.withStatus(status));
             }
         };
     }

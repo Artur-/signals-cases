@@ -51,9 +51,9 @@ public class TaskToolsService {
             return "Error: Task context not available";
         }
 
-        boolean removed = context.removeTask(taskId);
-        logger.info("✅ Task removal result: {}", removed ? "success" : "not found");
-        return removed ? "Task removed successfully" : "Task not found with ID: " + taskId;
+        context.removeTask(taskId);
+        logger.info("✅ Task removed");
+        return "Task removed successfully";
     }
 
     @Tool(description = "Update a task's title and/or description by its ID")
@@ -65,9 +65,9 @@ public class TaskToolsService {
             return "Error: Task context not available";
         }
 
-        boolean updated = context.updateTask(taskId, title, description);
-        logger.info("✅ Task update result: {}", updated ? "success" : "not found");
-        return updated ? "Task updated successfully" : "Task not found with ID: " + taskId;
+        context.updateTask(taskId, title, description);
+        logger.info("✅ Task updated");
+        return "Task updated successfully";
     }
 
     @Tool(description = "Mark a task as completed or not completed by its ID")
@@ -79,10 +79,9 @@ public class TaskToolsService {
             return "Error: Task context not available";
         }
 
-        boolean updated = context.markComplete(taskId, completed);
-        logger.info("✅ Task completion update result: {}", updated ? "success" : "not found");
-        return updated ? "Task marked as " + (completed ? "completed" : "not completed")
-                : "Task not found with ID: " + taskId;
+        context.markComplete(taskId, completed);
+        logger.info("✅ Task marked as {}", completed ? "completed" : "not completed");
+        return "Task marked as " + (completed ? "completed" : "not completed");
     }
 
     @Tool(description = "Change a task's status (TODO, IN_PROGRESS, or DONE) by its ID")
@@ -96,9 +95,9 @@ public class TaskToolsService {
 
         try {
             Task.TaskStatus taskStatus = Task.TaskStatus.valueOf(status.toUpperCase());
-            boolean updated = context.changeStatus(taskId, taskStatus);
-            logger.info("✅ Task status change result: {}", updated ? "success" : "not found");
-            return updated ? "Task status changed to " + taskStatus : "Task not found with ID: " + taskId;
+            context.changeStatus(taskId, taskStatus);
+            logger.info("✅ Task status changed to {}", taskStatus);
+            return "Task status changed to " + taskStatus;
         } catch (IllegalArgumentException e) {
             return "Invalid status. Please use TODO, IN_PROGRESS, or DONE.";
         }
