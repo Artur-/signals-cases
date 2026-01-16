@@ -10,7 +10,6 @@ import com.example.MissingAPI;
 import com.example.model.Task;
 import com.example.service.TaskContext;
 import com.example.service.TaskLLMService;
-import com.example.views.SourceCodeLink;
 
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -96,7 +95,6 @@ public class UseCase18View extends VerticalLayout {
 
         add(chatPanel);
         add(taskPanel);
-        add(new SourceCodeLink(getClass()));
 
         setFlexGrow(2, chatPanel);  // 40% of vertical space
         setFlexGrow(3, taskPanel);  // 60% of vertical space
