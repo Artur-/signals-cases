@@ -84,7 +84,7 @@ public class UseCase04View extends VerticalLayout {
         MissingAPI.bindItems(grid, filteredProductsSignal);
 
         add(title, description, categoryFilter, searchField, inStockCheckbox,
-                grid, new SourceCodeLink(getClass()));
+                grid);
     }
 
     private List<Product> loadProducts() {

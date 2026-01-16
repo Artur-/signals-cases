@@ -104,8 +104,7 @@ public class UseCase12View extends VerticalLayout {
                         + "it in a breadcrumb or page header. The signal composition pattern (APP_NAME + view title) "
                         + "ensures consistent title formatting across the application."));
 
-        add(title, description, documentTypeSelect, currentTitleBox, infoBox,
-                new SourceCodeLink(getClass()));
+        add(title, description, documentTypeSelect, currentTitleBox, infoBox);
     }
 
     @Override

@@ -242,7 +242,7 @@ public class UseCase15View extends VerticalLayout {
                 + "document.head.appendChild(style);");
 
         add(title, description, searchField, statsBox, statusBox, resultsTitle,
-                resultsContainer, infoBox, new SourceCodeLink(getClass()));
+                resultsContainer, infoBox);
     }
 
     @Override

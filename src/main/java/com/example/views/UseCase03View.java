@@ -169,8 +169,7 @@ public class UseCase03View extends VerticalLayout {
 
         add(title, description, userInfoBox, permissionsDisplay,
                 impersonationHint, dashboardSection, editButtons,
-                userManagementSection, logsSection, settingsSection,
-                new SourceCodeLink(getClass()));
+                userManagementSection, logsSection, settingsSection);
     }
 
     private Set<Permission> getPermissionsForRoles(Set<String> roles) {

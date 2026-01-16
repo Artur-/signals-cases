@@ -221,8 +221,7 @@ public class MUC03View extends VerticalLayout {
                         + "Race against other players to get the most points!"));
 
         add(title, description, activeSessionsBox, roundStatus, clicksStatus,
-                gameArea, controls, leaderboardTitle, leaderboardDiv, infoBox,
-                new SourceCodeLink(getClass()));
+                gameArea, controls, leaderboardTitle, leaderboardDiv, infoBox);
     }
 
     private void startNewRound() {

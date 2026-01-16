@@ -277,8 +277,7 @@ public class UseCase16View extends VerticalLayout
                         + "Try clicking the shareable links above to see the state restored from URL."));
 
         add(title, description, controls, urlBox, shareTitle, shareLinks,
-                resultsTitle, resultsContainer, infoBox,
-                new SourceCodeLink(getClass()));
+                resultsTitle, resultsContainer, infoBox);
 
         // Subscribe to signals to update URL and filter results
         setupSignalSubscriptions();

@@ -895,7 +895,7 @@ public class UseCase17View extends VerticalLayout {
         actions.add(resetButton, addToCartButton);
 
         add(title, description, signalCountBox, mainLayout,
-                compatibilitySection, actions, new SourceCodeLink(getClass()));
+                compatibilitySection, actions);
     }
 
     private VerticalLayout buildSelectionColumn() {

@@ -162,7 +162,7 @@ public class MUC06View extends VerticalLayout {
                         + "• All synchronization is automatic via the Signal API"));
 
         add(title, description, userCountBox, statsBox, tasksTitle,
-                tasksContainer, addButton, infoBox, new SourceCodeLink(getClass()));
+                tasksContainer, addButton, infoBox);
     }
 
     private HorizontalLayout createTaskRow(

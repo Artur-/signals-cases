@@ -15,9 +15,13 @@ import com.vaadin.flow.component.applayout.DrawerToggle;
 import com.vaadin.flow.component.avatar.Avatar;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.html.Anchor;
+import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.html.Image;
 import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.icon.Icon;
+import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.sidenav.SideNav;
 import com.vaadin.flow.component.sidenav.SideNavItem;
@@ -38,6 +42,7 @@ public class MainLayout extends AppLayout implements BeforeEnterObserver {
     private String currentUser;
     private String sessionId;
     private TextField nicknameField;
+    private Anchor sourceCodeLink;
 
     public MainLayout(CurrentUserSignal currentUserSignal,
             UserSessionRegistry userSessionRegistry) {
@@ -153,6 +158,51 @@ public class MainLayout extends AppLayout implements BeforeEnterObserver {
         addToNavbar(toggle, title, activeUsersDisplay, nicknameField,
                 userDisplay, logoutButton);
 
+        // Fixed-position source code link overlay
+        Div sourceCodeContainer = new Div();
+        sourceCodeContainer.getStyle()
+                .set("position", "fixed")
+                .set("top", "calc(var(--vaadin-app-layout-navbar-offset-top) + 0.5em)")
+                .set("right", "1em")
+                .set("z-index", "100")
+                .set("pointer-events", "auto");
+
+        Icon codeIcon = VaadinIcon.CODE.create();
+        codeIcon.setSize("16px");
+        codeIcon.getStyle()
+                .set("color", "var(--lumo-secondary-text-color)")
+                .set("margin-right", "0.5em");
+
+        sourceCodeLink = new Anchor("", "View source");
+        sourceCodeLink.setTarget("_blank");
+        sourceCodeLink.getStyle()
+                .set("display", "inline-flex")
+                .set("align-items", "center")
+                .set("background-color", "rgba(255, 255, 255, 0.95)")
+                .set("padding", "0.5em 0.75em")
+                .set("border-radius", "4px")
+                .set("box-shadow", "0 2px 4px rgba(0, 0, 0, 0.1)")
+                .set("color", "var(--lumo-primary-text-color)")
+                .set("text-decoration", "none")
+                .set("font-size", "var(--lumo-font-size-s)")
+                .set("transition", "box-shadow 0.2s");
+
+        sourceCodeLink.getElement().addEventListener("mouseenter", e -> {
+            sourceCodeLink.getStyle().set("box-shadow", "0 4px 8px rgba(0, 0, 0, 0.15)");
+        }).addEventData("event.preventDefault");
+
+        sourceCodeLink.getElement().addEventListener("mouseleave", e -> {
+            sourceCodeLink.getStyle().set("box-shadow", "0 2px 4px rgba(0, 0, 0, 0.1)");
+        }).addEventData("event.preventDefault");
+
+        Span linkContent = new Span(codeIcon);
+        linkContent.add("View source");
+        sourceCodeLink.removeAll();
+        sourceCodeLink.add(linkContent);
+
+        sourceCodeContainer.add(sourceCodeLink);
+        getElement().appendChild(sourceCodeContainer.getElement());
+
         // Add auto-menu from @Menu annotations
         SideNav nav = new SideNav();
         MenuConfiguration.getMenuEntries().forEach(entry -> nav
@@ -196,6 +246,24 @@ public class MainLayout extends AppLayout implements BeforeEnterObserver {
             String viewRoute = event.getLocation().getPath();
             userSessionRegistry.registerUser(currentUser, sessionId, viewRoute);
         }
+
+        // Update source code link for current view
+        updateSourceCodeLink(event.getNavigationTarget());
+    }
+
+    private void updateSourceCodeLink(Class<?> viewClass) {
+        if (sourceCodeLink == null || viewClass == null) {
+            return;
+        }
+
+        String className = viewClass.getSimpleName();
+        String githubUrl = "https://github.com/vaadin/signals-cases/tree/main/src/main/java/com/example/views/"
+                + className + ".java";
+        sourceCodeLink.setHref(githubUrl);
+
+        // Hide link for views that don't have source in the views package
+        boolean isViewClass = className.endsWith("View");
+        sourceCodeLink.setVisible(isViewClass);
     }
 
     /**

@@ -198,7 +198,7 @@ public class UseCase06View extends VerticalLayout {
                         + "All calculations happen reactively as you modify any input."));
 
         add(title, description, cartTitle, cartItemsContainer, optionsLayout,
-                totalsBox, infoBox, new SourceCodeLink(getClass()));
+                totalsBox, infoBox);
     }
 
     private HorizontalLayout createCartItemRow(ValueSignal<CartItem> itemSignal,

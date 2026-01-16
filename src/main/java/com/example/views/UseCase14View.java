@@ -278,8 +278,7 @@ public class UseCase14View extends VerticalLayout {
                         + "with actual REST/GraphQL calls using CompletableFuture or reactive streams. "
                         + "The signal automatically updates the UI as the state transitions: IDLE → LOADING → SUCCESS/ERROR."));
 
-        add(title, description, controls, stateBox, infoBox,
-                new SourceCodeLink(getClass()));
+        add(title, description, controls, stateBox, infoBox);
     }
 
     @Override

@@ -129,7 +129,7 @@ public class UseCase07View extends VerticalLayout {
         HorizontalLayout mainLayout = new HorizontalLayout(invoiceGrid,
                 detailsPanel);
         mainLayout.setSizeFull();
-        add(title, description, mainLayout, new SourceCodeLink(getClass()));
+        add(title, description, mainLayout);
     }
 
     private List<Invoice> loadInvoices() {
