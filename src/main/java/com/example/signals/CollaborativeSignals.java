@@ -1,5 +1,6 @@
 package com.example.signals;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Map;
@@ -7,6 +8,10 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.springframework.stereotype.Component;
 
+import jakarta.annotation.PostConstruct;
+
+import com.example.model.Task;
+import com.example.views.AbstractTaskChatView;
 import com.vaadin.signals.ListSignal;
 import com.vaadin.signals.MapSignal;
 import com.vaadin.signals.ValueSignal;
@@ -258,6 +263,41 @@ public class CollaborativeSignals {
                     java.time.LocalDate.now().plusDays(2)));
             tasksSignal.insertLast(new Task("task-4", "Prepare demo", false,
                     java.time.LocalDate.now().plusWeeks(1)));
+        }
+    }
+
+    // ========== MUC 7: LLM-Powered Shared Task List ===========
+
+    private final ListSignal<com.example.model.Task> llmTasksSignal = new ListSignal<>(
+            com.example.model.Task.class);
+    private final ListSignal<AbstractTaskChatView.ChatMessageData> llmChatMessagesSignal = new ListSignal<>(
+            AbstractTaskChatView.ChatMessageData.class);
+
+    public ListSignal<com.example.model.Task> getLlmTasksSignal() {
+        return llmTasksSignal;
+    }
+
+    public ListSignal<AbstractTaskChatView.ChatMessageData> getLlmChatMessagesSignal() {
+        return llmChatMessagesSignal;
+    }
+
+    @PostConstruct
+    public void initializeSampleLLMTasks() {
+        if (llmTasksSignal.value().isEmpty()) {
+            llmTasksSignal.insertLast(
+                    com.example.model.Task
+                            .create("Review pull requests",
+                                    "Review and merge pending pull requests")
+                            .withDueDate(java.time.LocalDate.now().plusDays(2)));
+            llmTasksSignal.insertLast(com.example.model.Task
+                    .create("Write unit tests",
+                            "Add unit tests for new features")
+                    .withStatus(com.example.model.Task.TaskStatus.IN_PROGRESS)
+                    .withDueDate(java.time.LocalDate.now().plusDays(5)));
+            llmTasksSignal.insertLast(com.example.model.Task
+                    .create("Deploy to staging",
+                            "Deploy latest changes to staging environment")
+                    .withDueDate(java.time.LocalDate.now().plusDays(7)));
         }
     }
 }
