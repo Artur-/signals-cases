@@ -158,8 +158,10 @@ public class UseCase11View extends VerticalLayout {
         Paragraph controlsLabel = new Paragraph("Simulate Screen Sizes:");
         controlsLabel.getStyle().set("font-weight", "bold");
 
-        HorizontalLayout testButtons = new HorizontalLayout();
-        testButtons.setSpacing(true);
+        Div testButtons = new Div();
+        testButtons.getStyle().set("display", "flex")
+                .set("gap", "0.5em")
+                .set("flex-wrap", "wrap");
 
         Button mobileBtn = new Button("📱 Mobile (375×667)",
                 event -> windowSizeSignal.value(new WindowSize(375, 667)));
