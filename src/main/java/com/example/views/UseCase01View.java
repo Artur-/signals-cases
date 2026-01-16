@@ -17,7 +17,7 @@ import com.vaadin.signals.Signal;
 import com.vaadin.signals.ValueSignal;
 import com.vaadin.signals.WritableSignal;
 
-@Route(value = "use-case-03", layout = MainLayout.class)
+@Route(value = "use-case-01", layout = MainLayout.class)
 @PageTitle("Use Case 1: Dynamic Button State")
 @Menu(order = 1, title = "UC 1: Dynamic Button State")
 @PermitAll

@@ -23,7 +23,7 @@ import com.vaadin.signals.Signal;
 import com.vaadin.signals.ValueSignal;
 import com.vaadin.signals.WritableSignal;
 
-@Route(value = "use-case-7", layout = MainLayout.class)
+@Route(value = "use-case-07", layout = MainLayout.class)
 @PageTitle("Use Case 7: Master-Detail Invoice View")
 @Menu(order = 7, title = "UC 7: Master-Detail Invoice")
 @PermitAll

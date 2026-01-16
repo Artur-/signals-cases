@@ -21,7 +21,7 @@ import com.vaadin.signals.Signal;
 import com.vaadin.signals.ValueSignal;
 import com.vaadin.signals.WritableSignal;
 
-@Route(value = "use-case-9", layout = MainLayout.class)
+@Route(value = "use-case-09", layout = MainLayout.class)
 @PageTitle("Use Case 9: Form with Binder Integration and Signal Validation")
 @Menu(order = 9, title = "UC 9: Binder Integration")
 @PermitAll

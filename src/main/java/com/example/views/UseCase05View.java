@@ -17,7 +17,7 @@ import com.vaadin.flow.router.Route;
 import com.vaadin.signals.ValueSignal;
 import com.vaadin.signals.WritableSignal;
 
-@Route(value = "use-case-5", layout = MainLayout.class)
+@Route(value = "use-case-05", layout = MainLayout.class)
 @PageTitle("Use Case 5: Cascading Location Selector")
 @Menu(order = 5, title = "UC 5: Cascading Selector")
 @PermitAll

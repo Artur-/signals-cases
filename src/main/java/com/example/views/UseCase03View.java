@@ -22,7 +22,7 @@ import com.vaadin.signals.Signal;
 import com.vaadin.signals.ValueSignal;
 import com.vaadin.signals.WritableSignal;
 
-@Route(value = "use-case-08", layout = MainLayout.class)
+@Route(value = "use-case-03", layout = MainLayout.class)
 @PageTitle("Use Case 3: Permission-Based Component Visibility")
 @Menu(order = 3, title = "UC 3: Permission-Based UI")
 @PermitAll

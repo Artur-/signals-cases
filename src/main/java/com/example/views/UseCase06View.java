@@ -26,7 +26,7 @@ import com.vaadin.signals.Signal;
 import com.vaadin.signals.ValueSignal;
 import com.vaadin.signals.WritableSignal;
 
-@Route(value = "use-case-6", layout = MainLayout.class)
+@Route(value = "use-case-06", layout = MainLayout.class)
 @PageTitle("Use Case 6: Shopping Cart with Real-time Totals")
 @Menu(order = 6, title = "UC 6: Shopping Cart")
 @PermitAll

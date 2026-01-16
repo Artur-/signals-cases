@@ -23,7 +23,7 @@ import com.vaadin.flow.router.Route;
 import com.vaadin.signals.ReferenceSignal;
 import com.vaadin.signals.WritableSignal;
 
-@Route(value = "use-case-07", layout = MainLayout.class)
+@Route(value = "use-case-02", layout = MainLayout.class)
 @PageTitle("Use Case 2: Progressive Disclosure with Nested Conditions")
 @Menu(order = 2, title = "UC 2: Nested Conditions")
 @PermitAll

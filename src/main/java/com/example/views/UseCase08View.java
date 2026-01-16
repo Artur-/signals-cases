@@ -22,7 +22,7 @@ import com.vaadin.signals.Signal;
 import com.vaadin.signals.ValueSignal;
 import com.vaadin.signals.WritableSignal;
 
-@Route(value = "use-case-8", layout = MainLayout.class)
+@Route(value = "use-case-08", layout = MainLayout.class)
 @PageTitle("Use Case 8: Multi-Step Wizard with Validation")
 @Menu(order = 8, title = "UC 8: Multi-Step Wizard")
 @PermitAll
