@@ -8,7 +8,10 @@ import com.example.model.Task;
 import com.example.security.CurrentUserSignal;
 import com.example.service.TaskContext;
 import com.example.service.TaskLLMService;
+import com.example.signals.SessionIdHelper;
+import com.example.signals.UserSessionRegistry;
 
+import com.vaadin.flow.component.AttachEvent;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.checkbox.Checkbox;
@@ -46,6 +49,10 @@ public abstract class AbstractTaskChatView extends VerticalLayout {
     protected final ListSignal<ChatMessageData> chatMessagesSignal;
     protected final String conversationId;
     protected final CurrentUserSignal currentUserSignal;
+    protected final UserSessionRegistry userSessionRegistry;
+
+    // Session ID for display name lookup
+    private String sessionId;
 
     // Computed signals for statistics
     private Signal<Integer> totalTasksSignal;
@@ -68,13 +75,15 @@ public abstract class AbstractTaskChatView extends VerticalLayout {
             ListSignal<ChatMessageData> chatMessagesSignal,
             TaskLLMService taskLLMService,
             String conversationId,
-            CurrentUserSignal currentUserSignal) {
+            CurrentUserSignal currentUserSignal,
+            UserSessionRegistry userSessionRegistry) {
 
         this.tasksSignal = tasksSignal;
         this.chatMessagesSignal = chatMessagesSignal;
         this.taskLLMService = taskLLMService;
         this.conversationId = conversationId;
         this.currentUserSignal = currentUserSignal;
+        this.userSessionRegistry = userSessionRegistry;
 
         setSizeFull();
         setPadding(true);
@@ -95,6 +104,37 @@ public abstract class AbstractTaskChatView extends VerticalLayout {
 
         setFlexGrow(0, statsSection);  // Don't grow
         setFlexGrow(1, mainPanel);     // Take remaining space
+    }
+
+    @Override
+    protected void onAttach(AttachEvent attachEvent) {
+        super.onAttach(attachEvent);
+        this.sessionId = SessionIdHelper.getCurrentSessionId();
+    }
+
+    private String getCurrentDisplayName() {
+        CurrentUserSignal.UserInfo userInfo = currentUserSignal.getUserSignal().value();
+        if (userInfo == null || !userInfo.isAuthenticated()) {
+            return "Anonymous";
+        }
+
+        String username = userInfo.getUsername();
+        if (sessionId == null) {
+            return username;
+        }
+
+        var users = userSessionRegistry.getActiveUsersSignal().value();
+        var displayNames = userSessionRegistry.getDisplayNamesSignal().value();
+
+        // Find matching session key for current user
+        String sessionKey = username + ":" + sessionId;
+        for (int i = 0; i < users.size() && i < displayNames.size(); i++) {
+            if (sessionKey.equals(users.get(i).value().getCompositeKey())) {
+                return displayNames.get(i);
+            }
+        }
+
+        return username;
     }
 
     private HorizontalLayout buildMainPanel() {
@@ -351,9 +391,12 @@ public abstract class AbstractTaskChatView extends VerticalLayout {
 
                                     if (msg.role().equals("You") && userInfo != null && userInfo.isAuthenticated()) {
                                         item.setUserColorIndex(0);
+                                        String displayName = getCurrentDisplayName();
                                         String username = userInfo.getUsername();
+                                        if (displayName != null && !displayName.isBlank()) {
+                                            item.setUserName(displayName);
+                                        }
                                         if (username != null && !username.isBlank()) {
-                                            item.setUserName(username);
                                             String userImage = MainLayout.getProfilePicturePath(username);
                                             if (userImage != null && !userImage.isBlank()) {
                                                 item.setUserImage(userImage);

@@ -29,7 +29,8 @@ public class MUC07View extends AbstractTaskChatView {
             collaborativeSignals.getLlmChatMessagesSignal(),    // Shared chat signal
             taskLLMService,
             getUserConversationId(currentUserSignal),           // Per-user conversation ID
-            currentUserSignal                                   // Current user for avatar/name
+            currentUserSignal,                                  // Current user for avatar/name
+            userSessionRegistry                                 // For display name lookup
         );
 
         // Add active users display
