@@ -5,6 +5,7 @@ import java.time.LocalDate;
 
 import com.example.MissingAPI;
 import com.example.model.Task;
+import com.example.security.CurrentUserSignal;
 import com.example.service.TaskContext;
 import com.example.service.TaskLLMService;
 
@@ -44,6 +45,7 @@ public abstract class AbstractTaskChatView extends VerticalLayout {
     protected final ListSignal<Task> tasksSignal;
     protected final ListSignal<ChatMessageData> chatMessagesSignal;
     protected final String conversationId;
+    protected final CurrentUserSignal currentUserSignal;
 
     // Computed signals for statistics
     private Signal<Integer> totalTasksSignal;
@@ -65,12 +67,14 @@ public abstract class AbstractTaskChatView extends VerticalLayout {
             ListSignal<Task> tasksSignal,
             ListSignal<ChatMessageData> chatMessagesSignal,
             TaskLLMService taskLLMService,
-            String conversationId) {
+            String conversationId,
+            CurrentUserSignal currentUserSignal) {
 
         this.tasksSignal = tasksSignal;
         this.chatMessagesSignal = chatMessagesSignal;
         this.taskLLMService = taskLLMService;
         this.conversationId = conversationId;
+        this.currentUserSignal = currentUserSignal;
 
         setSizeFull();
         setPadding(true);
@@ -82,23 +86,44 @@ public abstract class AbstractTaskChatView extends VerticalLayout {
                 () -> (int) tasksSignal.value().stream().filter(t -> t.value().isCompleted()).count());
         pendingTasksSignal = Signal.computed(() -> totalTasksSignal.value() - completedTasksSignal.value());
 
-        // Build UI - Chat on top, Grid below
+        // Build UI - Statistics on top, then AI and Grid side by side
+        HorizontalLayout statsSection = buildStatisticsSection();
+        HorizontalLayout mainPanel = buildMainPanel();
+
+        add(statsSection);
+        add(mainPanel);
+
+        setFlexGrow(0, statsSection);  // Don't grow
+        setFlexGrow(1, mainPanel);     // Take remaining space
+    }
+
+    private HorizontalLayout buildMainPanel() {
+        HorizontalLayout mainPanel = new HorizontalLayout();
+        mainPanel.setWidthFull();
+        mainPanel.setHeightFull();
+        mainPanel.setSpacing(true);
+        mainPanel.setAlignItems(Alignment.STRETCH);
+        mainPanel.getStyle().set("min-height", "0");
+
+        // Left side: AI Chat
         VerticalLayout chatPanel = buildChatPanel();
-        HorizontalLayout taskPanel = buildTaskManagementPanel();
 
-        add(chatPanel);
-        add(taskPanel);
+        // Right side: Task Grid
+        VerticalLayout taskPanel = buildTaskPanel();
 
-        setFlexGrow(2, chatPanel);  // 40% of vertical space
-        setFlexGrow(3, taskPanel);  // 60% of vertical space
+        mainPanel.add(chatPanel, taskPanel);
+        mainPanel.setFlexGrow(1, chatPanel);   // 50% of horizontal space
+        mainPanel.setFlexGrow(1, taskPanel);   // 50% of horizontal space
+
+        return mainPanel;
     }
 
     private VerticalLayout buildChatPanel() {
         VerticalLayout chatPanel = new VerticalLayout();
-        chatPanel.setWidthFull();
-        chatPanel.setPadding(true);
+        chatPanel.setHeightFull();
+        chatPanel.setPadding(false);
         chatPanel.setSpacing(true);
-        chatPanel.getStyle().set("min-height", "0");
+        chatPanel.getStyle().set("min-width", "0");
 
         H2 chatTitle = new H2("AI Task Assistant");
         chatTitle.getStyle().set("margin", "0");
@@ -113,47 +138,24 @@ public abstract class AbstractTaskChatView extends VerticalLayout {
         return chatPanel;
     }
 
-    private HorizontalLayout buildTaskManagementPanel() {
-        HorizontalLayout taskPanel = new HorizontalLayout();
-        taskPanel.setWidthFull();
-        taskPanel.setPadding(true);
+    private VerticalLayout buildTaskPanel() {
+        VerticalLayout taskPanel = new VerticalLayout();
+        taskPanel.setHeightFull();
+        taskPanel.setPadding(false);
         taskPanel.setSpacing(true);
-        taskPanel.setAlignItems(Alignment.STRETCH);
-        taskPanel.getStyle().set("min-height", "0");
-
-        // Left side: Statistics and Actions
-        VerticalLayout leftSide = new VerticalLayout();
-        leftSide.setHeightFull();
-        leftSide.setPadding(false);
-        leftSide.setSpacing(true);
-        leftSide.getStyle().set("min-width", "0");
+        taskPanel.getStyle().set("min-width", "0");
 
         H2 title = new H2("Task Management");
         title.getStyle().set("margin", "0");
 
-        Paragraph description = new Paragraph(
-                "Manage your tasks through traditional UI controls or use the AI assistant above.");
+        VerticalLayout gridContainer = buildTaskGrid();
 
         Button addTaskButton = new Button("Add New Task", VaadinIcon.PLUS.create());
         addTaskButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         addTaskButton.addClickListener(e -> openAddTaskDialog());
 
-        leftSide.add(title, description, addTaskButton, buildStatisticsSection());
-
-        // Right side: Grid
-        VerticalLayout rightSide = new VerticalLayout();
-        rightSide.setHeightFull();
-        rightSide.setPadding(false);
-        rightSide.setSpacing(false);
-        rightSide.getStyle().set("min-width", "0");
-
-        VerticalLayout grid = buildTaskGrid();
-        rightSide.add(grid);
-        rightSide.setFlexGrow(1, grid);
-
-        taskPanel.add(leftSide, rightSide);
-        taskPanel.setFlexGrow(3, leftSide);   // 30% of horizontal space
-        taskPanel.setFlexGrow(7, rightSide);  // 70% of horizontal space
+        taskPanel.add(title, gridContainer, addTaskButton);
+        taskPanel.setFlexGrow(1, gridContainer);
 
         return taskPanel;
     }
@@ -239,9 +241,6 @@ public abstract class AbstractTaskChatView extends VerticalLayout {
         gridContainer.setSpacing(false);
         gridContainer.getStyle().set("min-height", "0");
 
-        H3 gridTitle = new H3("Tasks");
-        gridTitle.getStyle().set("margin", "0 0 0.5em 0");
-
         Grid<Task> grid = new Grid<>(Task.class, false);
         grid.addColumn(Task::title).setHeader("Title").setFlexGrow(2).setAutoWidth(true);
         grid.addColumn(Task::description).setHeader("Description").setFlexGrow(3);
@@ -272,7 +271,7 @@ public abstract class AbstractTaskChatView extends VerticalLayout {
         // Bind directly to ListSignal - it will register dependencies on all individual ValueSignals
         MissingAPI.bindItems(grid, tasksSignal);
 
-        gridContainer.add(gridTitle, grid);
+        gridContainer.add(grid);
         gridContainer.setFlexGrow(1, grid);
         return gridContainer;
     }
@@ -298,22 +297,17 @@ public abstract class AbstractTaskChatView extends VerticalLayout {
         statusCombo.setValue(task.status());
         statusCombo.setWidthFull();
 
-        Checkbox completedCheckbox = new Checkbox("Completed");
-        completedCheckbox.setValue(task.isCompleted());
-
         DatePicker dueDatePicker = new DatePicker("Due Date");
         dueDatePicker.setValue(task.dueDate());
         dueDatePicker.setWidthFull();
 
-        formLayout.add(titleField, descriptionField, statusCombo, completedCheckbox, dueDatePicker);
+        formLayout.add(titleField, descriptionField, statusCombo, dueDatePicker);
 
         Button saveButton = new Button("Save", e -> {
             // Find the signal for this task and update it
             tasksSignal.value().stream().filter(sig -> sig.value().id().equals(task.id())).findFirst().ifPresent(sig -> {
-                // If checkbox is checked, override status to DONE; otherwise use selected status
-                Task.TaskStatus finalStatus = completedCheckbox.getValue() ? Task.TaskStatus.DONE : statusCombo.getValue();
                 Task updatedTask = new Task(task.id(), titleField.getValue(), descriptionField.getValue(),
-                        finalStatus, dueDatePicker.getValue());
+                        statusCombo.getValue(), dueDatePicker.getValue());
                 sig.value(updatedTask);
             });
             dialog.close();
@@ -337,12 +331,15 @@ public abstract class AbstractTaskChatView extends VerticalLayout {
         // Message list
         messageList = new MessageList();
         messageList.setWidthFull();
+        messageList.setHeightFull();
         messageList.setMarkdown(true);
 
         // Reactively update message list using ComponentEffect
         com.vaadin.flow.component.ComponentEffect.bind(messageList, chatMessagesSignal,
                 (msgList, msgSignals) -> {
                     if (msgSignals != null) {
+                        CurrentUserSignal.UserInfo userInfo = currentUserSignal.getUserSignal().value();
+
                         var items = msgSignals.stream()
                                 .map(msgSignal -> {
                                     ChatMessageData msg = msgSignal.value();
@@ -351,7 +348,21 @@ public abstract class AbstractTaskChatView extends VerticalLayout {
                                             msg.timestamp(),
                                             msg.role()
                                     );
-                                    item.setUserColorIndex(msg.role().equals("You") ? 0 : 1);
+
+                                    if (msg.role().equals("You") && userInfo != null && userInfo.isAuthenticated()) {
+                                        item.setUserColorIndex(0);
+                                        String username = userInfo.getUsername();
+                                        if (username != null && !username.isBlank()) {
+                                            item.setUserName(username);
+                                            String userImage = MainLayout.getProfilePicturePath(username);
+                                            if (userImage != null && !userImage.isBlank()) {
+                                                item.setUserImage(userImage);
+                                            }
+                                        }
+                                    } else {
+                                        item.setUserColorIndex(1);
+                                    }
+
                                     return item;
                                 })
                                 .toList();
@@ -364,19 +375,7 @@ public abstract class AbstractTaskChatView extends VerticalLayout {
         messageInput.bindEnabled(messageInputEnabledSignal);
         messageInput.addSubmitListener(this::onMessageSubmit);
 
-        Button clearButton = new Button("Clear Chat", VaadinIcon.TRASH.create());
-        clearButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_SMALL);
-        clearButton.addClickListener(e -> {
-            chatMessagesSignal.value().clear();
-        });
-
-        HorizontalLayout inputLayout = new HorizontalLayout();
-        inputLayout.setWidthFull();
-        inputLayout.setSpacing(true);
-        inputLayout.add(messageInput, clearButton);
-        inputLayout.setFlexGrow(1, messageInput);
-
-        chatContainer.add(messageList, inputLayout);
+        chatContainer.add(messageList, messageInput);
         chatContainer.setFlexGrow(1, messageList);
 
         return chatContainer;

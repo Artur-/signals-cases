@@ -6,6 +6,7 @@ import java.time.LocalDate;
 import java.util.UUID;
 
 import com.example.model.Task;
+import com.example.security.CurrentUserSignal;
 import com.example.service.TaskLLMService;
 import com.vaadin.flow.router.Menu;
 import com.vaadin.flow.router.PageTitle;
@@ -18,12 +19,13 @@ import com.vaadin.signals.ListSignal;
 @PermitAll
 public class UseCase18View extends AbstractTaskChatView {
 
-    public UseCase18View(TaskLLMService taskLLMService) {
+    public UseCase18View(TaskLLMService taskLLMService, CurrentUserSignal currentUserSignal) {
         super(
             new ListSignal<>(Task.class),                    // View-local task signal
             new ListSignal<>(ChatMessageData.class),         // View-local chat signal
             taskLLMService,
-            UUID.randomUUID().toString()                     // Per-instance conversation ID
+            UUID.randomUUID().toString(),                    // Per-instance conversation ID
+            currentUserSignal                                 // Current user for avatar/name
         );
 
         // Initialize sample tasks for single-user view
