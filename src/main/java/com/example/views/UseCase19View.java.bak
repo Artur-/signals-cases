@@ -4,7 +4,7 @@ import jakarta.annotation.security.PermitAll;
 
 import com.example.MissingAPI;
 import com.example.service.DataLoadingService;
-import com.example.usecase14.LoadingState;
+import com.example.views.UseCase14View.LoadingState;
 
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
