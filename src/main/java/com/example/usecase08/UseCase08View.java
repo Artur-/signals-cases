@@ -1,9 +1,10 @@
-package com.example.views;
+package com.example.usecase08;
 
 import jakarta.annotation.security.PermitAll;
 
 import java.util.List;
 
+import com.example.views.MainLayout;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.html.Div;
@@ -27,19 +28,6 @@ import com.vaadin.signals.WritableSignal;
 @Menu(order = 8, title = "UC 8: Multi-Step Wizard")
 @PermitAll
 public class UseCase08View extends VerticalLayout {
-
-    enum Step {
-        PERSONAL_INFO, COMPANY_INFO, PLAN_SELECTION, REVIEW
-    }
-
-    enum Plan {
-        STARTER, PROFESSIONAL, ENTERPRISE
-    }
-
-    record FormData(String firstName, String lastName, String email,
-            String companyName, String companySize, String industry,
-            Plan selectedPlan) {
-    }
 
     public UseCase08View() {
         setSpacing(true);
