@@ -7,7 +7,7 @@ import jakarta.annotation.security.PermitAll;
 
 import com.example.MissingAPI;
 import com.example.security.CurrentUserSignal;
-import com.example.signals.CollaborativeSignals;
+import com.example.muc04.MUC04Signals;
 import com.example.signals.SessionIdHelper;
 import com.example.signals.UserSessionRegistry;
 
@@ -46,12 +46,12 @@ import com.vaadin.signals.Signal;
 public class MUC04View extends VerticalLayout {
 
     private final String currentUser;
-    private final CollaborativeSignals collaborativeSignals;
+    private final MUC04Signals muc04Signals;
     private final UserSessionRegistry userSessionRegistry;
     private String sessionId;
 
     public MUC04View(CurrentUserSignal currentUserSignal,
-            CollaborativeSignals collaborativeSignals,
+            MUC04Signals muc04Signals,
             UserSessionRegistry userSessionRegistry) {
         CurrentUserSignal.UserInfo userInfo = currentUserSignal.getUserSignal()
                 .value();
@@ -60,7 +60,7 @@ public class MUC04View extends VerticalLayout {
                     "User must be authenticated to access this view");
         }
         this.currentUser = userInfo.getUsername();
-        this.collaborativeSignals = collaborativeSignals;
+        this.muc04Signals = muc04Signals;
         this.userSessionRegistry = userSessionRegistry;
 
         setSpacing(true);
@@ -76,15 +76,15 @@ public class MUC04View extends VerticalLayout {
 
         // Company Name field
         TextField companyNameField = createLockedField("companyName",
-                "Company Name", collaborativeSignals.getCompanyNameSignal());
+                "Company Name", muc04Signals.getCompanyNameSignal());
 
         // Address field
         TextField addressField = createLockedField("address", "Address",
-                collaborativeSignals.getAddressSignal());
+                muc04Signals.getAddressSignal());
 
         // Phone field
         TextField phoneField = createLockedField("phone", "Phone Number",
-                collaborativeSignals.getPhoneSignal());
+                muc04Signals.getPhoneSignal());
 
         // Active sessions display
         ActiveUsersDisplay activeSessionsBox = new ActiveUsersDisplay(
@@ -97,7 +97,7 @@ public class MUC04View extends VerticalLayout {
                 .set("padding", "1em").set("border-radius", "4px");
 
         MissingAPI.bindChildren(editorsDiv,
-                collaborativeSignals.getFieldLocksSignal()
+                muc04Signals.getFieldLocksSignal()
                         .map(locks -> {
                             if (locks.isEmpty()) {
                                 HorizontalLayout msg = new HorizontalLayout();
@@ -110,7 +110,7 @@ public class MUC04View extends VerticalLayout {
 
                             return locks.entrySet().stream().map(entry -> {
                         String fieldLabel = formatFieldName(entry.getKey());
-                        CollaborativeSignals.FieldLock lock = entry.getValue()
+                        MUC04Signals.FieldLock lock = entry.getValue()
                                 .value();
                         boolean isCurrentSession = sessionId != null
                                 && lock.username().equals(currentUser)
@@ -196,7 +196,7 @@ public class MUC04View extends VerticalLayout {
         // Lock field when focused
         field.addFocusListener(event -> {
             if (sessionId != null) {
-                collaborativeSignals.lockField(fieldName, currentUser,
+                muc04Signals.lockField(fieldName, currentUser,
                         sessionId);
             }
         });
@@ -204,20 +204,20 @@ public class MUC04View extends VerticalLayout {
         // Unlock when blurred
         field.addBlurListener(event -> {
             if (sessionId != null) {
-                collaborativeSignals.unlockField(fieldName, currentUser,
+                muc04Signals.unlockField(fieldName, currentUser,
                         sessionId);
             }
         });
 
         // Show who is editing
-        Signal<String> helperTextSignal = collaborativeSignals
+        Signal<String> helperTextSignal = muc04Signals
                 .getFieldLocksSignal().map(locks -> {
-                    com.vaadin.signals.ValueSignal<CollaborativeSignals.FieldLock> lockSignal = locks
+                    com.vaadin.signals.ValueSignal<MUC04Signals.FieldLock> lockSignal = locks
                             .get(fieldName);
                     if (lockSignal == null) {
                         return "Available to edit";
                     }
-                    CollaborativeSignals.FieldLock lock = lockSignal.value();
+                    MUC04Signals.FieldLock lock = lockSignal.value();
                     if (lock == null) {
                         return "Available to edit";
                     } else if (sessionId != null
@@ -232,14 +232,14 @@ public class MUC04View extends VerticalLayout {
         field.getElement().bindProperty("helperText", helperTextSignal);
 
         // Disable if locked by another user
-        Signal<Boolean> enabledSignal = collaborativeSignals
+        Signal<Boolean> enabledSignal = muc04Signals
                 .getFieldLocksSignal().map(locks -> {
-                    com.vaadin.signals.ValueSignal<CollaborativeSignals.FieldLock> lockSignal = locks
+                    com.vaadin.signals.ValueSignal<MUC04Signals.FieldLock> lockSignal = locks
                             .get(fieldName);
                     if (lockSignal == null) {
                         return true;
                     }
-                    CollaborativeSignals.FieldLock lock = lockSignal.value();
+                    MUC04Signals.FieldLock lock = lockSignal.value();
                     return lock == null || (sessionId != null
                             && lock.username().equals(currentUser)
                             && lock.sessionId().equals(sessionId));

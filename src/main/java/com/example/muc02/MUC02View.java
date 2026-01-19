@@ -9,7 +9,7 @@ import java.util.Map;
 
 import com.example.MissingAPI;
 import com.example.security.CurrentUserSignal;
-import com.example.signals.CollaborativeSignals;
+import com.example.muc02.MUC02Signals;
 import com.example.signals.SessionIdHelper;
 import com.example.signals.UserSessionRegistry;
 
@@ -49,13 +49,13 @@ import com.vaadin.signals.WritableSignal;
 public class MUC02View extends VerticalLayout {
 
     private final String currentUser;
-    private WritableSignal<CollaborativeSignals.CursorPosition> myCursorSignal;
-    private final CollaborativeSignals collaborativeSignals;
+    private WritableSignal<MUC02Signals.CursorPosition> myCursorSignal;
+    private final MUC02Signals muc02Signals;
     private final UserSessionRegistry userSessionRegistry;
     private String sessionId;
 
     public MUC02View(CurrentUserSignal currentUserSignal,
-            CollaborativeSignals collaborativeSignals,
+            MUC02Signals muc02Signals,
             UserSessionRegistry userSessionRegistry) {
         CurrentUserSignal.UserInfo userInfo = currentUserSignal.getUserSignal()
                 .value();
@@ -64,7 +64,7 @@ public class MUC02View extends VerticalLayout {
                     "User must be authenticated to access this view");
         }
         this.currentUser = userInfo.getUsername();
-        this.collaborativeSignals = collaborativeSignals;
+        this.muc02Signals = muc02Signals;
         this.userSessionRegistry = userSessionRegistry;
 
         setSpacing(true);
@@ -104,7 +104,7 @@ public class MUC02View extends VerticalLayout {
                         .asDouble();
                 double clientY = event.getEventData().get("event.offsetY")
                         .asDouble();
-                myCursorSignal.value(new CollaborativeSignals.CursorPosition(
+                myCursorSignal.value(new MUC02Signals.CursorPosition(
                         (int) clientX, (int) clientY));
             }
         }).addEventData("event.offsetX").addEventData("event.offsetY");
@@ -121,7 +121,7 @@ public class MUC02View extends VerticalLayout {
 
         // Display cursor positions per session - reactive
         MissingAPI.bindChildren(usersList, Signal.computed(() -> {
-            var cursors = collaborativeSignals.getSessionCursorsSignal().value();
+            var cursors = muc02Signals.getSessionCursorsSignal().value();
             var users = userSessionRegistry.getActiveUsersSignal().value();
             var displayNames = userSessionRegistry.getDisplayNamesSignal()
                     .value();
@@ -135,7 +135,7 @@ public class MUC02View extends VerticalLayout {
 
             return cursors.entrySet().stream().map(entry -> {
                 String sessionKey = entry.getKey();
-                ValueSignal<CollaborativeSignals.CursorPosition> positionSignal = entry
+                ValueSignal<MUC02Signals.CursorPosition> positionSignal = entry
                         .getValue();
 
                 // Get display name and username from mapping
@@ -167,7 +167,7 @@ public class MUC02View extends VerticalLayout {
 
                 // Position label
                 Div positionLabel = new Div(positionSignal
-                        .map(CollaborativeSignals.CursorPosition::toString));
+                        .map(MUC02Signals.CursorPosition::toString));
                 positionLabel.getStyle().set("font-family", "monospace")
                         .set("color", "var(--lumo-secondary-text-color)")
                         .set("margin-left", "auto");
@@ -196,20 +196,20 @@ public class MUC02View extends VerticalLayout {
     protected void onAttach(AttachEvent attachEvent) {
         super.onAttach(attachEvent);
         this.sessionId = SessionIdHelper.getCurrentSessionId();
-        this.myCursorSignal = collaborativeSignals
+        this.myCursorSignal = muc02Signals
                 .getCursorSignalForUser(currentUser, sessionId);
     }
 
     @Override
     protected void onDetach(DetachEvent detachEvent) {
         super.onDetach(detachEvent);
-        collaborativeSignals.unregisterCursor(currentUser, sessionId);
+        muc02Signals.unregisterCursor(currentUser, sessionId);
     }
 
     private void renderAllCursors(Div container) {
         // Reactive rendering of cursor indicators
         MissingAPI.bindChildren(container, Signal.computed(() -> {
-            var cursors = collaborativeSignals.getSessionCursorsSignal().value();
+            var cursors = muc02Signals.getSessionCursorsSignal().value();
             var users = userSessionRegistry.getActiveUsersSignal().value();
             var displayNames = userSessionRegistry.getDisplayNamesSignal()
                     .value();
@@ -226,7 +226,7 @@ public class MUC02View extends VerticalLayout {
                             || !entry.getKey().equals(currentUser + ":" + sessionId))
                     .map(entry -> {
                         String sessionKey = entry.getKey();
-                        ValueSignal<CollaborativeSignals.CursorPosition> signal = entry
+                        ValueSignal<MUC02Signals.CursorPosition> signal = entry
                                 .getValue();
 
                         // Get display name from mapping (fallback to full sessionKey

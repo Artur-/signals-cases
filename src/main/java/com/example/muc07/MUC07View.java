@@ -10,7 +10,7 @@ import java.util.UUID;
 
 import com.example.security.CurrentUserSignal;
 import com.example.service.TaskLLMService;
-import com.example.signals.CollaborativeSignals;
+import com.example.muc07.MUC07Signals;
 import com.example.signals.UserSessionRegistry;
 import com.vaadin.flow.router.Menu;
 import com.vaadin.flow.router.PageTitle;
@@ -23,14 +23,14 @@ import com.vaadin.flow.router.Route;
 public class MUC07View extends AbstractTaskChatView {
 
     public MUC07View(CurrentUserSignal currentUserSignal,
-                     CollaborativeSignals collaborativeSignals,
+                     MUC07Signals muc07Signals,
                      UserSessionRegistry userSessionRegistry,
                      TaskLLMService taskLLMService) {
 
         // Call super with SHARED signals - must be first statement
         super(
-            collaborativeSignals.getLlmTasksSignal(),           // Shared task signal
-            collaborativeSignals.getLlmChatMessagesSignal(),    // Shared chat signal
+            muc07Signals.getLlmTasksSignal(),           // Shared task signal
+            muc07Signals.getLlmChatMessagesSignal(),    // Shared chat signal
             taskLLMService,
             getUserConversationId(currentUserSignal),           // Per-user conversation ID
             currentUserSignal,                                  // Current user for avatar/name

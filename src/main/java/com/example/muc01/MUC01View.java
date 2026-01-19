@@ -7,7 +7,7 @@ import jakarta.annotation.security.PermitAll;
 
 import com.example.MissingAPI;
 import com.example.security.CurrentUserSignal;
-import com.example.signals.CollaborativeSignals;
+import com.example.muc01.MUC01Signals;
 import com.example.signals.SessionIdHelper;
 import com.example.signals.UserSessionRegistry;
 
@@ -49,12 +49,12 @@ import com.vaadin.flow.router.Route;
 public class MUC01View extends VerticalLayout {
 
     private final String currentUser;
-    private final CollaborativeSignals collaborativeSignals;
+    private final MUC01Signals muc01Signals;
     private final UserSessionRegistry userSessionRegistry;
     private String sessionId;
 
     public MUC01View(CurrentUserSignal currentUserSignal,
-            CollaborativeSignals collaborativeSignals,
+            MUC01Signals muc01Signals,
             UserSessionRegistry userSessionRegistry) {
         CurrentUserSignal.UserInfo userInfo = currentUserSignal.getUserSignal()
                 .value();
@@ -63,7 +63,7 @@ public class MUC01View extends VerticalLayout {
                     "User must be authenticated to access this view");
         }
         this.currentUser = userInfo.getUsername();
-        this.collaborativeSignals = collaborativeSignals;
+        this.muc01Signals = muc01Signals;
         this.userSessionRegistry = userSessionRegistry;
 
         setSpacing(true);
@@ -90,7 +90,7 @@ public class MUC01View extends VerticalLayout {
                 .set("overflow-y", "auto").set("max-height", "400px");
 
         // Bind message list to UI
-        MissingAPI.bindChildren(messagesContainer, collaborativeSignals
+        MissingAPI.bindChildren(messagesContainer, muc01Signals
                 .getMessagesSignal()
                 .map(messageSignals -> messageSignals.stream().map(
                         msgSignal -> createMessageComponent(msgSignal.value()))
@@ -111,8 +111,8 @@ public class MUC01View extends VerticalLayout {
             if (text != null && !text.trim().isEmpty() && sessionId != null) {
                 // Look up current display name
                 String displayName = getCurrentDisplayName();
-                collaborativeSignals.appendMessage(
-                        new CollaborativeSignals.Message(currentUser,
+                muc01Signals.appendMessage(
+                        new MUC01Signals.Message(currentUser,
                                 displayName, text.trim()));
                 messageInput.clear();
             }
@@ -120,7 +120,7 @@ public class MUC01View extends VerticalLayout {
         sendButton.addThemeName("primary");
 
         Button clearButton = new Button("Clear All Messages", event -> {
-            collaborativeSignals.clearMessages();
+            muc01Signals.clearMessages();
         });
         clearButton.addThemeName("error");
         clearButton.addThemeName("small");
@@ -134,7 +134,7 @@ public class MUC01View extends VerticalLayout {
                 .set("margin-top", "1em").set("font-style", "italic");
 
         Div messageCount = new Div();
-        messageCount.bindText(collaborativeSignals.getMessagesSignal()
+        messageCount.bindText(muc01Signals.getMessagesSignal()
                 .map(messages -> "💬 Total messages: " + messages.size()));
 
         infoBox.add(new Paragraph("💡 In production implementation:\n"
@@ -155,7 +155,7 @@ public class MUC01View extends VerticalLayout {
         this.sessionId = SessionIdHelper.getCurrentSessionId();
     }
 
-    private Div createMessageComponent(CollaborativeSignals.Message message) {
+    private Div createMessageComponent(MUC01Signals.Message message) {
         Div messageDiv = new Div();
         messageDiv.getStyle().set("background-color", "#ffffff")
                 .set("border-left", "3px solid var(--lumo-primary-color)")

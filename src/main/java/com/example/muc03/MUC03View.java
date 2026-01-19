@@ -9,7 +9,7 @@ import java.util.Random;
 
 import com.example.MissingAPI;
 import com.example.security.CurrentUserSignal;
-import com.example.signals.CollaborativeSignals;
+import com.example.muc03.MUC03Signals;
 import com.example.signals.SessionIdHelper;
 import com.example.signals.UserSessionRegistry;
 
@@ -46,13 +46,13 @@ import com.vaadin.flow.router.Route;
 public class MUC03View extends VerticalLayout {
 
     private final String currentUser;
-    private final CollaborativeSignals collaborativeSignals;
+    private final MUC03Signals muc03Signals;
     private final UserSessionRegistry userSessionRegistry;
     private final Random random = new Random();
     private String sessionId;
 
     public MUC03View(CurrentUserSignal currentUserSignal,
-            CollaborativeSignals collaborativeSignals,
+            MUC03Signals muc03Signals,
             UserSessionRegistry userSessionRegistry) {
         CurrentUserSignal.UserInfo userInfo = currentUserSignal.getUserSignal()
                 .value();
@@ -61,7 +61,7 @@ public class MUC03View extends VerticalLayout {
                     "User must be authenticated to access this view");
         }
         this.currentUser = userInfo.getUsername();
-        this.collaborativeSignals = collaborativeSignals;
+        this.muc03Signals = muc03Signals;
         this.userSessionRegistry = userSessionRegistry;
 
         setSpacing(true);
@@ -78,14 +78,14 @@ public class MUC03View extends VerticalLayout {
         Div roundStatus = new Div();
         roundStatus.getStyle().set("font-size", "1.2em")
                 .set("font-weight", "bold").set("margin-bottom", "0.5em");
-        roundStatus.bindText(collaborativeSignals.getRoundNumberSignal()
+        roundStatus.bindText(muc03Signals.getRoundNumberSignal()
                 .map(round -> round == 0 ? "Click START to begin"
                         : "Round " + round));
 
         Div clicksStatus = new Div();
         clicksStatus.getStyle().set("font-size", "1em").set("color",
                 "var(--lumo-secondary-text-color)");
-        clicksStatus.bindText(collaborativeSignals.getClicksRemainingSignal()
+        clicksStatus.bindText(muc03Signals.getClicksRemainingSignal()
                 .map(clicks -> clicks > 0 ? "Targets remaining: " + clicks
                         : ""));
 
@@ -107,13 +107,13 @@ public class MUC03View extends VerticalLayout {
                 "10");
 
         // Bind button text to show clicks remaining
-        targetButton.bindText(collaborativeSignals.getClicksRemainingSignal()
+        targetButton.bindText(muc03Signals.getClicksRemainingSignal()
                 .map(clicks -> "CLICK ME! (" + clicks + ")"));
 
-        targetButton.bindVisible(collaborativeSignals.getButtonVisibleSignal());
-        targetButton.getStyle().bind("left", collaborativeSignals
+        targetButton.bindVisible(muc03Signals.getButtonVisibleSignal());
+        targetButton.getStyle().bind("left", muc03Signals
                 .getButtonLeftSignal().map(left -> left + "px"));
-        targetButton.getStyle().bind("top", collaborativeSignals
+        targetButton.getStyle().bind("top", muc03Signals
                 .getButtonTopSignal().map(top -> top + "px"));
 
         gameArea.add(targetButton);
@@ -128,7 +128,7 @@ public class MUC03View extends VerticalLayout {
         startButton.addThemeName("success");
 
         Button resetButton = new Button("Reset Scores", event -> {
-            collaborativeSignals.resetLeaderboard();
+            muc03Signals.resetLeaderboard();
         });
         resetButton.addThemeName("error");
         resetButton.addThemeName("small");
@@ -148,7 +148,7 @@ public class MUC03View extends VerticalLayout {
         // Bind leaderboard display
         MissingAPI.bindChildren(leaderboardDiv,
                 com.vaadin.signals.Signal.computed(() -> {
-                    var scores = collaborativeSignals.getLeaderboardSignal()
+                    var scores = muc03Signals.getLeaderboardSignal()
                             .value();
                     var users = userSessionRegistry.getActiveUsersSignal()
                             .value();
@@ -230,13 +230,13 @@ public class MUC03View extends VerticalLayout {
     private void startNewRound() {
         // Position button randomly and start a new round
         int[] position = getRandomPosition();
-        collaborativeSignals.startNewRound(position[0], position[1]);
+        muc03Signals.startNewRound(position[0], position[1]);
     }
 
     private void handleButtonClick() {
         // Atomic operation: Only first click counts (handled by
         // CollaborativeSignals)
-        boolean moreClicksRemain = collaborativeSignals.awardPoint(currentUser,
+        boolean moreClicksRemain = muc03Signals.awardPoint(currentUser,
                 sessionId);
 
         // If there are more clicks remaining, reposition button after random
@@ -250,7 +250,7 @@ public class MUC03View extends VerticalLayout {
 
                     // Reposition button at random location
                     int[] position = getRandomPosition();
-                    getUI().ifPresent(ui -> ui.access(() -> collaborativeSignals
+                    getUI().ifPresent(ui -> ui.access(() -> muc03Signals
                             .repositionButton(position[0], position[1])));
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
@@ -269,12 +269,12 @@ public class MUC03View extends VerticalLayout {
     protected void onAttach(AttachEvent attachEvent) {
         super.onAttach(attachEvent);
         this.sessionId = SessionIdHelper.getCurrentSessionId();
-        collaborativeSignals.initializePlayerScore(currentUser, sessionId);
+        muc03Signals.initializePlayerScore(currentUser, sessionId);
     }
 
     @Override
     protected void onDetach(DetachEvent detachEvent) {
         super.onDetach(detachEvent);
-        collaborativeSignals.unregisterScore(currentUser, sessionId);
+        muc03Signals.unregisterScore(currentUser, sessionId);
     }
 }

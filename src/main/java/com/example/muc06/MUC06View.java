@@ -10,7 +10,7 @@ import java.util.UUID;
 
 import com.example.MissingAPI;
 import com.example.security.CurrentUserSignal;
-import com.example.signals.CollaborativeSignals;
+import com.example.muc06.MUC06Signals;
 import com.example.signals.SessionIdHelper;
 import com.example.signals.UserSessionRegistry;
 
@@ -57,11 +57,11 @@ import com.vaadin.signals.ValueSignal;
 public class MUC06View extends VerticalLayout {
 
     private final String currentUser;
-    private final CollaborativeSignals collaborativeSignals;
+    private final MUC06Signals muc06Signals;
     private final UserSessionRegistry userSessionRegistry;
 
     public MUC06View(CurrentUserSignal currentUserSignal,
-            CollaborativeSignals collaborativeSignals,
+            MUC06Signals muc06Signals,
             UserSessionRegistry userSessionRegistry) {
         CurrentUserSignal.UserInfo userInfo = currentUserSignal.getUserSignal()
                 .value();
@@ -70,7 +70,7 @@ public class MUC06View extends VerticalLayout {
                     "User must be authenticated to access this view");
         }
         this.currentUser = userInfo.getUsername();
-        this.collaborativeSignals = collaborativeSignals;
+        this.muc06Signals = muc06Signals;
         this.userSessionRegistry = userSessionRegistry;
 
         setSpacing(true);
@@ -86,9 +86,9 @@ public class MUC06View extends VerticalLayout {
                         + "All edits are instant with no save button required.");
 
         // Initialize sample tasks if list is empty
-        collaborativeSignals.initializeSampleTasks();
+        muc06Signals.initializeSampleTasks();
 
-        ListSignal<CollaborativeSignals.Task> tasksSignal = collaborativeSignals
+        ListSignal<MUC06Signals.Task> tasksSignal = muc06Signals
                 .getTasksSignal();
 
         // Computed signals for statistics
@@ -143,7 +143,7 @@ public class MUC06View extends VerticalLayout {
         // Add task button
         Button addButton = new Button("Add Task", event -> {
             String id = "task-" + UUID.randomUUID().toString();
-            CollaborativeSignals.Task newTask = new CollaborativeSignals.Task(
+            MUC06Signals.Task newTask = new MUC06Signals.Task(
                     id, "", false, LocalDate.now());
             tasksSignal.insertLast(newTask);
         });
@@ -169,17 +169,17 @@ public class MUC06View extends VerticalLayout {
     }
 
     private HorizontalLayout createTaskRow(
-            ValueSignal<CollaborativeSignals.Task> taskSignal,
-            ListSignal<CollaborativeSignals.Task> tasksSignal) {
-        CollaborativeSignals.Task task = taskSignal.value();
+            ValueSignal<MUC06Signals.Task> taskSignal,
+            ListSignal<MUC06Signals.Task> tasksSignal) {
+        MUC06Signals.Task task = taskSignal.value();
 
         // Checkbox for completed status
         Checkbox checkbox = new Checkbox();
         checkbox.setValue(task.completed());
         checkbox.setAriaLabel("Task completed");
         checkbox.addValueChangeListener(e -> {
-            CollaborativeSignals.Task current = taskSignal.value();
-            taskSignal.value(new CollaborativeSignals.Task(current.id(),
+            MUC06Signals.Task current = taskSignal.value();
+            taskSignal.value(new MUC06Signals.Task(current.id(),
                     current.title(), e.getValue(), current.dueDate()));
         });
 
@@ -189,8 +189,8 @@ public class MUC06View extends VerticalLayout {
         titleField.setPlaceholder("Task title...");
         titleField.setWidth("400px");
         titleField.addValueChangeListener(e -> {
-            CollaborativeSignals.Task current = taskSignal.value();
-            taskSignal.value(new CollaborativeSignals.Task(current.id(),
+            MUC06Signals.Task current = taskSignal.value();
+            taskSignal.value(new MUC06Signals.Task(current.id(),
                     e.getValue(), current.completed(), current.dueDate()));
         });
 
@@ -207,8 +207,8 @@ public class MUC06View extends VerticalLayout {
         datePicker.setPlaceholder("Due date");
         datePicker.setWidth("180px");
         datePicker.addValueChangeListener(e -> {
-            CollaborativeSignals.Task current = taskSignal.value();
-            taskSignal.value(new CollaborativeSignals.Task(current.id(),
+            MUC06Signals.Task current = taskSignal.value();
+            taskSignal.value(new MUC06Signals.Task(current.id(),
                     current.title(), current.completed(), e.getValue()));
         });
 
