@@ -1,4 +1,4 @@
-package com.example.views;
+package com.example.usecase06;
 
 import jakarta.annotation.security.PermitAll;
 
@@ -6,6 +6,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.List;
 
+import com.example.views.MainLayout;
 import com.vaadin.flow.component.ComponentEffect;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.combobox.ComboBox;
@@ -30,19 +31,6 @@ import com.vaadin.signals.ValueSignal;
 @Menu(order = 6, title = "UC 6: Shopping Cart")
 @PermitAll
 public class UseCase06View extends VerticalLayout {
-
-    record Product(String id, String name, BigDecimal price) {
-    }
-
-    record CartItem(Product product, int quantity) {
-    }
-
-    record DiscountCode(String code, BigDecimal percentage) {
-    }
-
-    enum ShippingOption {
-        STANDARD, EXPRESS, OVERNIGHT
-    }
 
     public UseCase06View() {
         setSpacing(true);
