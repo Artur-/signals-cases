@@ -7,6 +7,7 @@ import java.util.stream.Collectors;
 import com.example.security.CurrentUserSignal;
 import com.example.signals.SessionIdHelper;
 import com.example.signals.UserSessionRegistry;
+import com.example.preferences.UserPreferences;
 
 import com.vaadin.flow.component.AttachEvent;
 import com.vaadin.flow.component.ClientCallable;
@@ -19,7 +20,6 @@ import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H1;
-import com.vaadin.flow.component.html.Image;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
@@ -40,15 +40,18 @@ public class MainLayout extends AppLayout implements BeforeEnterObserver {
 
     private final CurrentUserSignal currentUserSignal;
     private final UserSessionRegistry userSessionRegistry;
+    private final UserPreferences userPreferences;
     private String currentUser;
     private String sessionId;
     private TextField nicknameField;
     private Anchor sourceCodeLink;
 
     public MainLayout(CurrentUserSignal currentUserSignal,
-            UserSessionRegistry userSessionRegistry) {
+            UserSessionRegistry userSessionRegistry,
+            UserPreferences userPreferences) {
         this.currentUserSignal = currentUserSignal;
         this.userSessionRegistry = userSessionRegistry;
+        this.userPreferences = userPreferences;
 
         // Get current user info
         CurrentUserSignal.UserInfo userInfo = currentUserSignal.getUserSignal()
@@ -207,6 +210,9 @@ public class MainLayout extends AppLayout implements BeforeEnterObserver {
         MenuConfiguration.getMenuEntries().forEach(entry -> nav
                 .addItem(new SideNavItem(entry.title(), entry.path())));
         addToDrawer(nav);
+
+        // Apply session-scoped background color reactively to the whole layout
+        getStyle().bind("background-color", userPreferences.backgroundColorSignal());
     }
 
     @Override
