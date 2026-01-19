@@ -102,10 +102,10 @@ public class UseCase01View extends VerticalLayout {
                 }));
 
         // Bind theme variant
-        submitButton.getElement().bindAttribute("theme",
-                submissionStateSignal.map(
-                        state -> state == SubmissionState.SUCCESS ? "success"
-                                : "primary"));
+        submitButton.bindThemeName("success", submissionStateSignal
+                .map(state -> state == SubmissionState.SUCCESS));
+        submitButton.bindThemeName("primary", submissionStateSignal
+                .map(state -> state != SubmissionState.SUCCESS));
 
         submitButton.addClickListener(e -> {
             submissionStateSignal.value(SubmissionState.SUBMITTING);
