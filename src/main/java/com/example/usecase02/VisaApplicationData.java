@@ -1,7 +1,7 @@
 package com.example.usecase02;
 
 // Bean to hold all form data
-class VisaApplicationData {
+public class VisaApplicationData {
     private Boolean needsVisa = false;
     private String currentVisaStatus = "";
     private VisaType visaType = VisaType.H1B;

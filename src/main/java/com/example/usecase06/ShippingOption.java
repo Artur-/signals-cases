@@ -1,5 +1,5 @@
 package com.example.usecase06;
 
-enum ShippingOption {
+public enum ShippingOption {
     STANDARD, EXPRESS, OVERNIGHT
 }

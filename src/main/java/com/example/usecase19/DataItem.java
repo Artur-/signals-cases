@@ -2,7 +2,7 @@ package com.example.usecase19;
 
 import com.example.usecase14.LoadingState;
 
-record DataItem(
+public record DataItem(
     String id,
     String name,
     LoadingState.State state,

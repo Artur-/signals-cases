@@ -1,5 +1,5 @@
 package com.example.usecase01;
 
-enum SubmissionState {
+public enum SubmissionState {
     IDLE, SUBMITTING, SUCCESS, ERROR
 }

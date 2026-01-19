@@ -1,5 +1,5 @@
 package com.example.usecase09;
 
-enum AccountType {
+public enum AccountType {
     PERSONAL, BUSINESS
 }

@@ -1,6 +1,6 @@
 package com.example.usecase03;
 
-enum Permission {
+public enum Permission {
     VIEW_DASHBOARD,
     EDIT_CONTENT,
     DELETE_CONTENT,
