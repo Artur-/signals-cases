@@ -5,32 +5,32 @@ import jakarta.annotation.security.PermitAll;
 import com.vaadin.flow.component.AttachEvent;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.DetachEvent;
-import com.vaadin.flow.component.UI;
-import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.html.Paragraph;
-import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.splitlayout.SplitLayout;
 import com.vaadin.flow.router.Menu;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
-import com.vaadin.flow.shared.Registration;
 import com.vaadin.signals.Signal;
 import com.vaadin.signals.ValueSignal;
 import com.vaadin.signals.WritableSignal;
 
 /**
- * Use Case 11: Responsive Layout with Window Size Signal
+ * Use Case 11: Responsive Layout with Container Size Signal
  *
- * Demonstrates using browser window size as a reactive signal to: - Show/hide
- * components based on screen size - Switch between mobile and desktop layouts -
- * Adjust component configurations for different viewports
+ * Demonstrates responsive content inside a resizable container using a split panel.
+ * The content adapts to the available width as you drag the splitter, showing
+ * how components can be responsive within any container, not just the window.
  *
- * Key Patterns: - Signal from browser window resize events - Debounced browser
- * event handling - Computed signals for breakpoint detection - Responsive
- * component visibility
+ * Key Patterns:
+ * - ResizeObserver for container size tracking
+ * - Signal from container resize events
+ * - Computed signals for breakpoint detection
+ * - Responsive component visibility and layout within a fixed container
+ * - Split panel with draggable divider
  */
 @Route(value = "use-case-11", layout = MainLayout.class)
 @PageTitle("Use Case 11: Responsive Layout")
@@ -38,11 +38,11 @@ import com.vaadin.signals.WritableSignal;
 @PermitAll
 public class UseCase11View extends VerticalLayout {
 
-    public static class WindowSize {
+    public static class ContainerSize {
         private final int width;
         private final int height;
 
-        public WindowSize(int width, int height) {
+        public ContainerSize(int width, int height) {
             this.width = width;
             this.height = height;
         }
@@ -55,16 +55,16 @@ public class UseCase11View extends VerticalLayout {
             return height;
         }
 
-        public boolean isSmallScreen() {
-            return width < 768; // Mobile breakpoint
+        public boolean isSmall() {
+            return width < 400; // Small breakpoint
         }
 
-        public boolean isMediumScreen() {
-            return width >= 768 && width < 1024; // Tablet breakpoint
+        public boolean isMedium() {
+            return width >= 400 && width < 700; // Medium breakpoint
         }
 
-        public boolean isLargeScreen() {
-            return width >= 1024; // Desktop breakpoint
+        public boolean isLarge() {
+            return width >= 700; // Large breakpoint
         }
 
         @Override
@@ -73,129 +73,145 @@ public class UseCase11View extends VerticalLayout {
         }
     }
 
-    private final WritableSignal<WindowSize> windowSizeSignal = new ValueSignal<>(
-            new WindowSize(1024, 768));
-    private Registration resizeRegistration;
+    private final WritableSignal<ContainerSize> containerSizeSignal = new ValueSignal<>(
+            new ContainerSize(600, 400));
+    private Div responsiveContent;
 
     public UseCase11View() {
         setSpacing(true);
         setPadding(true);
+        setSizeFull();
 
-        H2 title = new H2(
-                "Use Case 11: Responsive Layout with Window Size Signal");
+        H2 title = new H2("Use Case 11: Responsive Content in Resizable Container");
 
         Paragraph description = new Paragraph(
-                "This use case demonstrates responsive UI adaptation based on browser window size. "
-                        + "The window size is exposed as a reactive signal, allowing components to show/hide "
-                        + "and adjust their layout based on screen breakpoints. Try resizing your browser window!");
+                "This use case demonstrates responsive content inside a resizable container. "
+                        + "Drag the splitter left and right to resize the content area. "
+                        + "The content adapts to the available width, showing different layouts at different sizes. "
+                        + "This uses ResizeObserver to track container size changes.");
 
-        // Window size display
-        Div sizeInfoBox = new Div();
-        sizeInfoBox.getStyle().set("background-color", "#e3f2fd")
-                .set("padding", "1em").set("border-radius", "4px")
+        // Create split layout
+        SplitLayout splitLayout = new SplitLayout();
+        splitLayout.setSizeFull();
+        splitLayout.setSplitterPosition(60); // Start at 60% for the primary content
+
+        // Left side: Static info panel
+        Div infoPanel = createInfoPanel();
+
+        // Right side: Responsive content area
+        responsiveContent = createResponsiveContent();
+
+        splitLayout.addToPrimary(responsiveContent);
+        splitLayout.addToSecondary(infoPanel);
+
+        // Info box
+        Div tipBox = new Div();
+        tipBox.getStyle()
+                .set("background-color", "#e0f7fa")
+                .set("padding", "1em")
+                .set("border-radius", "4px")
+                .set("margin-bottom", "1em")
+                .set("font-style", "italic");
+        tipBox.add(new Paragraph(
+                "💡 Drag the splitter to resize the content area. " +
+                "The responsive content will adapt to different widths, " +
+                "showing mobile layout (< 400px), tablet layout (400-700px), or desktop layout (≥ 700px). " +
+                "This demonstrates container queries with Signals using ResizeObserver."));
+
+        add(title, description, tipBox, splitLayout);
+    }
+
+    private Div createInfoPanel() {
+        Div panel = new Div();
+        panel.getStyle()
+                .set("padding", "1em")
+                .set("background-color", "#f5f5f5")
+                .set("height", "100%")
+                .set("overflow-y", "auto");
+
+        H3 title = new H3("Info Panel");
+        title.getStyle().set("margin-top", "0");
+
+        Paragraph info = new Paragraph(
+                "This is a static side panel. The main content on the left adapts " +
+                "to its container size as you drag the splitter.");
+
+        H3 statsTitle = new H3("Current Size");
+
+        // Container size display
+        Div sizeDisplay = new Div();
+        sizeDisplay.getStyle()
+                .set("background-color", "#ffffff")
+                .set("padding", "1em")
+                .set("border-radius", "4px")
                 .set("margin", "1em 0");
 
-        H3 sizeTitle = new H3("Current Window Size");
-        sizeTitle.getStyle().set("margin-top", "0");
+        Paragraph widthPara = new Paragraph();
+        widthPara.getStyle().set("font-family", "monospace").set("margin", "0.25em 0");
+        Signal<String> widthText = containerSizeSignal.map(size -> "Width: " + size.getWidth() + "px");
+        widthPara.bindText(widthText);
 
-        Paragraph sizeDisplay = new Paragraph();
-        sizeDisplay.getStyle().set("font-family", "monospace")
-                .set("font-size", "1.2em").set("font-weight", "bold");
-        Signal<String> sizeText = windowSizeSignal.map(WindowSize::toString);
-        sizeDisplay.bindText(sizeText);
+        Paragraph heightPara = new Paragraph();
+        heightPara.getStyle().set("font-family", "monospace").set("margin", "0.25em 0");
+        Signal<String> heightText = containerSizeSignal.map(size -> "Height: " + size.getHeight() + "px");
+        heightPara.bindText(heightText);
 
-        Paragraph breakpointDisplay = new Paragraph();
-        Signal<String> breakpointText = windowSizeSignal.map(size -> {
-            if (size.isSmallScreen())
-                return "📱 Small Screen (Mobile)";
-            if (size.isMediumScreen())
-                return "💻 Medium Screen (Tablet)";
-            return "🖥️ Large Screen (Desktop)";
+        Paragraph breakpointPara = new Paragraph();
+        breakpointPara.getStyle().set("font-weight", "bold").set("margin", "0.5em 0 0 0");
+        Signal<String> breakpointText = containerSizeSignal.map(size -> {
+            if (size.isSmall()) return "📱 Small (< 400px)";
+            if (size.isMedium()) return "💻 Medium (400-700px)";
+            return "🖥️ Large (≥ 700px)";
         });
-        breakpointDisplay.bindText(breakpointText);
+        breakpointPara.bindText(breakpointText);
 
-        sizeInfoBox.add(sizeTitle, sizeDisplay, breakpointDisplay);
+        sizeDisplay.add(widthPara, heightPara, breakpointPara);
 
-        // Mobile-only content
-        Div mobileSection = createSection("📱 Mobile-Only Content",
-                "This section is only visible on small screens (width < 768px). "
-                        + "Perfect for mobile-specific navigation or simplified UI.",
+        panel.add(title, info, statsTitle, sizeDisplay);
+        return panel;
+    }
+
+    private Div createResponsiveContent() {
+        Div container = new Div();
+        container.getStyle()
+                .set("padding", "1em")
+                .set("height", "100%")
+                .set("overflow-y", "auto")
+                .set("background-color", "#ffffff");
+
+        // Small width content
+        Div smallContent = createSection(
+                "📱 Small Width Layout",
+                "This is the mobile view (width < 400px). Navigation is stacked vertically, " +
+                "and complex UI elements are simplified or hidden.",
                 "#fff3e0");
-        Signal<Boolean> isSmallScreen = windowSizeSignal
-                .map(WindowSize::isSmallScreen);
-        mobileSection.bindVisible(isSmallScreen);
+        Signal<Boolean> isSmall = containerSizeSignal.map(ContainerSize::isSmall);
+        smallContent.bindVisible(isSmall);
 
-        // Tablet-only content
-        Div tabletSection = createSection("💻 Tablet-Only Content",
-                "This section appears on medium screens (768px ≤ width < 1024px). "
-                        + "Good for tablet-optimized layouts.",
+        // Medium width content
+        Div mediumContent = createSection(
+                "💻 Medium Width Layout",
+                "This is the tablet view (400px ≤ width < 700px). Navigation can be horizontal, " +
+                "and more content is visible with a balanced layout.",
                 "#f3e5f5");
-        Signal<Boolean> isMediumScreen = windowSizeSignal
-                .map(WindowSize::isMediumScreen);
-        tabletSection.bindVisible(isMediumScreen);
+        Signal<Boolean> isMedium = containerSizeSignal.map(ContainerSize::isMedium);
+        mediumContent.bindVisible(isMedium);
 
-        // Desktop-only content
-        Div desktopSection = createSection("🖥️ Desktop-Only Content",
-                "This section is for large screens (width ≥ 1024px). "
-                        + "Can show advanced features and detailed information.",
+        // Large width content
+        Div largeContent = createSection(
+                "🖥️ Large Width Layout",
+                "This is the desktop view (width ≥ 700px). All features are visible, " +
+                "with multi-column layouts and detailed information.",
                 "#e8f5e9");
-        Signal<Boolean> isLargeScreen = windowSizeSignal
-                .map(WindowSize::isLargeScreen);
-        desktopSection.bindVisible(isLargeScreen);
+        Signal<Boolean> isLarge = containerSizeSignal.map(ContainerSize::isLarge);
+        largeContent.bindVisible(isLarge);
 
         // Responsive card grid
         H3 cardGridTitle = new H3("Responsive Card Grid");
-
-        // Use different layouts based on screen size
         Component cardGrid = createResponsiveCardGrid();
 
-        // Test controls
-        Div controlsBox = new Div();
-        controlsBox.getStyle().set("background-color", "#fff9c4")
-                .set("padding", "1em").set("border-radius", "4px")
-                .set("margin-top", "1em");
-
-        Paragraph controlsLabel = new Paragraph("Simulate Screen Sizes:");
-        controlsLabel.getStyle().set("font-weight", "bold");
-
-        Div testButtons = new Div();
-        testButtons.getStyle().set("display", "flex")
-                .set("gap", "0.5em")
-                .set("flex-wrap", "wrap");
-
-        Button mobileBtn = new Button("📱 Mobile (375×667)",
-                event -> windowSizeSignal.value(new WindowSize(375, 667)));
-        mobileBtn.addThemeName("small");
-
-        Button tabletBtn = new Button("💻 Tablet (768×1024)",
-                event -> windowSizeSignal.value(new WindowSize(768, 1024)));
-        tabletBtn.addThemeName("small");
-
-        Button desktopBtn = new Button("🖥️ Desktop (1920×1080)",
-                event -> windowSizeSignal.value(new WindowSize(1920, 1080)));
-        desktopBtn.addThemeName("small");
-
-        Button resetBtn = new Button("↻ Detect Actual Size",
-                event -> detectWindowSize());
-        resetBtn.addThemeName("small");
-
-        testButtons.add(mobileBtn, tabletBtn, desktopBtn, resetBtn);
-
-        controlsBox.add(controlsLabel, testButtons);
-
-        // Info box
-        Div infoBox = new Div();
-        infoBox.getStyle().set("background-color", "#e0f7fa")
-                .set("padding", "1em").set("border-radius", "4px")
-                .set("margin-top", "1em").set("font-style", "italic");
-        infoBox.add(new Paragraph(
-                "💡 The window size signal is updated from browser resize events with debouncing. "
-                        + "In a real application, this pattern enables fully responsive UIs without media queries, "
-                        + "with the added benefit of reactive state management. Try resizing the browser window "
-                        + "or use the test buttons above."));
-
-        add(title, description, sizeInfoBox, mobileSection, tabletSection,
-                desktopSection, cardGridTitle, cardGrid, controlsBox, infoBox);
+        container.add(smallContent, mediumContent, largeContent, cardGridTitle, cardGrid);
+        return container;
     }
 
     private Div createSection(String title, String content,
@@ -222,32 +238,34 @@ public class UseCase11View extends VerticalLayout {
         // Create sample cards
         for (int i = 1; i <= 6; i++) {
             Div card = new Div();
-            card.getStyle().set("background-color", "#ffffff")
+            card.getStyle()
+                    .set("background-color", "#f9f9f9")
                     .set("border", "1px solid #e0e0e0")
-                    .set("border-radius", "4px").set("padding", "1em")
-                    .set("margin", "0.5em").set("flex", "1 1 200px")
-                    .set("min-width", "150px");
+                    .set("border-radius", "4px")
+                    .set("padding", "1em")
+                    .set("margin", "0.5em")
+                    .set("flex", "1 1 150px")
+                    .set("min-width", "120px");
 
             H3 cardTitle = new H3("Card " + i);
-            cardTitle.getStyle().set("margin", "0 0 0.5em 0").set("font-size",
-                    "1em");
+            cardTitle.getStyle().set("margin", "0 0 0.5em 0").set("font-size", "1em");
 
-            Paragraph cardContent = new Paragraph("Sample card content");
-            cardContent.getStyle().set("margin", "0");
+            Paragraph cardContent = new Paragraph("Content item " + i);
+            cardContent.getStyle().set("margin", "0").set("font-size", "0.875em");
 
             card.add(cardTitle, cardContent);
             gridContainer.add(card);
         }
 
-        // Set responsive flex layout
-        Signal<String> flexDirection = windowSizeSignal.map(size -> {
-            if (size.isSmallScreen())
-                return "column"; // Stack vertically on mobile
-            return "row"; // Row layout on larger screens
+        // Set responsive flex layout based on container size
+        Signal<String> flexDirection = containerSizeSignal.map(size -> {
+            if (size.isSmall())
+                return "column"; // Stack vertically in small containers
+            return "row"; // Row layout in larger containers
         });
 
-        Signal<String> flexWrap = windowSizeSignal
-                .map(size -> size.isSmallScreen() ? "nowrap" : "wrap");
+        Signal<String> flexWrap = containerSizeSignal
+                .map(size -> size.isSmall() ? "nowrap" : "wrap");
 
         gridContainer.getStyle().set("display", "flex").set("margin", "1em 0");
 
@@ -261,36 +279,50 @@ public class UseCase11View extends VerticalLayout {
     protected void onAttach(AttachEvent attachEvent) {
         super.onAttach(attachEvent);
 
-        UI ui = attachEvent.getUI();
-
-        // Detect initial window size
-        detectWindowSize();
-
-        // Set up resize listener with debouncing (simulated here)
-        // In real implementation, would use
-        // Page.retrieveExtendedClientDetails()
-        // or JavaScript execution with window.addEventListener('resize', ...)
-        resizeRegistration = ui.getPage()
-                .addBrowserWindowResizeListener(event -> {
-                    int width = event.getWidth();
-                    int height = event.getHeight();
-                    windowSizeSignal.value(new WindowSize(width, height));
+        // Set up ResizeObserver to monitor the responsive content area
+        String script = """
+                const targetElement = $1;
+                const resizeObserver = new ResizeObserver(entries => {
+                    for (let entry of entries) {
+                        const width = Math.floor(entry.contentRect.width);
+                        const height = Math.floor(entry.contentRect.height);
+                        $0.$server.updateContainerSize(width, height);
+                    }
                 });
+                resizeObserver.observe(targetElement);
+
+                // Store observer for cleanup
+                targetElement._resizeObserver = resizeObserver;
+
+                // Report initial size
+                const rect = targetElement.getBoundingClientRect();
+                $0.$server.updateContainerSize(Math.floor(rect.width), Math.floor(rect.height));
+                """;
+
+        getElement().executeJs(script, getElement(), responsiveContent);
     }
 
     @Override
     protected void onDetach(DetachEvent detachEvent) {
         super.onDetach(detachEvent);
-        if (resizeRegistration != null) {
-            resizeRegistration.remove();
-        }
+
+        // Clean up ResizeObserver
+        String cleanupScript = """
+                const targetElement = $0;
+                if (targetElement && targetElement._resizeObserver) {
+                    targetElement._resizeObserver.disconnect();
+                    delete targetElement._resizeObserver;
+                }
+                """;
+
+        getElement().executeJs(cleanupScript, responsiveContent);
     }
 
-    private void detectWindowSize() {
-        UI.getCurrent().getPage().retrieveExtendedClientDetails(details -> {
-            int width = details.getBodyClientWidth();
-            int height = details.getBodyClientHeight();
-            windowSizeSignal.value(new WindowSize(width, height));
-        });
+    /**
+     * Called from JavaScript when the container is resized
+     */
+    @com.vaadin.flow.component.ClientCallable
+    public void updateContainerSize(int width, int height) {
+        containerSizeSignal.value(new ContainerSize(width, height));
     }
 }
