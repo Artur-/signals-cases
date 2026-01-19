@@ -46,17 +46,4 @@ public class UserPreferences {
         return backgroundColorSignal;
     }
 
-    /**
-     * Convenience method for getting the current color value.
-     */
-    public String currentBackgroundColor() {
-        return backgroundColorSignal.value();
-    }
-
-    /**
-     * Convenience method for setting the current color value.
-     */
-    public void setBackgroundColor(String color) {
-        backgroundColorSignal.value(color);
-    }
 }

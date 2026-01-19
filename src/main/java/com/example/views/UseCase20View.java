@@ -80,15 +80,7 @@ public class UseCase20View extends VerticalLayout {
         }));
         colorPicker.bindValue(colorSignal);
 
-        // Live preview area that updates reactively
-        Div preview = new Div();
-        preview.getStyle().set("border", "1px solid var(--lumo-contrast-10pct)")
-                .set("border-radius", "8px")
-                .set("padding", "1rem")
-                .set("min-height", "80px");
-        preview.getStyle().bind("background-color", colorSignal);
-
-        add(title, description, colorPicker, preview);
+        add(title, description, colorPicker);
     }
 
     private static String chooseTextColor(String background) {
