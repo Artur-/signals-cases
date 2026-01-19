@@ -1,6 +1,6 @@
 package com.example.muc07;
 
-import com.example.views.AbstractTaskChatView;
+import com.example.usecase18.AbstractTaskChatView;
 import com.example.views.ActiveUsersDisplay;
 import com.example.views.MainLayout;
 
