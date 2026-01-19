@@ -1,4 +1,6 @@
-package com.example.views;
+package com.example.usecase10;
+
+import com.example.views.MainLayout;
 
 import jakarta.annotation.security.PermitAll;
 
