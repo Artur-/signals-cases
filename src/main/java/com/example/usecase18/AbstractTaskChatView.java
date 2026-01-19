@@ -1,4 +1,4 @@
-package com.example.views;
+package com.example.usecase18;
 
 import java.time.Instant;
 import java.time.LocalDate;
@@ -10,6 +10,7 @@ import com.example.service.TaskContext;
 import com.example.service.TaskLLMService;
 import com.example.signals.SessionIdHelper;
 import com.example.signals.UserSessionRegistry;
+import com.example.views.MainLayout;
 
 import com.vaadin.flow.component.AttachEvent;
 import com.vaadin.flow.component.button.Button;
@@ -40,9 +41,6 @@ import com.vaadin.signals.ValueSignal;
 import com.vaadin.signals.WritableSignal;
 
 public abstract class AbstractTaskChatView extends VerticalLayout {
-
-    public record ChatMessageData(String role, String content, Instant timestamp) {
-    }
 
     // Signals injected via constructor
     protected final ListSignal<Task> tasksSignal;

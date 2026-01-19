@@ -1,6 +1,5 @@
 package com.example.usecase18;
 
-import com.example.views.AbstractTaskChatView;
 import com.example.views.MainLayout;
 
 import jakarta.annotation.security.PermitAll;

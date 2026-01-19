@@ -11,7 +11,8 @@ import org.springframework.stereotype.Component;
 import jakarta.annotation.PostConstruct;
 
 import com.example.model.Task;
-import com.example.views.AbstractTaskChatView;
+import com.example.usecase18.AbstractTaskChatView;
+import com.example.usecase18.ChatMessageData;
 import com.vaadin.signals.ListSignal;
 import com.vaadin.signals.MapSignal;
 import com.vaadin.signals.ValueSignal;
@@ -270,14 +271,14 @@ public class CollaborativeSignals {
 
     private final ListSignal<com.example.model.Task> llmTasksSignal = new ListSignal<>(
             com.example.model.Task.class);
-    private final ListSignal<AbstractTaskChatView.ChatMessageData> llmChatMessagesSignal = new ListSignal<>(
-            AbstractTaskChatView.ChatMessageData.class);
+    private final ListSignal<ChatMessageData> llmChatMessagesSignal = new ListSignal<>(
+            ChatMessageData.class);
 
     public ListSignal<com.example.model.Task> getLlmTasksSignal() {
         return llmTasksSignal;
     }
 
-    public ListSignal<AbstractTaskChatView.ChatMessageData> getLlmChatMessagesSignal() {
+    public ListSignal<ChatMessageData> getLlmChatMessagesSignal() {
         return llmChatMessagesSignal;
     }
 
