@@ -219,4 +219,43 @@ public class UserSessionRegistry {
         });
     }
 
+    /**
+     * Update the tab activity state for a user session.
+     *
+     * @param username  the username
+     * @param sessionId the session ID
+     * @param isActive  true if the tab is visible/active, false otherwise
+     */
+    public void updateTabActivity(String username, String sessionId,
+            boolean isActive) {
+        String compositeKey = username + ":" + sessionId;
+
+        activeUsersSignal.value().stream()
+                .filter(userSignal -> compositeKey.equals(
+                        userSignal.value().getCompositeKey()))
+                .findFirst().ifPresent(userSignal -> {
+                    UserInfo oldInfo = userSignal.value();
+                    userSignal.value(oldInfo.withTabActive(isActive));
+                });
+    }
+
+    /**
+     * Update the last interaction time for a user session to the current time.
+     *
+     * @param username  the username
+     * @param sessionId the session ID
+     */
+    public void updateLastInteraction(String username, String sessionId) {
+        String compositeKey = username + ":" + sessionId;
+
+        activeUsersSignal.value().stream()
+                .filter(userSignal -> compositeKey.equals(
+                        userSignal.value().getCompositeKey()))
+                .findFirst().ifPresent(userSignal -> {
+                    UserInfo oldInfo = userSignal.value();
+                    userSignal.value(
+                            oldInfo.withLastInteractionTime(System.currentTimeMillis()));
+                });
+    }
+
 }

@@ -9,6 +9,7 @@ import com.example.signals.SessionIdHelper;
 import com.example.signals.UserSessionRegistry;
 
 import com.vaadin.flow.component.AttachEvent;
+import com.vaadin.flow.component.ClientCallable;
 import com.vaadin.flow.component.DetachEvent;
 import com.vaadin.flow.component.applayout.AppLayout;
 import com.vaadin.flow.component.applayout.DrawerToggle;
@@ -221,6 +222,16 @@ public class MainLayout extends AppLayout implements BeforeEnterObserver {
                 nicknameField.setValue(currentNickname);
             }
         }
+
+        // Set up Page Visibility API listener to track tab activity
+        getElement().executeJs(
+                "const updateVisibility = () => {" +
+                "  const isVisible = document.visibilityState === 'visible';" +
+                "  $0.$server.onVisibilityChange(isVisible);" +
+                "};" +
+                "document.addEventListener('visibilitychange', updateVisibility);" +
+                "updateVisibility();" // Report initial state
+        , getElement());
     }
 
     @Override
@@ -229,6 +240,18 @@ public class MainLayout extends AppLayout implements BeforeEnterObserver {
 
         if (currentUser != null && sessionId != null) {
             userSessionRegistry.unregisterUser(currentUser, sessionId);
+        }
+    }
+
+    /**
+     * Called from JavaScript when the tab visibility changes.
+     *
+     * @param isVisible true if the tab is visible, false if hidden
+     */
+    @ClientCallable
+    public void onVisibilityChange(boolean isVisible) {
+        if (currentUser != null && sessionId != null) {
+            userSessionRegistry.updateTabActivity(currentUser, sessionId, isVisible);
         }
     }
 
