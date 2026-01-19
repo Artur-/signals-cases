@@ -39,7 +39,7 @@ public class UseCase20View extends VerticalLayout {
         setSpacing(true);
         setPadding(true);
 
-        H2 title = new H2("Use Case 19: Session-scoped User Preferences");
+        H2 title = new H2("Use Case 20: Session-scoped User Preferences");
 
         Paragraph description = new Paragraph(
                 "Choose a background color for your session. The selected color is stored " +
