@@ -1,6 +1,7 @@
-package com.example.views;
+package com.example.usecase20;
 
 import com.example.preferences.UserPreferences;
+import com.example.views.MainLayout;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.Paragraph;
