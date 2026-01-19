@@ -1,4 +1,8 @@
-package com.example.views;
+package com.example.muc07;
+
+import com.example.views.AbstractTaskChatView;
+import com.example.views.ActiveUsersDisplay;
+import com.example.views.MainLayout;
 
 import jakarta.annotation.security.PermitAll;
 

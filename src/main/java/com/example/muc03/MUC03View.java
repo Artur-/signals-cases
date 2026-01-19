@@ -1,4 +1,7 @@
-package com.example.views;
+package com.example.muc03;
+
+import com.example.views.ActiveUsersDisplay;
+import com.example.views.MainLayout;
 
 import jakarta.annotation.security.PermitAll;
 
