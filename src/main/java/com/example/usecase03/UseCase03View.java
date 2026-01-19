@@ -1,4 +1,4 @@
-package com.example.views;
+package com.example.usecase03;
 
 import jakarta.annotation.security.PermitAll;
 
@@ -7,6 +7,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import com.example.security.SecurityService;
+import com.example.views.MainLayout;
 
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.html.Div;
@@ -28,15 +29,6 @@ import com.vaadin.signals.WritableSignal;
 @Menu(order = 3, title = "UC 3: Permission-Based UI")
 @PermitAll
 public class UseCase03View extends VerticalLayout {
-
-    enum Permission {
-        VIEW_DASHBOARD,
-        EDIT_CONTENT,
-        DELETE_CONTENT,
-        MANAGE_USERS,
-        VIEW_LOGS,
-        SYSTEM_SETTINGS
-    }
 
     private final SecurityService securityService;
 
