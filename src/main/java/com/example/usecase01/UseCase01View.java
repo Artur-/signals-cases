@@ -1,10 +1,11 @@
-package com.example.views;
+package com.example.usecase01;
 
 import jakarta.annotation.security.PermitAll;
 
 import java.util.concurrent.CompletableFuture;
 
 import com.example.MissingAPI;
+import com.example.views.MainLayout;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.Paragraph;
@@ -25,10 +26,6 @@ import com.vaadin.signals.WritableSignal;
 @Menu(order = 1, title = "UC 1: Dynamic Button State")
 @PermitAll
 public class UseCase01View extends VerticalLayout {
-
-    enum SubmissionState {
-        IDLE, SUBMITTING, SUCCESS, ERROR
-    }
 
     public UseCase01View() {
         setSpacing(true);
