@@ -1,6 +1,9 @@
 # Vaadin Signal API Use Cases - Current Implementation
 
-This document describes the 21 use cases currently implemented in this project.
+**Last Updated**: 2026-01-20
+**Current Implementation**: 22 use cases (16 single-user + 6 multi-user)
+
+This document describes the 22 use cases currently implemented in this project.
 
 ## Introduction
 
@@ -8,7 +11,7 @@ Signals provide a reactive, declarative approach to building UIs where component
 
 ---
 
-## Single-User Use Cases (UC 1-17)
+## Single-User Use Cases (16 total)
 
 ### UC 1: Dynamic Button State
 
@@ -33,19 +36,6 @@ Signals provide a reactive, declarative approach to building UIs where component
 - Multiple levels of `bindVisible()`
 
 **Route**: `/use-case-2`
-
----
-
-### UC 3: Permission-Based Component Visibility
-
-**Description**: Dashboard with components that show/hide based on user roles from Spring Security.
-
-**Key Patterns**:
-- Integration with Spring Security
-- Role-based UI with signals
-- Application-scoped user context signal
-
-**Route**: `/use-case-3`
 
 ---
 
@@ -125,19 +115,6 @@ Signals provide a reactive, declarative approach to building UIs where component
 - Reactive error display
 
 **Route**: `/use-case-9`
-
----
-
-### UC 10: Employee Management Grid with Dynamic Editability
-
-**Description**: Employee grid where rows are editable based on permissions and employee status.
-
-**Key Patterns**:
-- Dynamic row editability
-- Permission-based grid behavior
-- Cell-level conditional editing
-
-**Route**: `/use-case-10`
 
 ---
 
@@ -260,7 +237,39 @@ Signals provide a reactive, declarative approach to building UIs where component
 
 ---
 
-## Multi-User Collaboration (MUC 1-4)
+### UC 18: LLM-Powered Task Management
+
+**Description**: AI-powered task management system with real-time chat interface. Users can create, update, and manage tasks through natural language conversations with an LLM assistant powered by Spring AI. Features streaming responses, task creation/updates via tool calls, and a modern chat UI.
+
+**Key Patterns**:
+- Spring AI integration with OpenAI
+- Streaming LLM responses with signal updates
+- Tool calling for task management (create, update, delete tasks)
+- Real-time chat message display with `bindChildren()`
+- ListSignal for reactive task list
+- Async operations with CompletableFuture
+- Dynamic UI updates during streaming
+
+**Route**: `/use-case-18`
+
+---
+
+### UC 20: User Preferences
+
+**Description**: Session-scoped user preferences that persist across page navigations within the same session. Demonstrates session-level state management with signals, showing how preferences can be stored per-user and maintained throughout their browsing session.
+
+**Key Patterns**:
+- Session-scoped signals (per-user state)
+- Preference persistence within session
+- Two-way binding for preference controls
+- Application of preferences across views
+- Session lifecycle management
+
+**Route**: `/use-case-20`
+
+---
+
+## Multi-User Collaboration (6 total)
 
 ### MUC 1: Shared Chat/Message List
 
@@ -318,6 +327,38 @@ Signals provide a reactive, declarative approach to building UIs where component
 
 ---
 
+### MUC 6: Shared Task List
+
+**Description**: Collaborative task management where multiple users can view and edit a shared task list in real-time. Tasks can be added, edited inline, marked complete, or deleted. All changes are immediately visible to all connected users.
+
+**Key Patterns**:
+- ListSignal for shared task collection
+- Inline editing with signal-based forms
+- Real-time collaboration with Push updates
+- Computed statistics (total, completed, pending)
+- Task completion tracking
+- Delete operations with confirmation
+
+**Route**: `/muc-06`
+
+---
+
+### MUC 7: Shared LLM Task List
+
+**Description**: Multi-user version of UC18 where multiple users can collaborate on a shared task list with AI assistance. Extends AbstractTaskChatView with collaborative signals for zero code duplication. All users see the same tasks and can interact with the LLM assistant.
+
+**Key Patterns**:
+- Extends AbstractTaskChatView for code reuse
+- Application-scoped shared signals (tasks and chat)
+- Multi-user LLM integration
+- Real-time collaborative task management
+- Shared chat interface with multiple users
+- Zero code duplication between UC18 and MUC07
+
+**Route**: `/muc-07`
+
+---
+
 ## Signal API Features Used
 
 ### Core Signal Operations
@@ -359,11 +400,12 @@ Three Spring components provide application-wide signals:
 
 ### Multi-User Signal Sharing
 
-Multi-user use cases share signals across sessions:
-- Signals stored in application-scoped Spring components
+Multi-user use cases (MUC01-04, MUC06-07) share signals across sessions:
+- Signals stored in application-scoped Spring components (CollaborativeSignals)
 - All users observe the same signal instances
-- Updates propagate automatically to all connected clients
+- Updates propagate automatically to all connected clients via Vaadin Push
 - User registration via onAttach/onDetach lifecycle hooks
+- Demonstrates MapSignal (cursors, locks, scores) and ListSignal (chat, tasks) in shared context
 
 ---
 
@@ -376,5 +418,14 @@ Multi-user use cases share signals across sessions:
 
 ---
 
-**Total Use Cases**: 21 (17 single-user + 4 multi-user)
-**Last Updated**: 2026-01-14
+## Recent Changes
+
+**2026-01-20 Update:**
+- Removed UC3 (Permission-Based UI) - redundant with UC2/UC11/UC13
+- Removed UC10 (Grid Providers) - advanced Grid APIs out of scope
+- Updated documentation to reflect 22 use cases (16 single-user + 6 multi-user)
+
+---
+
+**Total Use Cases**: 22 (16 single-user + 6 multi-user)
+**Last Updated**: 2026-01-20
