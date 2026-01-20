@@ -108,6 +108,8 @@ public class UseCase15View extends VerticalLayout {
         searchField.setWidth("400px");
         searchField.setPrefixComponent(new Icon(VaadinIcon.SEARCH));
         searchField.setClearButtonVisible(true);
+        searchField.setValueChangeMode(
+                com.vaadin.flow.data.value.ValueChangeMode.EAGER);
 
         searchField.bindValue(searchQuerySignal);
 
