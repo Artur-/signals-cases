@@ -4,22 +4,20 @@ This repository contains a collection of Vaadin views demonstrating the Signal A
 
 ## Overview
 
-The Vaadin Signal API provides reactive state management for Vaadin Flow applications. This project contains **21 implemented use cases** showcasing various signal patterns and real-world UI scenarios.
+The Vaadin Signal API provides reactive state management for Vaadin Flow applications. This project contains **22 implemented use cases** showcasing various signal patterns and real-world UI scenarios.
 
 ## Use Cases
 
-### Single-User Use Cases (UC 1-17)
+### Single-User Use Cases (16 total)
 
 1. **Dynamic Button State** - Form validation with reactive button enable/disable
 2. **Progressive Disclosure** - Nested conditional form sections
-3. **Permission-Based UI** - Role-based component visibility using Spring Security
 4. **Filtered Data Grid** - Client-side filtering and sorting
 5. **Cascading Selector** - Dependent dropdown menus (country → state → city)
 6. **Shopping Cart** - Real-time cart totals and item management
 7. **Master-Detail Invoice** - Invoice header with reactive line item calculations
 8. **Multi-Step Wizard** - Form wizard with validation and navigation
 9. **Form with Binder Integration** - Vaadin Binder with signal-based validation
-10. **Employee Management Grid** - Grid with dynamic row editability
 11. **Responsive Layout** - Window size as signal for responsive UI
 12. **Dynamic View Title** - Reactive page title sync with browser tab
 13. **Current User Signal** - Application-wide user context from Spring Security
@@ -27,13 +25,17 @@ The Vaadin Signal API provides reactive state management for Vaadin Flow applica
 15. **Debounced Search** - Search-as-you-type with 300ms debouncing
 16. **URL State Integration** - Query parameters as signals with router integration
 17. **Custom PC Builder** - Complex state at scale with ~70 interdependent signals
+18. **LLM-Powered Task Management** - AI assistant with real-time chat interface
+20. **User Preferences** - Session-scoped signal for user settings
 
-### Multi-User Collaboration (MUC 1-4)
+### Multi-User Collaboration (6 total)
 
 1. **Shared Chat** - Collaborative message list with append-only operations
 2. **Collaborative Cursors** - Real-time cursor position sharing
 3. **Click Race Game** - Conflict resolution and atomic operations
 4. **Collaborative Editing** - Field-level locking for concurrent form editing
+6. **Shared Task List** - Real-time collaborative task management with inline editing
+7. **Shared LLM Task List** - Multi-user LLM-powered task management with chat
 
 ## Project Structure
 
@@ -100,16 +102,14 @@ Since the official Signal API is still in development, `MissingAPI.java` provide
 - `bindValue()` - Two-way binding for form fields
 - `bindVisible()` - Conditional visibility
 - `bindEnabled()` - Dynamic enabled/disabled state
-- `bindText()` / `bindElementText()` - Dynamic text content
+- `bindText()` - Dynamic text content
 - `bindBrowserTitle()` - Browser tab title binding
-- `bindStyle()` - CSS style property binding
 - `bindChildren()` - Dynamic component children
 - `bindItems()` - List binding for Grid/ComboBox
-- And more...
 
 ## Multi-User Architecture
 
-Multi-user use cases (MUC 1-4) demonstrate collaborative features using:
+Multi-user use cases (MUC 01-04, 06-07) demonstrate collaborative features using:
 
 - **CollaborativeSignals** - Application-scoped Spring component holding shared signals
 - **UserSessionRegistry** - Tracks active users with reactive signal
@@ -140,5 +140,5 @@ All users see real-time updates via Vaadin's automatic UI synchronization.
 ---
 
 **Status**: Active development
-**Last Updated**: 2026-01-14
-**Total Use Cases**: 21 (17 single-user + 4 multi-user)
+**Last Updated**: 2026-01-20
+**Total Use Cases**: 22 (16 single-user + 6 multi-user)

@@ -1,6 +1,18 @@
 # Signal API Features Not Covered in Use Cases
 
+**Last Updated**: 2026-01-20
+**Current Implementation**: 22 use cases (16 single-user + 6 multi-user)
+
 This document lists features **explicitly mentioned** in [vaadin/platform#8366](https://github.com/vaadin/platform/issues/8366) that are **NOT** demonstrated in the current use case collection.
+
+## Note on Coverage Status
+
+Some patterns mentioned in earlier analysis are now partially or fully covered:
+- ✅ **Async/Loading States** - Fully covered in UC14
+- ✅ **Debouncing** - Custom implementation in UC15
+- ✅ **URL State** - Covered in UC16
+- ⚠️ **Binder Integration** - Partially covered in UC09
+- ⚠️ **ComponentToggle** - Workaround with multiple `bindVisible()` in UC11
 
 ---
 
@@ -55,7 +67,13 @@ advancedSettings.setOpened(detailsOpenSignal);  // NOT COVERED
 
 > "adding a signal-aware value getter to Binding"
 
-**Not Covered:**
+**Partially Covered in UC09:**
+- ✅ UC09 demonstrates Binder + signals integration
+- ✅ Shows form validation with signals
+- ❌ Does NOT use `Binder::getValidationStatus()` as signal (API not available)
+- ❌ Does NOT use `Binding::value()` for cross-field validation (API not available)
+
+**Still Missing:**
 - `Binder::getValidationStatus()` returning `Signal<BinderValidationStatus<T>>`
 - `Binding::value()` - Signal-aware value getter for cross-field validation
 - Using `readBean()`, `writeBean()` within reactive effects
@@ -114,14 +132,23 @@ customContainer.bindElementChildren(elementsSignal);  // NOT COVERED
 
 > "Select::setItemEnabledProvider(...)"
 
-**Not Covered:**
+**Status: OUT OF SCOPE / REMOVED**
+
+**UC10 (Employee Management Grid) was removed** because:
+- Advanced Grid data provider APIs are not priority for core Signal API
+- Placeholder implementations in MissingAPI were incomplete
+- Basic Grid usage is adequately covered in UC04, UC07
+
+**Not Covered (Deferred):**
 - `Grid::setItemSelectableProvider()` - Dynamic row selectability
 - `Grid::setDropFilter()` - Dynamic drag-and-drop filtering
 - `GridContextMenu::setDynamicContentHandler()` - Dynamic context menu content
 - `GridPro.EditColumn::setCellEditableProvider()` - Dynamic cell editability
 - `Select::setItemEnabledProvider()` - Dynamic item enabled state
 
-**Potential Use Case:**
+**Note**: These advanced Grid features may be considered in future iterations, but are not part of the core Signal API demonstration set.
+
+**Example (Out of Scope):**
 ```java
 Grid<Employee> grid = new Grid<>(Employee.class);
 
@@ -147,13 +174,19 @@ grid.setItemSelectableProvider(employee ->  // NOT COVERED
 **Issue Quote:**
 > "ComponentToggle picks a single component out of lazy-creating component instances...toggle.addExclusive(BigComponent::new, width -> width > 1000)"
 
-**Not Covered:**
+**Partially Covered in UC11:**
+- ✅ UC11 demonstrates responsive layout with window size signal
+- ✅ Shows mutually exclusive component visibility with multiple `bindVisible()` calls
+- ❌ Does NOT use `ComponentToggle` class (API not available)
+- ❌ Components are eagerly created, not lazy-loaded
+
+**Still Missing:**
 - `ComponentToggle<T>` class
-- `.addExclusive()` - Mutually exclusive component rendering
+- `.addExclusive()` - Mutually exclusive component rendering with lazy instantiation
 - `.addFallback()` - Default component when no conditions match
 
 **What This Means:**
-We used multiple `bindVisible()` calls to show/hide components, but the issue proposes a dedicated utility for cleaner mutually exclusive rendering.
+We used multiple `bindVisible()` calls to show/hide components, which works but is less elegant than a dedicated `ComponentToggle` utility for mutually exclusive rendering with lazy component instantiation.
 
 **Potential Use Case:**
 ```java
@@ -174,34 +207,43 @@ add(viewToggle);
 
 ## Summary
 
-### High-Priority Missing Features:
-1. **`bindRequired()`** - Common in form validation
-2. **Binder Integration** - Critical for existing Vaadin applications
-3. **ComponentToggle** - Cleaner alternative to multiple `bindVisible()`
+### Coverage Status
 
-### Component-Specific Features:
+**Currently Implemented (22 use cases):**
+- ✅ Async/Loading States (UC14)
+- ✅ Debouncing (UC15)
+- ✅ URL State Integration (UC16)
+- ⚠️ Binder Integration (UC09 - partial)
+- ⚠️ ComponentToggle pattern (UC11 - workaround with `bindVisible()`)
+
+**Removed from Scope:**
+- ❌ UC03: Permission-Based UI (redundant with UC02, UC11, UC13)
+- ❌ UC10: Advanced Grid Providers (out of scope for core Signal API)
+
+### High-Priority Missing API Features:
+1. **`bindRequired()`** - Common in form validation, no workaround
+2. **`Binder::getValidationStatus()` as Signal** - Critical for existing Vaadin applications
+3. **`Binding::value()` for cross-field validation** - Essential for complex forms
+4. **`ComponentToggle`** - Cleaner alternative to multiple `bindVisible()` with lazy instantiation
+
+### Component-Specific Features (Lower Priority):
 4. **Two-way bindings** for Details, AppLayout, Checkbox, Menu, Crud
-5. **Reactive provider APIs** for Grid, Select, Menu components
+5. **`bindElementChildren()`** - Element-level child binding
 
-### Low-Level Features:
-6. **`bindElementChildren()`** - Element-level child binding
+### Deferred (Out of Scope):
+6. **Reactive provider APIs** for Grid, Select, Menu components - Advanced features, not core Signal API priority
 
 ### Recommendation:
-Add **3 additional use cases** to provide complete coverage:
 
-**Use Case 15: Form with Binder and Signal Validation**
-- Demonstrate `Binder::getValidationStatus()` returning signal
-- Show `Binding::value()` for cross-field validation
-- Integration between existing Binder API and new signal API
+**When API Features Become Available:**
+1. **UC23: Dynamic Required Fields** - Demonstrate `bindRequired()` API
+2. **UC24: Conditional Validation** - Show `Binding::value()` and `Binder::getValidationStatus()` as signals
+3. **Enhance UC11** - Refactor to use `ComponentToggle` when available
 
-**Use Case 16: Responsive Dashboard with ComponentToggle**
-- Use `ComponentToggle` for mutually exclusive views
-- Show `.addExclusive()` and `.addFallback()` patterns
-- Demonstrate lazy component instantiation
+**Current State:**
+The 22 implemented use cases provide **excellent coverage** of the core Signal API. The main gaps are:
+- Missing API features that are not yet implemented in Vaadin
+- Advanced Grid provider APIs that are intentionally deferred
+- Minor component-specific bindings that are lower priority
 
-**Use Case 17: Advanced Grid with Dynamic Editability**
-- Use `setCellEditableProvider()` with signals
-- Show `setItemSelectableProvider()` for conditional selection
-- Demonstrate complex grid interactions with signal-based providers
-
-Would you like me to create these three additional use cases?
+**No immediate action needed** - The current use case collection comprehensively demonstrates all available Signal API features.

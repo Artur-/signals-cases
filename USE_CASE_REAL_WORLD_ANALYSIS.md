@@ -1,97 +1,106 @@
 # Real-World Use Case Analysis
 
+**Last Updated**: 2026-01-20
+**Current Implementation**: 22 use cases (16 single-user + 6 multi-user)
+
 ## Executive Summary
 
 This document analyzes the current use case collection to determine if it's driven by **real-world web application requirements** or merely by **what the proposed Signal API happens to support**. The goal is to identify missing patterns that real applications need, which may require API extensions.
 
-## Current Coverage (UC 1-24)
+## Current Coverage (22 Implemented Use Cases)
 
 ### ✅ Well Covered Patterns
 
-**Basic Reactive UI (UC 1-3, 6-8)**
-- Component visibility based on state
-- Enable/disable based on conditions
-- Text binding to signals
-- Permission-based UI rendering
-- ✓ **Real-world need**: YES - fundamental patterns in any app
+**Basic Reactive UI (UC01, UC02, UC11, UC13)**
+- Component visibility based on state - ✅ UC02, UC11
+- Enable/disable based on conditions - ✅ UC01, UC08
+- Text binding to signals - ✅ UC01, UC06, UC12
+- Permission-based UI rendering - ✅ UC13 (Spring Security)
+- Responsive layouts - ✅ UC11 (window size signal)
+- **Real-world need**: YES - fundamental patterns in any app
 
-**Computed/Derived Values (UC 4-5, 11-13)**
-- Shopping cart totals
-- Pricing calculators
-- Cascading selectors
-- Master-detail views
-- ✓ **Real-world need**: YES - essential for business logic
+**Computed/Derived Values (UC05, UC06, UC07, UC17)**
+- Shopping cart totals - ✅ UC06
+- Invoice line item calculations - ✅ UC07
+- Cascading selectors - ✅ UC05
+- Master-detail views - ✅ UC07
+- Complex interdependent state - ✅ UC17 (~70 signals)
+- **Real-world need**: YES - essential for business logic
 
-**Form Handling (UC 2, 3, 14-15)**
-- Multi-step wizards
-- Binder integration with validation
-- Field synchronization
-- ✓ **Real-world need**: PARTIAL - missing key patterns (see below)
+**Form Handling (UC01, UC02, UC08, UC09)**
+- Multi-step wizards - ✅ UC08
+- Binder integration with validation - ✅ UC09 (partial)
+- Progressive disclosure - ✅ UC02
+- Dynamic form validation - ✅ UC01, UC08
+- **Real-world need**: PARTIAL - **missing dirty state tracking, conditional validation**
 
-**List/Grid Rendering (UC 9-10, 17)**
-- Filtered/sorted data
-- Dynamic task lists
-- Grid with dynamic editability
-- ✓ **Real-world need**: PARTIAL - missing pagination, selection, async loading
+**List/Grid Rendering (UC04, UC06, UC07)**
+- Filtered/sorted data - ✅ UC04
+- Dynamic task lists - ✅ UC06
+- Master-detail grids - ✅ UC07
+- **Real-world need**: PARTIAL - **missing pagination, multi-selection with bulk actions**
 
-**Multi-User Collaboration (UC 18-21)**
-- Shared chat
-- Cursor positions
-- Field locking
-- Conflict resolution
-- ✓ **Real-world need**: YES - cutting-edge, differentiator feature
+**Multi-User Collaboration (MUC01-04, MUC06-07)**
+- Shared chat - ✅ MUC01
+- Cursor positions - ✅ MUC02
+- Field locking - ✅ MUC04
+- Conflict resolution - ✅ MUC03
+- Collaborative task management - ✅ MUC06, MUC07
+- **Real-world need**: YES - cutting-edge, differentiator feature
 
-**Browser Integration (UC 22-24)**
-- Responsive layout (window size)
-- Dynamic browser title
-- Current user signal
-- ✓ **Real-world need**: YES - practical utility patterns
+**Browser Integration (UC11, UC12, UC13, UC20)**
+- Responsive layout (window size) - ✅ UC11
+- Dynamic browser title - ✅ UC12
+- Current user signal - ✅ UC13
+- User preferences - ✅ UC20
+- **Real-world need**: YES - practical utility patterns
+
+**Advanced Patterns (UC14, UC15, UC16, UC18)**
+- Async operations & loading states - ✅ UC14
+- Debounced search - ✅ UC15
+- URL state integration - ✅ UC16
+- LLM integration - ✅ UC18
+- **Real-world need**: YES - modern web app features
+
+## ✅ Recently Addressed Patterns
+
+### 1. Async Operations & Loading States ✅ COVERED
+**Real-world need: CRITICAL**
+
+**UC14: Async Data Loading** implements:
+- `Signal<LoadingState<T>>` pattern
+- Loading spinner display
+- Success data rendering
+- Error message with retry
+- State transitions: Loading → Success/Error
+
+**Status**: ✅ **FULLY COVERED** - Pattern is demonstrated
+
+### 2. Debouncing & Throttling ✅ COVERED
+**Real-world need: CRITICAL**
+
+**UC15: Debounced Search** implements:
+- Search-as-you-type with debouncing
+- 300ms debounce delay
+- Custom debouncing implementation
+- Search results display
+
+**Status**: ✅ **FULLY COVERED** - Workaround exists, official API would be better
+
+### 3. Route/Query Parameters as Signals ✅ COVERED
+**Real-world need: HIGH**
+
+**UC16: URL State Integration** implements:
+- Query parameters as signals
+- Two-way sync: URL ↔ Signal
+- Router integration pattern
+- Deep linking support
+
+**Status**: ✅ **FULLY COVERED** - Router integration pattern demonstrated
 
 ## 🚨 Missing Critical Patterns
 
-### 1. Async Operations & Loading States
-**Real-world need: CRITICAL**
-
-Every web app needs to:
-- Show loading spinners while fetching data
-- Display error messages when operations fail
-- Implement retry mechanisms
-- Handle optimistic updates with rollback
-
-**Missing Use Case:**
-```
-UC 25: Data Loading with States
-- Signal<LoadingState<T>> where LoadingState = Loading | Success(T) | Error(msg)
-- Show spinner while loading
-- Display data on success
-- Show error message with retry button
-- Optimistic update: update UI immediately, rollback on error
-```
-
-**API Gap:** Need pattern for async signal updates, error handling, and loading state representation.
-
-### 2. Debouncing & Throttling
-**Real-world need: CRITICAL**
-
-Search-as-you-type is ubiquitous:
-- Don't fire search on every keystroke
-- Debounce input to reduce server load
-- Show "searching..." indicator
-- Cancel previous requests
-
-**Missing Use Case:**
-```
-UC 26: Debounced Search
-- TextField with search query
-- Debounce signal updates (300ms)
-- Cancel in-flight requests on new input
-- Show search results with loading state
-- Highlight matching text
-```
-
-**API Gap:** Need `signal.debounce(duration)` or similar API.
-
-### 3. Pagination & Infinite Scroll
+### 1. Pagination & Infinite Scroll ❌ MISSING
 **Real-world need: CRITICAL**
 
 Large datasets require pagination:
@@ -100,21 +109,22 @@ Large datasets require pagination:
 - Total count signal
 - Next/previous navigation
 - Jump to page
-- Infinite scroll variant
+- Server-side data loading
 
 **Missing Use Case:**
 ```
-UC 27: Paginated Data Grid
+UC19: Paginated Data Grid
 - Grid with server-side data loading
+- Signal<Integer> currentPage
+- Signal<Integer> pageSize
+- Computed offset signal
 - Pagination controls (page 1 of 10)
-- Page size selector
 - Loading indicator during page change
-- Preserve filter/sort state across pages
 ```
 
-**API Gap:** Need patterns for server-side data loading with signals.
+**Status**: ❌ **NOT COVERED** - Essential pattern missing
 
-### 4. Form Dirty State & Unsaved Changes
+### 2. Form Dirty State & Unsaved Changes ❌ MISSING
 **Real-world need: CRITICAL**
 
 Forms need to track modifications:
@@ -125,7 +135,7 @@ Forms need to track modifications:
 
 **Missing Use Case:**
 ```
-UC 28: Form with Dirty State Tracking
+UC21: Form with Dirty State Tracking
 - Signal<Boolean> formDirty computed from field changes
 - "You have unsaved changes" warning on navigation
 - "Reset" button to restore original values
@@ -133,13 +143,12 @@ UC 28: Form with Dirty State Tracking
 - Visual indicator of modified fields
 ```
 
-**API Gap:** Need pattern for comparing signal value with original value.
+**Status**: ❌ **NOT COVERED** - Critical form pattern missing
 
-### 5. Selection State Management
+### 3. Selection State Management ❌ MISSING
 **Real-world need: CRITICAL**
 
 Grids and lists need selection:
-- Single selection
 - Multiple selection with checkboxes
 - Select all / deselect all
 - Bulk operations on selected items
@@ -147,7 +156,7 @@ Grids and lists need selection:
 
 **Missing Use Case:**
 ```
-UC 29: Grid with Multi-Select and Bulk Actions
+UC22: Grid with Multi-Select and Bulk Actions
 - Grid with checkbox column
 - Signal<Set<T>> selectedItems
 - "Select All" / "Deselect All" buttons
@@ -155,9 +164,9 @@ UC 29: Grid with Multi-Select and Bulk Actions
 - Selection count: "3 items selected"
 ```
 
-**API Gap:** May work with existing API, but pattern needs documentation.
+**Status**: ❌ **NOT COVERED** - Common CRUD pattern missing
 
-### 6. Toast/Notification Queue
+### 4. Toast/Notification Queue ❌ MISSING
 **Real-world need: HIGH**
 
 Apps need global notifications:
@@ -165,11 +174,11 @@ Apps need global notifications:
 - Auto-dismiss after timeout
 - Queue multiple messages
 - Manual dismiss
-- Position (top-right, bottom-left, etc.)
+- Position configuration
 
 **Missing Use Case:**
 ```
-UC 30: Global Notification System
+UC25: Global Notification System
 - Signal<List<Notification>> notificationQueue
 - Add notification from anywhere
 - Auto-dismiss after 5 seconds
@@ -177,30 +186,29 @@ UC 30: Global Notification System
 - Multiple notifications stack vertically
 ```
 
-**API Gap:** Pattern for managing a queue with auto-removal.
+**Status**: ❌ **NOT COVERED** - Common UX pattern
 
-### 7. Route/Query Parameters as Signals
-**Real-world need: HIGH**
+### 5. Conditional Validation Rules ❌ MISSING
+**Real-world need: MEDIUM**
 
-Deep linking requires routing integration:
-- Route parameters as signals
-- Query parameters as signals
-- Update URL when signal changes
-- Two-way sync: URL ↔ Signal
+Validation depends on other fields:
+- "End date required if start date is set"
+- "Phone OR email required (at least one)"
+- "Credit card fields required if payment method = 'card'"
 
 **Missing Use Case:**
 ```
-UC 31: Search with URL State
-- Search query from query parameter: ?q=vaadin
-- Filter from query parameter: ?category=flow
-- Update URL when user types/selects
-- Back button restores previous search
-- Shareable URLs with search state
+UC24: Form with Conditional Validation
+- Payment method selection (cash/card)
+- Credit card fields shown only if method = 'card'
+- Validation rules change based on payment method
+- Cross-field validation with Binding.value()
+- Error messages update reactively
 ```
 
-**API Gap:** Need integration between signals and Vaadin Router.
+**Status**: ❌ **NOT COVERED** - Needs `Binding.value()` API feature
 
-### 8. Auto-Save Drafts
+### 6. Auto-Save Drafts ❌ MISSING
 **Real-world need: MEDIUM-HIGH**
 
 Long forms need auto-save:
@@ -212,56 +220,16 @@ Long forms need auto-save:
 
 **Missing Use Case:**
 ```
-UC 32: Form with Auto-Save
+UC26: Form with Auto-Save
 - Save draft every 30 seconds if form is dirty
 - Signal<DraftStatus> showing last save time
 - Load draft on view initialization
 - Clear draft after successful submit
 ```
 
-**API Gap:** Pattern for periodic side effects triggered by signal changes.
+**Status**: ❌ **NOT COVERED** - Would benefit from dirty state pattern + timer
 
-### 9. Real-time Server Updates (SSE/WebSocket)
-**Real-world need: MEDIUM-HIGH**
-
-Real-time data from server:
-- Server-sent events as signal source
-- WebSocket messages as signals
-- Polling with signals
-- Connection status indicator
-
-**Missing Use Case:**
-```
-UC 33: Live Dashboard with Server-Sent Events
-- Connect to SSE endpoint
-- Signal<DashboardData> updated from server events
-- Connection status indicator
-- Auto-reconnect on disconnect
-- Display real-time metrics
-```
-
-**API Gap:** Pattern for external event sources updating signals.
-
-### 10. Conditional Validation Rules
-**Real-world need: MEDIUM**
-
-Validation depends on other fields:
-- "End date required if start date is set"
-- "Phone OR email required (at least one)"
-- "Credit card fields required if payment method = 'card'"
-
-**Missing Use Case:**
-```
-UC 34: Form with Conditional Validation
-- Payment method selection (cash/card)
-- Credit card fields shown only if method = 'card'
-- Validation rules change based on payment method
-- Error messages update reactively
-```
-
-**API Gap:** May work with existing Binder + signals, needs documentation.
-
-### 11. Undo/Redo
+### 7. Undo/Redo ❌ MISSING
 **Real-world need: MEDIUM**
 
 Rich editors and complex forms:
@@ -272,16 +240,16 @@ Rich editors and complex forms:
 
 **Missing Use Case:**
 ```
-UC 35: Text Editor with Undo/Redo
+UC27: Text Editor with Undo/Redo
 - Text area with content signal
 - History stack of previous values
 - Undo button (enabled when history not empty)
 - Redo button (enabled when forward history exists)
 ```
 
-**API Gap:** Pattern for maintaining signal history.
+**Status**: ❌ **NOT COVERED** - Advanced pattern, lower priority
 
-### 12. Theme/Preferences Toggle
+### 8. Theme/Preferences Toggle ❌ PARTIAL
 **Real-world need: MEDIUM**
 
 User preferences:
@@ -290,9 +258,11 @@ User preferences:
 - Persist to localStorage
 - Apply across all views
 
+**Partial Coverage**: UC20 demonstrates user preferences with session-scoped signals, but doesn't implement theme switching or persistence.
+
 **Missing Use Case:**
 ```
-UC 36: Dark Mode Toggle with Persistence
+UC28: Dark Mode Toggle with Persistence
 - Toggle switch for dark mode
 - Signal<Boolean> darkMode
 - Apply theme to all components
@@ -300,103 +270,112 @@ UC 36: Dark Mode Toggle with Persistence
 - Load preference on app start
 ```
 
-**API Gap:** Pattern for signal persistence.
+**Status**: ⚠️ **PARTIALLY COVERED** - UC20 shows preferences pattern, missing theme application
 
-## Summary: API Extensions Needed
+## Removed Use Cases
 
-Based on the analysis, the Signal API needs these extensions to handle real-world requirements:
+### UC03: Permission-Based UI ❌ REMOVED
+- **Reason**: UX issues without dynamic user switching
+- **Coverage**: Spring Security integration moved to UC13
+- **Redundancy**: `bindVisible()` covered in UC02, UC11
 
-### 1. Async & Loading State
+### UC10: Employee Management Grid ❌ REMOVED
+- **Reason**: Advanced Grid data provider APIs out of scope
+- **Coverage**: Basic Grid usage in UC04, UC07
+- **API Gap**: `bindEditable()`, `bindRowSelectable()`, `bindDragEnabled()` are placeholders
+
+## Summary: Coverage vs. Real-World Needs
+
+### Priority 0: Critical & Missing
+1. ❌ **Pagination** (UC19) - Essential for large datasets
+2. ❌ **Form Dirty State** (UC21) - Critical for forms
+3. ❌ **Multi-Selection + Bulk Actions** (UC22) - Common CRUD pattern
+
+### Priority 1: Common & Missing
+4. ❌ **Toast/Notification Queue** (UC25) - Common UX pattern
+5. ❌ **Conditional Validation** (UC24) - Needs API support
+6. ❌ **Auto-Save Drafts** (UC26) - Medium-high value
+
+### Priority 2: Advanced & Missing
+7. ❌ **Undo/Redo** (UC27) - Advanced pattern
+8. ⚠️ **Theme Toggle** (UC28) - Partial in UC20
+
+### Already Covered ✅
+- ✅ **Async/Loading States** (UC14)
+- ✅ **Debounced Search** (UC15)
+- ✅ **URL State** (UC16)
+- ✅ **Responsive Layout** (UC11)
+- ✅ **Current User Signal** (UC13)
+- ✅ **Dynamic View Title** (UC12)
+- ✅ **Multi-User Collaboration** (MUC01-07)
+
+## API Extensions Needed
+
+Based on the analysis, the Signal API would benefit from these extensions:
+
+### 1. Official Debouncing API
 ```java
-// Pattern for loading states
-Signal<LoadingState<T>> dataSignal = Signal.async(() -> fetchFromServer());
-
-enum LoadingState<T> {
-    Loading,
-    Success(T data),
-    Error(String message)
-}
-```
-
-### 2. Debouncing & Throttling
-```java
-// Debounce signal updates
+// Current: Custom implementation in UC15
+// Ideal: Built-in debouncing
 Signal<String> debouncedQuery = searchQuery.debounce(Duration.ofMillis(300));
-
-// Throttle signal updates
-Signal<Integer> throttledScroll = scrollPosition.throttle(Duration.ofMillis(100));
 ```
 
-### 3. Signal Effects with Cleanup
+### 2. Binding Validation Integration
 ```java
-// Side effects that run when signal changes
-signal.effect(() -> {
-    // Setup
-    var connection = openConnection();
-
-    // Cleanup function
-    return () -> connection.close();
-});
+// For UC24: Conditional Validation
+Binding.value() // Access binding values as signals for cross-field validation
+Binder.getValidationStatus() // Validation status as signal
 ```
 
-### 4. Signal History
+### 3. Dynamic Required Fields
 ```java
-// For undo/redo
+// For UC23: Dynamic Required Fields
+bindRequired(Signal<Boolean>) // Make field required based on signal
+```
+
+### 4. Signal History (Lower Priority)
+```java
+// For UC27: Undo/Redo
 SignalHistory<String> history = signal.withHistory();
 history.undo();
 history.redo();
 Signal<Boolean> canUndo = history.canUndo();
 ```
 
-### 5. Signal Persistence
+### 5. Signal Persistence (Lower Priority)
 ```java
-// Persist signal to localStorage
+// For UC28: Theme Toggle
 WritableSignal<Boolean> darkMode = Signal.persisted("darkMode", false);
-```
-
-### 6. Batching Updates
-```java
-// Update multiple signals atomically
-Signal.batch(() -> {
-    signal1.value(newValue1);
-    signal2.value(newValue2);
-    // UI updates only once after batch
-});
-```
-
-### 7. Router Integration
-```java
-// Route parameter as signal
-Signal<String> productId = router.param("productId");
-
-// Query parameter as signal
-WritableSignal<String> searchQuery = router.queryParam("q");
 ```
 
 ## Recommended Next Steps
 
-1. **Implement missing critical patterns** (UC 25-29)
-2. **Document API extensions needed** for async, debouncing, persistence
-3. **Validate API design** with real-world scenarios before finalization
-4. **Prioritize** based on frequency of use in actual applications:
-   - P0: Async/loading states, debouncing, pagination
-   - P1: Form dirty state, selection management, notifications
-   - P2: Router integration, auto-save, undo/redo
+### Immediate (Phase 1)
+1. **Implement UC19** (Pagination) - Critical missing pattern
+2. **Implement UC21** (Dirty State) - Critical for forms
+3. **Implement UC22** (Multi-Selection) - Common CRUD pattern
+
+### Short-term (Phase 2)
+4. **Implement UC24** (Conditional Validation) - When API available
+5. **Implement UC23** (Dynamic Required) - When API available
+6. **Implement UC25** (Notifications) - Common UX pattern
+
+### Long-term (Phase 3)
+7. Consider UC26 (Auto-Save), UC27 (Undo/Redo), UC28 (Theme Toggle)
 
 ## Conclusion
 
 **Current assessment:**
-- ✅ Good coverage of basic reactive patterns
-- ✅ Excellent collaborative multi-user patterns
-- ⚠️ Missing critical async/loading patterns
-- ⚠️ Missing debouncing for performance
-- ⚠️ Missing pagination for large datasets
-- ⚠️ Missing form dirty state tracking
-- ⚠️ Missing selection management
+- ✅ **Excellent coverage** of basic reactive patterns
+- ✅ **Excellent coverage** of multi-user collaboration (6 MUC cases)
+- ✅ **Good coverage** of async operations (UC14), debouncing (UC15), routing (UC16)
+- ❌ **Missing** pagination, form dirty state, multi-selection
+- ⚠️ **Partial** conditional validation (needs API), theme toggle (partial in UC20)
 
-**Answer to original question:** The current use cases are a **mix of both**:
-- Some are API-driven (showing off what signals can do)
-- Some are business-driven (shopping cart, forms, grids)
-- But several **critical real-world patterns are missing**
+**Answer to original question:** The current use cases are now **well-balanced**:
+- Comprehensive core Signal API coverage
+- Strong multi-user collaboration examples
+- Most critical real-world patterns are covered
+- **Three key patterns missing**: pagination, dirty state, multi-selection
 
-The API needs extensions to handle: async operations, debouncing, persistence, and router integration. Without these, developers will resort to workarounds or manual state management, defeating the purpose of the Signal API.
+**Recommendation**: Add UC19 (Pagination), UC21 (Dirty State), and UC22 (Multi-Selection) to complete the essential pattern library. This would bring the total to **25 use cases** with comprehensive real-world coverage.

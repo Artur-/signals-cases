@@ -100,41 +100,6 @@ public class MissingAPI {
     }
 
     /**
-     * Binds a Grid column's editable state to a Signal.
-     */
-    public static <T> void bindEditable(Grid.Column<T> column,
-            Signal<Boolean> signal) {
-        // Note: Simplified placeholder implementation - Grid column editability
-        // would require setting up editor components dynamically
-        ComponentEffect.effect(column.getGrid(), () -> {
-            boolean editable = signal.value();
-            // Full implementation would configure editor components here
-        });
-    }
-
-    /**
-     * Binds Grid row selection capability based on a Signal.
-     */
-    public static <T> void bindRowSelectable(Grid<T> grid,
-            Signal<Function<T, Boolean>> signal) {
-        // Note: Simplified placeholder implementation - would require
-        // intercepting selection logic to filter based on predicate
-        ComponentEffect.effect(grid, () -> {
-            Function<T, Boolean> predicate = signal.value();
-            // Full implementation would set up selection filtering here
-        });
-    }
-
-    /**
-     * Binds Grid drag capability to a Signal.
-     */
-    public static <T> void bindDragEnabled(Grid<T> grid,
-            Signal<Boolean> signal) {
-        ComponentEffect.bind(grid, signal,
-                (g, draggable) -> g.setRowsDraggable(draggable));
-    }
-
-    /**
      * Binds the browser document title to a Signal. The UI is used to get the
      * page and execute JavaScript to update document.title.
      */

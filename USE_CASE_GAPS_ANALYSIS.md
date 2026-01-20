@@ -1,178 +1,212 @@
 # Use Case Gaps Analysis
 
-## Current Coverage (10 Use Cases)
+**Last Updated**: 2026-01-20
+**Current Implementation**: 22 use cases (16 single-user + 6 multi-user)
 
-### What We Have
-1. **UC 3**: Dynamic Button State - form validation, async operations
-2. **UC 7**: Progressive Disclosure with Binder - complex conditional forms
-3. **UC 8**: Permission-Based UI - uses Spring Security roles
-4. **UC 9**: Filtered Data Grid - collection rendering, filtering
-5. **UC 11**: Cascading Selectors - dependent dropdowns
-6. **UC 12**: Shopping Cart - cross-component state, computed totals
-7. **UC 13**: Master-Detail - selection state across components
-8. **UC 14**: Multi-Step Wizard - navigation state, validation per step
-9. **UC 15**: Form with Binder - integration with Vaadin's data binding
-10. **UC 17**: Grid with Signal Providers - editable cells, row selection based on signals
+## Executive Summary
 
-## Missing Coverage Areas
+This document analyzes the current Signal API use case collection to identify:
+1. **Coverage Status** - What Signal API features are demonstrated
+2. **Gaps** - Missing patterns and API features
+3. **Recommendations** - Priority additions for comprehensive coverage
 
-### 1. Multi-User / Collaborative Features ❌
+## Current Coverage (22 Use Cases)
 
-**Not Covered**: Real-time collaboration where multiple users interact with shared state.
+### Single-User Use Cases (16 total)
 
-**Proposed New Use Cases:**
+| UC | Name | Key Signal Features Demonstrated |
+|----|------|----------------------------------|
+| **UC01** | Dynamic Button State | `WritableSignal`, `Signal.computed()`, `bindEnabled()`, `bindAttribute()` |
+| **UC02** | Progressive Disclosure | Nested `Signal.computed()`, `bindVisible()` |
+| **UC04** | Filtered Data Grid | Collection signals, `bindItems()` for Grid |
+| **UC05** | Cascading Selector | Dependent signals, `bindItems()` for ComboBox |
+| **UC06** | Shopping Cart | `ListSignal`, multi-level computed signals, `bindChildren()` |
+| **UC07** | Master-Detail Invoice | Selection state, computed aggregations |
+| **UC08** | Multi-Step Wizard | Step navigation, progressive validation |
+| **UC09** | Form with Binder | Partial Binder integration with signals |
+| **UC11** | Responsive Layout | Browser window size as signal, `bindVisible()` |
+| **UC12** | Dynamic View Title | `bindBrowserTitle()`, cross-component signals |
+| **UC13** | Current User Signal | Application-scoped signals, Spring Security integration |
+| **UC14** | Async Data Loading | LoadingState pattern, async operations |
+| **UC15** | Debounced Search | Custom debouncing implementation |
+| **UC16** | URL State Integration | Router query parameters as signals |
+| **UC17** | Custom PC Builder | Complex state with ~70 interdependent signals |
+| **UC18** | LLM Task Management | AI integration, real-time chat interface |
+| **UC20** | User Preferences | Session-scoped signals |
 
-**UC 18: Shared Chat/Message List**
-- **Scenario**: Chat-like view with append-only shared list signal
-- **Signal Features**:
-  - Shared `Signal<List<Message>>` across users
-  - Server-side signal source (Push/WebSocket)
-  - Append-only operations (add message to end)
-  - Each user can only add, not modify history
-- **API Needs**:
-  - Server-side Signal source
-  - Signal.fromPush() or similar
-  - Collaborative Signal API
+### Multi-User Collaboration Use Cases (6 total)
 
-**UC 19: Collaborative Cursor Positions**
-- **Scenario**: Show all users' cursor positions in a shared document/canvas
-- **Signal Features**:
-  - Each user updates own cursor position signal
-  - All users read all cursor signals
-  - Map<UserId, Signal<CursorPosition>>
-  - Real-time updates with Push
-- **API Needs**:
-  - Per-user writable signals
-  - Shared read-only signal map
-  - Efficient multi-signal updates
+| UC | Name | Key Signal Features Demonstrated |
+|----|------|----------------------------------|
+| **MUC01** | Shared Chat | `ListSignal`, append-only operations, Push updates |
+| **MUC02** | Collaborative Cursors | `MapSignal`, per-user signals, real-time position sharing |
+| **MUC03** | Click Race Game | Conflict resolution, atomic operations, server-authoritative state |
+| **MUC04** | Collaborative Editing | `MapSignal` for locks, field-level locking, concurrent edit prevention |
+| **MUC06** | Shared Task List | `ListSignal`, inline editing, real-time collaboration |
+| **MUC07** | Shared LLM Tasks | Multi-user LLM integration, collaborative task management |
 
-**UC 20: Competitive Button Click Game**
-- **Scenario**: Button appears, fastest clicker gets points, all see leaderboard
-- **Signal Features**:
-  - Optimistic UI with conflict resolution
-  - Server-authoritative signal (only server can update points)
-  - Race condition handling
-  - Shared leaderboard Signal<Map<User, Score>>
-- **API Needs**:
-  - Server-side signal coordination
-  - Conflict resolution strategy
-  - Atomic operations on shared signals
+## Recent Removals
 
-**UC 21: Collaborative Form Editing with Locking**
-- **Scenario**: Multiple users editing shared data, field-level locking
-- **Signal Features**:
-  - Field lock status Signal<Map<Field, User>>
-  - Optimistic locking on save
-  - Show who's editing what
-  - Conflict detection on submit
-- **API Needs**:
-  - Distributed signal state
-  - Lock/unlock operations
-  - Merge conflict detection
+### UC03: Permission-Based UI ❌ REMOVED
+**Reason**: UX issues (no dynamic user switching), redundant with UC02/UC11 (`bindVisible()`) and UC13 (Spring Security integration)
 
-### 2. Browser/Environment Signals ❌
+### UC10: Grid Providers ❌ REMOVED
+**Reason**: Advanced Grid data provider APIs (`bindEditable`, `bindRowSelectable`, `bindDragEnabled`) are out of scope. Basic Grid usage covered in UC04, UC07.
 
-**Not Covered**: Using browser state (window size, online status, etc.) as reactive signals.
+## API Coverage Matrix
 
-**Proposed New Use Case:**
+### Core Signal Types ✅ ALL COVERED
+- ✅ `ValueSignal<T>` - Used extensively across all use cases
+- ✅ `WritableSignal<T>` - UC01-UC20, all MUC cases
+- ✅ `Signal.computed()` - UC01, UC06, UC08, UC17, MUC06
+- ✅ `ListSignal<T>` - UC06, MUC01, MUC06, MUC07
+- ✅ `MapSignal<T>` - MUC02 (cursors), MUC03 (scores), MUC04 (locks)
+- ✅ `ReferenceSignal<T>` - Was in UC03 (removed)
 
-**UC 22: Responsive Layout with Window Size Signal**
-- **Scenario**: Different UI layout for small vs large screens
-- **Signal Features**:
-  - `Signal<WindowSize>` from browser window resize events
-  - Computed Signal<Boolean> for isSmallScreen
-  - ComponentToggle based on screen size
-  - Responsive component visibility/layout
-- **API Needs**:
-  - Signal.fromBrowserEvent() or similar
-  - Browser window dimensions as signal source
-  - Debounced resize signal
+### Core Binding Methods ✅ ALL COVERED
+- ✅ `bindValue()` - UC01, UC02, UC05, UC08, UC09, UC20, MUC04, MUC06
+- ✅ `bindVisible()` - UC02, UC11, MUC03
+- ✅ `bindEnabled()` - UC01, UC08, MUC06
+- ✅ `bindText()` - UC01, UC06, UC12, MUC01, MUC03, MUC06
+- ✅ `bindAttribute()` - UC01 (button theme)
+- ✅ `bindProperty()` - UC13 (user avatar)
 
-**Other Browser Signals to Consider:**
-- Online/offline status
-- Battery level (for PWAs)
-- Geolocation
-- Media query matching
-- Preferred color scheme (dark mode)
+### MissingAPI Helper Methods ✅ IMPLEMENTED AS WORKAROUNDS
+- ✅ `bindItems(Grid)` - UC04
+- ✅ `bindItems(ComboBox)` - UC05
+- ✅ `bindChildren()` - UC06, MUC01, MUC04, MUC06
+- ✅ `bindBrowserTitle()` - UC12
 
-### 3. Cross-Component Communication (Partial Coverage)
+### Advanced Patterns ✅ COVERED
+- ✅ Computed validation - UC01, UC08, UC09
+- ✅ Progressive disclosure - UC02, UC08
+- ✅ Cascading selectors - UC05
+- ✅ Multi-level computed - UC06, UC17
+- ✅ Master-detail - UC07
+- ✅ Binder integration - UC09 (partial)
+- ✅ Application-scoped signals - UC13, all MUC cases
+- ✅ Session-scoped signals - UC20
+- ✅ Async operations - UC14 (LoadingState pattern)
+- ✅ Debouncing - UC15 (custom implementation)
+- ✅ Router integration - UC16 (query params)
+- ✅ Browser events - UC11 (window resize)
+- ✅ Spring Security - UC13, all MUC cases
+- ✅ Multi-user collaboration - MUC01-07
+- ✅ Real-time Push - All MUC cases
+- ✅ LLM integration - UC18, MUC07
 
-**Partially Covered**: UC 12, 13 show some cross-component state
+## Identified Gaps
 
-**Gap Identified**:
+### 1. Missing Official API Features ❌ HIGH PRIORITY
 
-**UC 23: Dynamic View Title in Layout & Browser Tab**
-- **Scenario**: View defines its title, shown in main layout header and browser tab
-- **Signal Features**:
-  - View exposes `titleSignal` to layout
-  - Layout binds to view's title signal
-  - Browser tab title updates automatically
-  - Title = "App Name - " + viewTitle
-- **API Needs**:
-  - Signal propagation from view to layout
-  - Browser document.title binding
-  - Signal composition (prefix + view title)
+These features are in GAPS.md but not yet implemented in Vaadin Signal API:
 
-### 4. Authentication/User Context Signals (Partial Coverage)
+| Feature | Priority | Workaround Status | Proposed Use Case |
+|---------|----------|-------------------|-------------------|
+| `bindRequired()` | HIGH | ❌ None | **UC23**: Dynamic Required Fields |
+| `ComponentToggle` | MEDIUM | ✅ Multiple `bindVisible()` | **UC19**: Mutually exclusive components |
+| `Binder.getValidationStatus()` → Signal | HIGH | ⚠️ Partial in UC09 | Enhance **UC09** |
+| `Binding.value()` for cross-field validation | HIGH | ❌ None | **UC24**: Conditional Validation |
+| `Details.setOpened()` signal | LOW | ❌ None | Future consideration |
+| `AppLayout.setDrawerOpened()` signal | LOW | ❌ None | Future consideration |
 
-**Partially Covered**: UC 8 uses Spring Security but doesn't use signals
+### 2. Missing Common UI Patterns ❌ MEDIUM PRIORITY
 
-**Gap Identified**:
+| Pattern | Priority | Current Coverage | Proposed Use Case |
+|---------|----------|------------------|-------------------|
+| Pagination | HIGH | ❌ Not covered | **UC19**: Paginated Data Grid |
+| Form Dirty State | HIGH | ❌ Not covered | **UC21**: Unsaved Changes Warning |
+| Multi-Selection + Bulk Actions | MEDIUM | ❌ Not covered | **UC22**: Bulk Operations |
+| Toast/Notification Queue | MEDIUM | ❌ Not covered | Future consideration |
+| Undo/Redo | LOW | ❌ Not covered | Future consideration |
+| Auto-Save Drafts | LOW | ❌ Not covered | Future consideration |
+| Theme Toggle | LOW | ⚠️ UC20 shows preferences | Future consideration |
 
-**UC 24: Current User as Signal**
-- **Scenario**: User info in signal, used across views and layout
-- **Signal Features**:
-  - Application-wide `Signal<User>` from SecurityContext
-  - Used in MainLayout to show username
-  - Used in views to customize UI per user
-  - Reactive to impersonation changes
-- **API Needs**:
-  - Signal from Spring Security context
-  - Application-scoped signals
-  - Integration with VaadinSession
+### 3. Advanced Grid Patterns ⚠️ DEFERRED
 
-## Summary
+Advanced Grid data provider APIs are explicitly **OUT OF SCOPE**:
+- ~~`bindEditable()` for Grid columns~~ - Removed with UC10
+- ~~`bindRowSelectable()` with predicate~~ - Removed with UC10
+- ~~`bindDragEnabled()` with dynamic state~~ - Removed with UC10
 
-### Currently Missing
-| Category | Count | Priority |
-|----------|-------|----------|
-| Multi-user/Collaborative | 4 use cases | HIGH (if collaborative features are in scope) |
-| Browser/Environment Signals | 1+ use cases | MEDIUM-HIGH (responsive design is common) |
-| Cross-component Title | 1 use case | MEDIUM (common pattern) |
-| User Context Signal | 1 use case | MEDIUM (builds on existing UC 8) |
+**Rationale**: Basic Grid usage is covered (UC04, UC07). Advanced reactive Grid providers are not priority for core Signal API.
 
-### Questions to Answer
+## Recommendations
 
-1. **Are collaborative/multi-user features in scope for Signal API?**
-   - If YES: Add UC 18-21
-   - If NO: Document as out of scope
+### Phase 1: Fill Critical Pattern Gaps (Priority 0)
 
-2. **Should browser events be signal sources?**
-   - Window resize, online status, etc.
-   - If YES: Add UC 22
-   - If NO: Consider separate API
+Add these essential patterns that are missing:
 
-3. **Is application-wide signal sharing needed?**
-   - User context, theme, language
-   - If YES: Add UC 24
-   - If NO: Keep signals view-scoped
+1. **UC19: Paginated Data Grid**
+   - Server-side pagination with page number signals
+   - `WritableSignal<Integer>` for currentPage, pageSize
+   - Computed offset, next/prev controls
+   - Essential for large datasets
 
-4. **Priority order for new use cases:**
-   - Most valuable: UC 22 (responsive), UC 24 (user context)
-   - Most complex: UC 18-21 (multi-user)
-   - Most common: UC 23 (view title)
+2. **UC21: Form Dirty State Tracking**
+   - Unsaved changes warning
+   - `Signal.computed()` comparing current vs. original
+   - Navigation guards
+   - Critical for form-heavy apps
 
-## Recommendation
+3. **UC22: Multi-Selection with Bulk Actions**
+   - Grid selection with `WritableSignal<Set<T>>`
+   - Select all, bulk delete
+   - Selection count display
+   - Common CRUD pattern
 
-**Phase 1 - Add Common Single-User Patterns:**
-- UC 22: Responsive Layout (window size signal)
-- UC 23: Dynamic View Title
-- UC 24: Current User Signal
+### Phase 2: Add Missing API Coverage (When Available)
 
-**Phase 2 - Multi-User (if in scope):**
-- UC 18: Shared Message List
-- UC 19: Collaborative Cursors
-- UC 20: Race Condition Handling
-- UC 21: Collaborative Editing with Locks
+Once official API features are available, add:
 
-This would bring us from 10 to 13 use cases (Phase 1) or 17 use cases (both phases).
+4. **UC23: Dynamic Required Fields (`bindRequired`)**
+   - Field becomes required based on other fields
+   - `bindRequired(Signal<Boolean>)`
+   - Dynamic validation messages
+
+5. **UC24: Conditional Validation Rules**
+   - Cross-field validation with `Binding.value()`
+   - Validation depends on multiple signals
+   - Integration with Binder validation status signal
+
+### Phase 3: Consider Advanced Patterns (Priority 2)
+
+If time and scope permit:
+- Toast/notification queue with auto-dismiss
+- Undo/redo with signal history
+- Auto-save drafts with dirty state
+- Theme toggle with persistence
+
+## Post-Implementation Target
+
+After Phase 1 + Phase 2:
+- **Total Use Cases**: 27
+  - Single-user: 21 (current 16 + 5 new)
+  - Multi-user: 6 (MUC01-04, MUC06-07)
+
+This would provide:
+- ✅ Comprehensive core Signal API coverage
+- ✅ All essential UI patterns demonstrated
+- ✅ Multi-user collaboration examples
+- ✅ Real-world pattern library
+
+## Coverage Summary
+
+### Strengths ✅
+- **Core Signal API**: Fully covered (ValueSignal, WritableSignal, computed, ListSignal, MapSignal)
+- **Basic Bindings**: All core binding methods demonstrated
+- **Multi-User**: Strong coverage with 6 collaborative use cases
+- **Advanced Patterns**: Complex state (UC17), async (UC14), debouncing (UC15), LLM (UC18)
+- **Integration**: Spring Security (UC13), Router (UC16), Browser (UC11, UC12)
+
+### Gaps ❌
+- **Missing API Features**: `bindRequired()`, `ComponentToggle`, Binder validation signals
+- **Common Patterns**: Pagination, dirty state tracking, multi-selection
+- **Advanced Patterns**: Notifications, undo/redo, auto-save
+
+### Verdict
+Current implementation provides **excellent core API coverage** with strong multi-user examples. The main gaps are:
+1. A few critical missing API features (waiting on Vaadin implementation)
+2. Common UI patterns that should be demonstrated (pagination, dirty state, bulk operations)
+
+**Recommendation**: Implement Phase 1 use cases (UC19, UC21, UC22) to complete the essential pattern library.
