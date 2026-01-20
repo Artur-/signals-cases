@@ -216,8 +216,10 @@ add(viewToggle);
 - ⚠️ Binder Integration (UC09 - partial)
 - ⚠️ ComponentToggle pattern (UC11 - workaround with `bindVisible()`)
 
-**Removed from Scope:**
-- ❌ UC03: Permission-Based UI (redundant with UC02, UC11, UC13)
+**Removed/Replaced:**
+- ✅ UC03: Permission-Based UI → Replaced with Interactive SVG Shape Editor
+  - Old UC03 was redundant with UC02, UC11, UC13
+  - New UC03 demonstrates extensive `bindAttribute()` usage with SVG elements
 - ❌ UC10: Advanced Grid Providers (out of scope for core Signal API)
 
 ### High-Priority Missing API Features:

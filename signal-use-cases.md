@@ -39,6 +39,31 @@ Signals provide a reactive, declarative approach to building UIs where component
 
 ---
 
+### UC 3: Interactive SVG Shape Editor
+
+**Description**: Interactive SVG canvas with three geometric shapes (circle, rectangle, star) that users can manipulate through sliders, color pickers, and input controls. Demonstrates extensive use of `bindAttribute()` for SVG properties with real-time visual feedback.
+
+**Key Patterns**:
+- SVG attribute binding (cx, cy, r, width, height, fill, stroke, etc.)
+- Computed SVG attributes (transform, points)
+- Multiple signals affecting single visual element
+- Complex attribute calculations (star polygon points generation)
+- Color attribute binding
+- Numeric-to-string transformations
+- Real-time visual feedback of signal changes
+
+**Route**: `/use-case-03`
+
+**Signals**: ~28 total (24 writable + 4 computed)
+
+**Demonstrated API**:
+- `element.bindAttribute()` - Extensive use for SVG attributes
+- `Signal.computed()` - Transform and points calculations
+- Signal composition - Multiple inputs affecting single output
+- Two-way binding - Slider/color picker controls
+
+---
+
 ### UC 4: Filtered and Sorted Data Grid
 
 **Description**: Product inventory grid with client-side filtering (search, category, in-stock) and sorting.

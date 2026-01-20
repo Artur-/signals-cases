@@ -18,6 +18,7 @@ This document analyzes the current Signal API use case collection to identify:
 |----|------|----------------------------------|
 | **UC01** | Dynamic Button State | `WritableSignal`, `Signal.computed()`, `bindEnabled()`, `bindAttribute()` |
 | **UC02** | Progressive Disclosure | Nested `Signal.computed()`, `bindVisible()` |
+| **UC03** | Interactive SVG Shape Editor | Extensive `bindAttribute()` for SVG, computed transforms, ~28 signals |
 | **UC04** | Filtered Data Grid | Collection signals, `bindItems()` for Grid |
 | **UC05** | Cascading Selector | Dependent signals, `bindItems()` for ComboBox |
 | **UC06** | Shopping Cart | `ListSignal`, multi-level computed signals, `bindChildren()` |
@@ -45,10 +46,12 @@ This document analyzes the current Signal API use case collection to identify:
 | **MUC06** | Shared Task List | `ListSignal`, inline editing, real-time collaboration |
 | **MUC07** | Shared LLM Tasks | Multi-user LLM integration, collaborative task management |
 
-## Recent Removals
+## Recent Changes
 
-### UC03: Permission-Based UI ❌ REMOVED
-**Reason**: UX issues (no dynamic user switching), redundant with UC02/UC11 (`bindVisible()`) and UC13 (Spring Security integration)
+### UC03: Permission-Based UI → Interactive SVG Shape Editor ✅ REPLACED
+**Old UC03** (Permission-Based UI) was removed due to UX issues (no dynamic user switching) and redundancy with UC02/UC11 (`bindVisible()`) and UC13 (Spring Security integration).
+
+**New UC03** (Interactive SVG Shape Editor) replaces it, demonstrating extensive `bindAttribute()` usage with SVG elements, filling a critical gap in attribute binding demonstration.
 
 ### UC10: Grid Providers ❌ REMOVED
 **Reason**: Advanced Grid data provider APIs (`bindEditable`, `bindRowSelectable`, `bindDragEnabled`) are out of scope. Basic Grid usage covered in UC04, UC07.
@@ -61,14 +64,14 @@ This document analyzes the current Signal API use case collection to identify:
 - ✅ `Signal.computed()` - UC01, UC06, UC08, UC17, MUC06
 - ✅ `ListSignal<T>` - UC06, MUC01, MUC06, MUC07
 - ✅ `MapSignal<T>` - MUC02 (cursors), MUC03 (scores), MUC04 (locks)
-- ✅ `ReferenceSignal<T>` - Was in UC03 (removed)
+- ✅ `ReferenceSignal<T>` - Was in old UC03 Permission-Based UI (removed)
 
 ### Core Binding Methods ✅ ALL COVERED
 - ✅ `bindValue()` - UC01, UC02, UC05, UC08, UC09, UC20, MUC04, MUC06
 - ✅ `bindVisible()` - UC02, UC11, MUC03
 - ✅ `bindEnabled()` - UC01, UC08, MUC06
 - ✅ `bindText()` - UC01, UC06, UC12, MUC01, MUC03, MUC06
-- ✅ `bindAttribute()` - UC01 (button theme)
+- ✅ `bindAttribute()` - **UC03 (extensive SVG attributes)**, UC01 (button theme)
 - ✅ `bindProperty()` - UC13 (user avatar)
 
 ### MissingAPI Helper Methods ✅ IMPLEMENTED AS WORKAROUNDS

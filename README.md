@@ -12,6 +12,7 @@ The Vaadin Signal API provides reactive state management for Vaadin Flow applica
 
 1. **Dynamic Button State** - Form validation with reactive button enable/disable
 2. **Progressive Disclosure** - Nested conditional form sections
+3. **Interactive SVG Shape Editor** - Dynamic SVG manipulation with extensive attribute binding
 4. **Filtered Data Grid** - Client-side filtering and sorting
 5. **Cascading Selector** - Dependent dropdown menus (country → state → city)
 6. **Shopping Cart** - Real-time cart totals and item management

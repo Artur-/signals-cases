@@ -55,6 +55,12 @@ This document analyzes the current use case collection to determine if it's driv
 - User preferences - ✅ UC20
 - **Real-world need**: YES - practical utility patterns
 
+**Visual & Graphics (UC03)**
+- SVG manipulation with attribute binding - ✅ UC03
+- Real-time visual property updates - ✅ UC03
+- Complex computed transformations - ✅ UC03
+- **Real-world need**: MEDIUM - dashboards, data visualization, graphic apps
+
 **Advanced Patterns (UC14, UC15, UC16, UC18)**
 - Async operations & loading states - ✅ UC14
 - Debounced search - ✅ UC15
@@ -272,12 +278,18 @@ UC28: Dark Mode Toggle with Persistence
 
 **Status**: ⚠️ **PARTIALLY COVERED** - UC20 shows preferences pattern, missing theme application
 
-## Removed Use Cases
+## Removed/Replaced Use Cases
 
-### UC03: Permission-Based UI ❌ REMOVED
-- **Reason**: UX issues without dynamic user switching
-- **Coverage**: Spring Security integration moved to UC13
-- **Redundancy**: `bindVisible()` covered in UC02, UC11
+### UC03: Permission-Based UI → Interactive SVG Shape Editor ✅ REPLACED
+- **Old UC03** (Permission-Based UI) removed due to UX issues without dynamic user switching
+- **Redundancy**: `bindVisible()` covered in UC02, UC11; Spring Security in UC13
+- **New UC03** (Interactive SVG Shape Editor) demonstrates:
+  - Extensive `bindAttribute()` usage with SVG elements
+  - ~28 signals controlling shapes (circle, rectangle, star)
+  - Computed SVG attributes (transform, points)
+  - Real-time visual feedback
+  - Fills gap in attribute binding demonstration
+- **Real-world need**: MEDIUM - Visual/graphic applications, dashboards, data visualization
 
 ### UC10: Employee Management Grid ❌ REMOVED
 - **Reason**: Advanced Grid data provider APIs out of scope

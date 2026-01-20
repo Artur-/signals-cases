@@ -284,8 +284,12 @@ public class MainLayout extends AppLayout implements BeforeEnterObserver {
         }
 
         String className = viewClass.getSimpleName();
-        String githubUrl = "https://github.com/vaadin/signals-cases/tree/main/src/main/java/com/example/views/"
-                + className + ".java";
+        String packageName = viewClass.getPackageName();
+
+        // Construct the correct path based on package structure
+        String packagePath = packageName.replace(".", "/");
+        String githubUrl = "https://github.com/vaadin/signals-cases/tree/main/src/main/java/"
+                + packagePath + "/" + className + ".java";
         sourceCodeLink.setHref(githubUrl);
 
         // Hide link for views that don't have source in the views package
