@@ -2,13 +2,17 @@ package com.example;
 
 import java.util.List;
 import java.util.function.Function;
+import java.util.stream.Stream;
 
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.ComponentEffect;
+import com.vaadin.flow.component.HasValue;
 import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.data.binder.Binder;
 import com.vaadin.signals.ListSignal;
 import com.vaadin.signals.Signal;
 import com.vaadin.signals.ValueSignal;
+import com.vaadin.signals.WritableSignal;
 
 /**
  * Temporary helper class providing static methods for Signal-based component
@@ -30,17 +34,15 @@ public class MissingAPI {
     }
 
     /**
-     * Binds a Grid's items to a ListSignal.
-     * Registers dependencies on all individual ValueSignals within the ListSignal
-     * by reading each one, so the Grid updates when any item changes.
+     * Binds a Grid's items to a ListSignal. Registers dependencies on all
+     * individual ValueSignals within the ListSignal by reading each one, so the
+     * Grid updates when any item changes.
      */
     public static <T> void bindItems(Grid<T> grid, ListSignal<T> listSignal) {
         ComponentEffect.effect(grid, () -> {
             List<ValueSignal<T>> signals = listSignal.value();
             // Read each individual signal to register dependency
-            List<T> items = signals.stream()
-                    .map(ValueSignal::value)
-                    .toList();
+            List<T> items = signals.stream().map(ValueSignal::value).toList();
             grid.setItems(items);
         });
     }
@@ -123,5 +125,52 @@ public class MissingAPI {
         ComponentEffect.bind((Component) component, signal,
                 (c, invalid) -> ((com.vaadin.flow.component.HasValidation) c)
                         .setInvalid(invalid));
+    }
+
+    /**
+     * Binds a Binder field to a Signal. May be replaced by official API
+     * <code>public Signal Binder::bind(HasValue field, String property)</code>.
+     *
+     * @param binder
+     *            the Binder instance (unused but kept for future signature
+     *            compatibility)
+     * @param field
+     *            the field to bind
+     * @param property
+     *            the property name (unused but kept for future signature
+     *            compatibility)
+     * @param <T>
+     *            the field value type
+     */
+    public static <T> Signal<T> binderBind(Binder<?> binder,
+            HasValue<?, T> field, String property) {
+        WritableSignal<T> signal = new ValueSignal<>(field.getValue());
+        field.bindValue(signal);
+        return signal;
+    }
+
+    /**
+     * Validates a Binder binding inside a ComponentEffect, triggered by the
+     * given Signals. Workaround for future official API that may execute
+     * validator always inside as a Signal effect.
+     *
+     * @param binder
+     *            the Binder instance
+     * @param effectOwner
+     *            the Component to own the effect
+     * @param validatedBindingProperty
+     *            the property name of the binding to validate
+     * @param triggerSignals
+     *            the Signals that trigger the validation when their value
+     *            changes
+     */
+    public static void binderValidateInEffect(Binder<?> binder,
+            Component effectOwner, String validatedBindingProperty,
+            Signal<?>... triggerSignals) {
+        ComponentEffect.effect(effectOwner, () -> {
+            Stream.of(triggerSignals).forEach(Signal::value);
+            binder.getBinding(validatedBindingProperty)
+                    .ifPresent(Binder.Binding::validate);
+        });
     }
 }
