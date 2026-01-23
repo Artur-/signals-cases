@@ -14,6 +14,7 @@ import java.util.stream.Collectors;
 import com.example.MissingAPI;
 
 import com.vaadin.flow.component.AttachEvent;
+import com.vaadin.flow.component.ComponentEffect;
 import com.vaadin.flow.component.DetachEvent;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H2;
@@ -189,11 +190,9 @@ public class UseCase15View extends VerticalLayout {
                 .set("flex-direction", "column").set("gap", "0.5em")
                 .set("margin-top", "1em");
 
-        MissingAPI
-                .bindComponentChildren(resultsContainer,
-                        searchResultsSignal.map(prodSignals -> prodSignals
-                                .stream().map(ValueSignal::value).toList()),
-                        product -> {
+        ComponentEffect.bindChildren(resultsContainer, searchResultsSignal,
+                        value -> {
+                            Product product = value.peek();
                             Div card = new Div();
                             card.getStyle().set("background-color", "#ffffff")
                                     .set("border",
