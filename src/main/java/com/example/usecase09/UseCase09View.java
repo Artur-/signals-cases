@@ -73,21 +73,6 @@ public class UseCase09View extends VerticalLayout {
                 "age");
 
         // Validation signals
-        Signal<Boolean> usernameValidSignal = Signal.computed(() -> {
-            String username = usernameSignal.value();
-            return username != null && username.length() >= 3;
-        });
-
-        Signal<Boolean> emailValidSignal = Signal.computed(() -> {
-            String email = emailSignal.value();
-            return email != null && email.contains("@") && email.contains(".");
-        });
-
-        Signal<Boolean> passwordValidSignal = Signal.computed(() -> {
-            String password = passwordSignal.value();
-            return password != null && password.length() >= 8;
-        });
-
         Signal<Boolean> passwordsMatchSignal = Signal.computed(() -> {
             String password = passwordSignal.value();
             String confirmPassword = confirmPasswordSignal.value();
@@ -117,15 +102,24 @@ public class UseCase09View extends VerticalLayout {
 
         // binder bindings
         binder.forField(usernameField)
-                .withValidator(value -> usernameValidSignal.value(),
+                .withValidator(value -> {
+                            String username = usernameSignal.value();
+                            return username != null && username.length() >= 3;
+                        },
                         "Username must be at least 3 characters")
                 .bind("username");
         binder.forField(emailField)
-                .withValidator(value -> emailValidSignal.value(),
+                .withValidator(value -> {
+                            String email = emailSignal.value();
+                            return email != null && email.contains("@") && email.contains(".");
+                        },
                         "Please enter a valid email address")
                 .bind("email");
         binder.forField(passwordField)
-                .withValidator(value -> passwordValidSignal.value(),
+                .withValidator(value -> {
+                            String password = passwordSignal.value();
+                            return password != null && password.length() >= 8;
+                        },
                         "Password must be at least 8 characters")
                 .bind("password");
         binder.forField(confirmPasswordField)
