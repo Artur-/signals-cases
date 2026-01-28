@@ -12,13 +12,28 @@ Signals are reactive primitives that automatically track dependencies and update
 - Declarative reactive patterns
 - No manual dependency tracking needed
 
+## Signal Packages
+
+Signals are organized into two packages based on their scope:
+
+**Local Signals** (`com.vaadin.signals.local`):
+- `ValueSignal<T>` - For UI-scoped state (form fields, component state)
+
+**Shared Signals** (`com.vaadin.signals.shared`):
+- `SharedValueSignal<T>` - For application/session-scoped single values
+- `SharedListSignal<T>` - For shared lists
+- `SharedMapSignal<V>` - For shared key-value maps
+
 ## Signal Types
 
-### ValueSignal<T>
+### ValueSignal<T> (Local)
 
-**Use for:** Primitive values, immutable objects, or when you want value equality checks.
+**Package:** `com.vaadin.signals.local`
+
+**Use for:** Local UI state - form fields, component state, view-specific data.
 
 **Key characteristics:**
+- Scoped to a single UI/view
 - Compares values using `.equals()`
 - Only notifies subscribers when the value actually changes
 - Best for simple data types (String, Integer, Boolean, etc.)
@@ -26,6 +41,8 @@ Signals are reactive primitives that automatically track dependencies and update
 
 **Important methods:**
 ```java
+import com.vaadin.signals.local.ValueSignal;
+
 ValueSignal<String> name = new ValueSignal<>("Alice");
 
 // Get current value
@@ -42,6 +59,8 @@ name.subscribe(() -> {
 
 **Example:**
 ```java
+import com.vaadin.signals.local.ValueSignal;
+
 private final ValueSignal<String> usernameSignal = new ValueSignal<>("");
 private final ValueSignal<Boolean> isLoadingSignal = new ValueSignal<>(false);
 
@@ -53,62 +72,72 @@ Button submitButton = new Button("Submit");
 submitButton.bindEnabled(isLoadingSignal.map(loading -> !loading));
 ```
 
-### ReferenceSignal<T>
+### SharedValueSignal<T>
 
-**Use for:** Mutable objects where you care about reference changes, not internal mutations.
+**Package:** `com.vaadin.signals.shared`
+
+**Use for:** Application or session-scoped state that needs to be shared between users or components.
 
 **Key characteristics:**
-- Compares references using `==`
-- Notifies on reference change only
-- Does NOT notify if you mutate the object's fields
-- Use when you want to replace entire objects
+- Can be shared across multiple UIs/sessions
+- Thread-safe for concurrent access
+- Compares values using `.equals()`
+- Perfect for global settings, shared counters, application state
 
 **Important methods:**
 ```java
-ReferenceSignal<Person> person = new ReferenceSignal<>(new Person("Alice"));
+import com.vaadin.signals.shared.SharedValueSignal;
 
-// Get current reference
-Person current = person.value();
+SharedValueSignal<String> globalMessage = new SharedValueSignal<>("");
 
-// Set new reference (always notifies, even if equal)
-person.value(new Person("Alice")); // Notifies!
+// Get current value
+String current = globalMessage.value();
 
-// Mutating fields does NOT notify
-person.value().setName("Bob"); // No notification!
+// Set new value (all subscribers notified)
+globalMessage.value("System maintenance in 5 minutes");
 
-// Use modify() to mutate and notify - modifies in place and triggers update
-person.modify(p -> p.setName("Charlie")); // Notifies after modification!
+// Subscribe to changes
+globalMessage.subscribe(() -> {
+    System.out.println("Message: " + globalMessage.value());
+});
 ```
 
-**When to use:**
-- Large mutable objects where you replace the whole instance
-- When you want to force updates by replacing references
-- Arrays and mutable collections (but consider ListSignal/MapSignal instead)
-
-**Example - replacing entire list:**
+**Example - Shared counter:**
 ```java
-// Replace the entire list to trigger updates
-items.value(new ArrayList<>(items.value()));
+import com.vaadin.signals.shared.SharedValueSignal;
 
-// For collections, ListSignal is preferred:
-ListSignal<String> items = new ListSignal<>(String.class);
-items.insertLast("Item"); // Proper reactivity
+@Service
+public class VisitorCounterService {
+    private final SharedValueSignal<Integer> visitorCount = new SharedValueSignal<>(0);
+
+    public SharedValueSignal<Integer> getVisitorCount() {
+        return visitorCount;
+    }
+
+    public void incrementVisitors() {
+        visitorCount.value(visitorCount.value() + 1);
+    }
+}
 ```
 
-### ListSignal<T>
+### SharedListSignal<T>
 
-**Use for:** Managing lists of items with granular reactivity.
+**Package:** `com.vaadin.signals.shared`
+
+**Use for:** Managing shared lists of items with granular reactivity.
 
 **Key characteristics:**
 - Stores `List<ValueSignal<T>>` internally
 - Each item is individually reactive
 - Structural changes (add/remove) notify the list
 - Item mutations notify individual signals
-- Perfect for lists of components, collections
+- Perfect for shared collections, chat messages, collaborative lists
 
 **Important methods:**
 ```java
-ListSignal<Task> tasks = new ListSignal<>(Task.class);
+import com.vaadin.signals.shared.SharedListSignal;
+
+SharedListSignal<Task> tasks = new SharedListSignal<>(Task.class);
 
 // Add items
 tasks.insertLast(new Task("Write docs"));
@@ -131,7 +160,9 @@ tasks.value().get(0).value(updatedTask);
 
 **Example with mutations:**
 ```java
-ListSignal<Task> tasks = new ListSignal<>(Task.class);
+import com.vaadin.signals.shared.SharedListSignal;
+
+SharedListSignal<Task> tasks = new SharedListSignal<>(Task.class);
 
 // Add tasks
 tasks.insertLast(new Task("1", "First", "Description", TODO, false));
@@ -144,9 +175,11 @@ tasks.value().stream()
     .ifPresent(sig -> sig.value(sig.value().withCompleted(true)));
 ```
 
-### MapSignal<V>
+### SharedMapSignal<V>
 
-**Use for:** Managing String key-value pairs with reactive updates.
+**Package:** `com.vaadin.signals.shared`
+
+**Use for:** Managing shared String key-value pairs with reactive updates.
 
 **Key characteristics:**
 - Keys are always String type
@@ -158,7 +191,9 @@ tasks.value().stream()
 
 **Important methods:**
 ```java
-MapSignal<User> users = new MapSignal<>(User.class);
+import com.vaadin.signals.shared.SharedMapSignal;
+
+SharedMapSignal<User> users = new SharedMapSignal<>(User.class);
 
 // Add/update entries
 users.put("user1", new User("Alice"));
@@ -188,7 +223,9 @@ if (sig != null) {
 
 **Example - Active users tracking:**
 ```java
-MapSignal<UserInfo> activeUsers = new MapSignal<>(UserInfo.class);
+import com.vaadin.signals.shared.SharedMapSignal;
+
+SharedMapSignal<UserInfo> activeUsers = new SharedMapSignal<>(UserInfo.class);
 
 // User joins
 activeUsers.put(sessionId, new UserInfo(username, "lobby"));
@@ -223,6 +260,8 @@ Computed signals are created automatically when you use `.map()` or explicitly w
 
 **Using .map() for single-signal transformations:**
 ```java
+import com.vaadin.signals.local.ValueSignal;
+
 ValueSignal<String> name = new ValueSignal<>("alice");
 
 Signal<String> upperName = name.map(String::toUpperCase);
@@ -234,6 +273,8 @@ name.value("bob");
 
 **Using Signal.computed() for multi-signal dependencies:**
 ```java
+import com.vaadin.signals.local.ValueSignal;
+
 ValueSignal<Integer> width = new ValueSignal<>(10);
 ValueSignal<Integer> height = new ValueSignal<>(5);
 
@@ -249,7 +290,9 @@ width.value(20); // area is now 100
 
 **Complex computed signals:**
 ```java
-ListSignal<Task> tasks = new ListSignal<>(Task.class);
+import com.vaadin.signals.shared.SharedListSignal;
+
+SharedListSignal<Task> tasks = new SharedListSignal<>(Task.class);
 
 Signal<Integer> completedCount = Signal.computed(() ->
     (int) tasks.value().stream()
@@ -267,16 +310,19 @@ Signal<String> status = Signal.computed(() -> {
 
 ## Important Distinctions
 
-### ListSignal<T> vs List<Signal<T>>
+### SharedListSignal<T> vs ValueSignal<List<T>>
 
-**ListSignal<T>:**
-- A signal containing a list of signals
+**SharedListSignal<T>:**
+- A shared signal containing a list of signals
 - Tracks both list structure changes AND individual item changes
-- When you read from a ListSignal, you get `List<ValueSignal<T>>`
+- When you read from a SharedListSignal, you get `List<ValueSignal<T>>`
 - Use when you need reactivity for both the collection and items
+- Best for shared/collaborative lists
 
 ```java
-ListSignal<Task> tasks = new ListSignal<>(Task.class);
+import com.vaadin.signals.shared.SharedListSignal;
+
+SharedListSignal<Task> tasks = new SharedListSignal<>(Task.class);
 
 // Get list of signals
 List<ValueSignal<Task>> signals = tasks.value();
@@ -288,23 +334,34 @@ signals.get(0).value(newTask);
 tasks.insertLast(anotherTask);
 ```
 
-**Signal<List<T>>** (using .map()):
-- A computed signal that produces a plain List<T>
-- Only tracks list structure changes
-- Item mutations inside the list won't trigger updates
-- Use for read-only derived lists
+**ValueSignal<List<T>>:**
+- A local signal holding a plain list
+- Only notifies when the entire list reference changes
+- Use for local UI state where you replace the whole list
+- Simpler when you don't need individual item reactivity
 
 ```java
-ListSignal<Task> tasks = new ListSignal<>(Task.class);
+import com.vaadin.signals.local.ValueSignal;
 
-// Convert to plain list
-Signal<List<Task>> plainList = tasks.map(signals ->
-    signals.stream().map(ValueSignal::value).toList()
-);
+ValueSignal<List<String>> items = new ValueSignal<>(new ArrayList<>());
 
-// This is what you get:
-List<Task> items = plainList.value(); // Plain list, not reactive items
+// Must replace entire list to trigger updates
+List<String> newList = new ArrayList<>(items.value());
+newList.add("New item");
+items.value(newList);
 ```
+
+### Local vs Shared Signals
+
+**Use Local Signals (`ValueSignal`) when:**
+- State is specific to one view/component
+- No need to share between users
+- Form fields, UI toggles, local filters
+
+**Use Shared Signals (`SharedValueSignal`, `SharedListSignal`, `SharedMapSignal`) when:**
+- State needs to be shared across multiple users
+- Building collaborative features (chat, presence, shared editing)
+- Application-wide settings or counters
 
 ## General Guidelines
 
@@ -323,25 +380,27 @@ new Thread(() -> {
 
 This applies to all signal operations:
 - Setting values: `signal.value(newValue)`
-- Adding to lists: `listSignal.insertLast(item)`
-- Updating maps: `mapSignal.put(key, value)`
+- Adding to lists: `sharedListSignal.insertLast(item)`
+- Updating maps: `sharedMapSignal.put(key, value)`
 - Computed signals: automatically update from any thread
 
 ### Sharing Signals Between Users
 
-**Signals can be shared globally via static fields or application-scoped beans.**
+**Shared signals can be shared globally via static fields or application-scoped beans.**
 
 No special configuration needed - just make the signal accessible to multiple sessions:
 
 **Using static fields:**
 ```java
+import com.vaadin.signals.shared.SharedListSignal;
+
 @Service
 public class ChatService {
     // Shared across all users
-    private static final ListSignal<ChatMessage> messages =
-        new ListSignal<>(ChatMessage.class);
+    private static final SharedListSignal<ChatMessage> messages =
+        new SharedListSignal<>(ChatMessage.class);
 
-    public ListSignal<ChatMessage> getMessages() {
+    public SharedListSignal<ChatMessage> getMessages() {
         return messages;
     }
 
@@ -353,9 +412,11 @@ public class ChatService {
 
 **Using application-scoped beans:**
 ```java
+import com.vaadin.signals.shared.SharedMapSignal;
+
 @Component
 @Scope("application") // or @ApplicationScoped
-public class ActiveUsersSignal extends MapSignal<UserInfo> {
+public class ActiveUsersSignal extends SharedMapSignal<UserInfo> {
     public ActiveUsersSignal() {
         super(UserInfo.class);
     }
@@ -384,15 +445,23 @@ public class LobbyView extends VerticalLayout {
 
 ### 1. Choose the right signal type
 
-Use ValueSignal for immutable objects like records:
+Use local `ValueSignal` for UI-scoped state:
 
 ```java
-ValueSignal<Task> task = new ValueSignal<>(
-    new Task("1", "Title", "Desc", TODO, false)
-);
+import com.vaadin.signals.local.ValueSignal;
+
+ValueSignal<String> searchFilter = new ValueSignal<>("");
 ```
 
-Use ReferenceSignal for mutable objects where you replace the entire instance.
+Use shared signals for multi-user state:
+
+```java
+import com.vaadin.signals.shared.SharedValueSignal;
+import com.vaadin.signals.shared.SharedListSignal;
+
+SharedValueSignal<String> globalAnnouncement = new SharedValueSignal<>("");
+SharedListSignal<Task> sharedTasks = new SharedListSignal<>(Task.class);
+```
 
 ### 2. Replace objects in ValueSignal, never mutate
 
@@ -401,11 +470,13 @@ Use ReferenceSignal for mutable objects where you replace the entire instance.
 task.value(task.value().withTitle("New Title"));
 ```
 
-### 3. Use ListSignal for collections
+### 3. Use SharedListSignal for shared collections
 
 ```java
-ListSignal<String> items = new ListSignal<>(String.class);
-items.insertLast("Item"); // UI updates automatically
+import com.vaadin.signals.shared.SharedListSignal;
+
+SharedListSignal<String> items = new SharedListSignal<>(String.class);
+items.insertLast("Item"); // UI updates automatically for all users
 ```
 
 ### 4. Use Signal.computed() for multi-signal dependencies
@@ -432,9 +503,11 @@ public void buildUI() {
 
 ## Common Patterns
 
-### Form with validation
+### Form with validation (Local)
 
 ```java
+import com.vaadin.signals.local.ValueSignal;
+
 private final ValueSignal<String> emailSignal = new ValueSignal<>("");
 private final Signal<Boolean> isValidEmail = emailSignal.map(email ->
     email.matches("^[A-Za-z0-9+_.-]+@(.+)$")
@@ -447,10 +520,12 @@ Button submitButton = new Button("Submit");
 submitButton.bindEnabled(isValidEmail);
 ```
 
-### Computed statistics
+### Computed statistics (Shared)
 
 ```java
-private final ListSignal<Task> tasks = new ListSignal<>(Task.class);
+import com.vaadin.signals.shared.SharedListSignal;
+
+private final SharedListSignal<Task> tasks = new SharedListSignal<>(Task.class);
 
 private final Signal<Integer> totalTasks = tasks.map(List::size);
 
@@ -469,8 +544,10 @@ private final Signal<Integer> pendingTasks = Signal.computed(() ->
 ### Multi-user collaboration
 
 ```java
-private final MapSignal<UserInfo> activeUsers =
-    new MapSignal<>(UserInfo.class);
+import com.vaadin.signals.shared.SharedMapSignal;
+
+private final SharedMapSignal<UserInfo> activeUsers =
+    new SharedMapSignal<>(UserInfo.class);
 
 private final Signal<Integer> userCount = activeUsers.map(Map::size);
 
@@ -516,23 +593,34 @@ items.value().add("Item"); // No notification!
 
 **Solution:**
 ```java
-// Use ListSignal instead
-ListSignal<String> items = new ListSignal<>(String.class);
+// Option 1: Use SharedListSignal for shared state
+SharedListSignal<String> items = new SharedListSignal<>(String.class);
 items.insertLast("Item");
 
-// OR replace the entire list
-items.value(new ArrayList<>(items.value()));
+// Option 2: Replace the entire list for local state
+List<String> newList = new ArrayList<>(items.value());
+newList.add("Item");
+items.value(newList);
 ```
 
 ## API Quick Reference
 
-### ValueSignal<T>
+### ValueSignal<T> (Local)
+- **Package:** `com.vaadin.signals.local`
 - `T value()` - Get current value
 - `void value(T newValue)` - Set new value
 - `void subscribe(Runnable callback)` - React to changes
 - `<R> Signal<R> map(Function<T, R> mapper)` - Transform value
 
-### ListSignal<T>
+### SharedValueSignal<T>
+- **Package:** `com.vaadin.signals.shared`
+- `T value()` - Get current value
+- `void value(T newValue)` - Set new value
+- `void subscribe(Runnable callback)` - React to changes
+- `<R> Signal<R> map(Function<T, R> mapper)` - Transform value
+
+### SharedListSignal<T>
+- **Package:** `com.vaadin.signals.shared`
 - `List<ValueSignal<T>> value()` - Get list of signals
 - `void insertLast(T item)` - Add to end
 - `void insertFirst(T item)` - Add to start
@@ -540,7 +628,8 @@ items.value(new ArrayList<>(items.value()));
 - `void remove(ValueSignal<T> signal)` - Remove item
 - `<R> Signal<R> map(Function<List<ValueSignal<T>>, R>)` - Transform
 
-### MapSignal<V>
+### SharedMapSignal<V>
+- **Package:** `com.vaadin.signals.shared`
 - `Map<String, ValueSignal<V>> value()` - Get map of signals
 - `void put(String key, V value)` - Add/update entry
 - `ValueSignal<V> get(String key)` - Get signal for key
