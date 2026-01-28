@@ -2,6 +2,8 @@ package com.example.views;
 
 import jakarta.annotation.security.PermitAll;
 
+import java.util.Locale;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import com.example.security.CurrentUserSignal;
@@ -24,6 +26,7 @@ import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.component.select.Select;
 import com.vaadin.flow.component.sidenav.SideNav;
 import com.vaadin.flow.component.sidenav.SideNavItem;
 import com.vaadin.flow.component.textfield.TextField;
@@ -122,6 +125,35 @@ public class MainLayout extends AppLayout implements BeforeEnterObserver {
             }
         });
 
+        // Locale selector for i18n
+        Map<String, Locale> localeMap = Map.of(
+                "English", Locale.ENGLISH,
+                "Espanol", new Locale("es"),
+                "Suomi", new Locale("fi")
+        );
+
+        Select<String> localeSelector = new Select<>();
+        localeSelector.setItems("English", "Espanol", "Suomi");
+        localeSelector.setWidth("100px");
+        localeSelector.getStyle().set("margin-right", "1em");
+
+        // Initialize selected value from user preferences
+        Locale currentLocale = userPreferences.localeSignal().value();
+        String initialSelection = localeMap.entrySet().stream()
+                .filter(e -> e.getValue().getLanguage().equals(currentLocale.getLanguage()))
+                .map(Map.Entry::getKey)
+                .findFirst()
+                .orElse("English");
+        localeSelector.setValue(initialSelection);
+
+        // Update locale signal on change
+        localeSelector.addValueChangeListener(event -> {
+            Locale selectedLocale = localeMap.get(event.getValue());
+            if (selectedLocale != null) {
+                userPreferences.localeSignal().value(selectedLocale);
+            }
+        });
+
         // Current user display with avatar
         HorizontalLayout userDisplay = new HorizontalLayout();
         userDisplay.setSpacing(true);
@@ -158,7 +190,7 @@ public class MainLayout extends AppLayout implements BeforeEnterObserver {
         logoutButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
 
         addToNavbar(toggle, title, activeUsersDisplay, nicknameField,
-                userDisplay, logoutButton);
+                localeSelector, userDisplay, logoutButton);
 
         // Fixed-position source code link overlay
         Div sourceCodeContainer = new Div();
