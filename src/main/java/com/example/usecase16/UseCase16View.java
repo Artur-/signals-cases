@@ -30,8 +30,6 @@ import com.vaadin.flow.server.VaadinServletRequest;
 import com.vaadin.signals.Signal;
 import com.vaadin.signals.WritableSignal;
 import com.vaadin.signals.local.ValueSignal;
-import com.vaadin.signals.shared.SharedListSignal;
-import com.vaadin.signals.shared.SharedValueSignal;
 
 /**
  * Use Case 16: Search with URL State (Router Integration)
@@ -119,8 +117,8 @@ public class UseCase16View extends VerticalLayout
             "");
     private final WritableSignal<String> categorySignal = new ValueSignal<>(
             "All");
-    private final SharedListSignal<Article> filteredArticlesSignal = new SharedListSignal<>(
-            Article.class);
+    private final WritableSignal<List<Article>> filteredArticlesSignal = new ValueSignal<>(
+            List.of());
 
     private boolean isInitializing = true;
 
@@ -225,8 +223,7 @@ public class UseCase16View extends VerticalLayout
 
         MissingAPI
                 .bindComponentChildren(resultsContainer,
-                        filteredArticlesSignal.map(artSignals -> artSignals
-                                .stream().map(SharedValueSignal::value).toList()),
+                        filteredArticlesSignal,
                         article -> {
                             Div card = new Div();
                             card.getStyle().set("background-color", "#ffffff")
@@ -357,8 +354,7 @@ public class UseCase16View extends VerticalLayout
                 .filter(article -> article.matches(query, category))
                 .collect(Collectors.toList());
 
-        filteredArticlesSignal.clear();
-        filtered.forEach(filteredArticlesSignal::insertLast);
+        filteredArticlesSignal.value(filtered);
     }
 
     private String getBaseUrl() {

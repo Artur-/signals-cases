@@ -30,8 +30,6 @@ import com.vaadin.flow.router.Route;
 import com.vaadin.signals.Signal;
 import com.vaadin.signals.WritableSignal;
 import com.vaadin.signals.local.ValueSignal;
-import com.vaadin.signals.shared.SharedListSignal;
-import com.vaadin.signals.shared.SharedValueSignal;
 
 /**
  * Use Case 15: Debounced Search
@@ -83,8 +81,8 @@ public class UseCase15View extends VerticalLayout {
             "");
     private final WritableSignal<Boolean> isSearchingSignal = new ValueSignal<>(
             false);
-    private final SharedListSignal<Product> searchResultsSignal = new SharedListSignal<>(
-            Product.class);
+    private final WritableSignal<List<Product>> searchResultsSignal = new ValueSignal<>(
+            List.of());
     private final WritableSignal<Integer> searchCountSignal = new ValueSignal<>(
             0);
 
@@ -186,8 +184,7 @@ public class UseCase15View extends VerticalLayout {
 
         MissingAPI
                 .bindComponentChildren(resultsContainer,
-                        searchResultsSignal.map(prodSignals -> prodSignals
-                                .stream().map(SharedValueSignal::value).toList()),
+                        searchResultsSignal,
                         product -> {
                             Div card = new Div();
                             card.getStyle().set("background-color", "#ffffff")
@@ -294,7 +291,7 @@ public class UseCase15View extends VerticalLayout {
         }
 
         if (query.isEmpty()) {
-            searchResultsSignal.clear();
+            searchResultsSignal.value(List.of());
             return;
         }
 
@@ -318,8 +315,7 @@ public class UseCase15View extends VerticalLayout {
                             .collect(Collectors.toList());
 
                     getUI().ifPresent(ui -> ui.access(() -> {
-                        searchResultsSignal.clear();
-                        results.forEach(searchResultsSignal::insertLast);
+                        searchResultsSignal.value(results);
                         isSearchingSignal.value(false);
                     }));
                 });
