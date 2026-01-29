@@ -1,9 +1,9 @@
 # Vaadin Signal API Use Cases - Current Implementation
 
-**Last Updated**: 2026-01-20
-**Current Implementation**: 22 use cases (16 single-user + 6 multi-user)
+**Last Updated**: 2026-01-29
+**Current Implementation**: 26 use cases (20 single-user + 6 multi-user)
 
-This document describes the 22 use cases currently implemented in this project.
+This document describes the 26 use cases currently implemented in this project.
 
 ## Introduction
 
@@ -11,7 +11,7 @@ Signals provide a reactive, declarative approach to building UIs where component
 
 ---
 
-## Single-User Use Cases (16 total)
+## Single-User Use Cases (20 total)
 
 ### UC 1: Dynamic Button State
 
@@ -279,6 +279,22 @@ Signals provide a reactive, declarative approach to building UIs where component
 
 ---
 
+### UC 19: Parallel Data Loading with Individual Spinners
+
+**Description**: Parallel async loading where each item has its own loading state and spinner. Demonstrates managing multiple independent async operations with Signals.
+
+**Key Patterns**:
+- `ListSignal<ValueSignal<DataItem>>` for per-item state management
+- Spring `@Async` for true parallel execution
+- Individual loading spinners (ProgressBar indeterminate)
+- Per-item error handling with retry
+- CSS Grid for responsive layout
+- Vaadin Card components with conditional rendering
+
+**Route**: `/use-case-19`
+
+---
+
 ### UC 20: User Preferences
 
 **Description**: Session-scoped user preferences that persist across page navigations within the same session. Demonstrates session-level state management with signals, showing how preferences can be stored per-user and maintained throughout their browsing session.
@@ -291,6 +307,21 @@ Signals provide a reactive, declarative approach to building UIs where component
 - Session lifecycle management
 
 **Route**: `/use-case-20`
+
+---
+
+### UC 22: Real-time Dashboard
+
+**Description**: Interactive dashboard with real-time updates for various metrics. Features multiple charts (area, pie), a data grid with service health status, and highlight cards showing key performance indicators with percentage changes.
+
+**Key Patterns**:
+- Real-time data updates with signals
+- Multiple chart types (Board, Charts)
+- Grid integration with signals
+- Custom highlight cards with reactive badges
+- Polling-based data simulation
+
+**Route**: `/use-case-22`
 
 ---
 
@@ -445,6 +476,11 @@ Multi-user use cases (MUC01-04, MUC06-07) share signals across sessions:
 
 ## Recent Changes
 
+**2026-01-29 Update:**
+- Added UC22 (Real-time Dashboard)
+- Added missing documentation for UC19 (Parallel Loading)
+- Updated counts to reflect 26 total use cases (20 single-user + 6 multi-user)
+
 **2026-01-20 Update:**
 - Removed UC3 (Permission-Based UI) - redundant with UC2/UC11/UC13
 - Removed UC10 (Grid Providers) - advanced Grid APIs out of scope
@@ -452,5 +488,5 @@ Multi-user use cases (MUC01-04, MUC06-07) share signals across sessions:
 
 ---
 
-**Total Use Cases**: 22 (16 single-user + 6 multi-user)
-**Last Updated**: 2026-01-20
+**Total Use Cases**: 26 (20 single-user + 6 multi-user)
+**Last Updated**: 2026-01-29
